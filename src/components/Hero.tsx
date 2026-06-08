@@ -13,8 +13,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
 
   // Bank related images to slide every second (1000ms)
   const slides = [
-    { url: '/gallery/odiyooru.png', alt: 'Community Event' },
-    { url: '/gallery/odiyooru.png', alt: 'Community Event' }
+    { url: '/gallery/hero_1.png', alt: 'Community Banking' },
+    { url: '/gallery/hero_2.png', alt: 'Business Growth' }
   ];
 
   useEffect(() => {
