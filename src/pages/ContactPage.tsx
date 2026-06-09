@@ -3,7 +3,7 @@ import { Contact } from '../components/Contact';
 
 import { Calculators } from '../components/Calculators';
 import { Mail, MapPin, Calculator } from 'lucide-react';
-import { useLanguage } from '../App';
+import { useLanguage } from '../context/LanguageContext';
 
 export const ContactPage: React.FC = () => {
   const { t } = useLanguage();

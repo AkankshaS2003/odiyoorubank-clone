@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useLanguage } from '../App';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FaqItem {
   q: string;

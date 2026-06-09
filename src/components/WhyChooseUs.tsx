@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Users, Landmark, Zap, Gift, Headphones } from 'lucide-react';
-import { useLanguage } from '../App';
+import { useLanguage } from '../context/LanguageContext';
 
 export const WhyChooseUs: React.FC = () => {
   const { t } = useLanguage();

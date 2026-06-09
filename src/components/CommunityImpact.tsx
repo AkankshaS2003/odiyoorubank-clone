@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, Sprout, Briefcase, HeartHandshake } from 'lucide-react';
-import { useLanguage } from '../App';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ImpactItem {
   id: string;

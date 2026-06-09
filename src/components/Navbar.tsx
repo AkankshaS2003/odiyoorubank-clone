@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, Menu, X, User, LogOut, ChevronDown, CheckCircle2, Landmark, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../App';
-import type { Language } from '../App';
+import { useLanguage } from '../context/LanguageContext';
+import type { Language } from '../context/LanguageContext';
 
 interface NavbarProps {
   currentTab: string;
@@ -66,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
   return (
     <>
       {/* 1. Static Top Header (Ticker & Banner) */}
-      <header className="w-full bg-[#0A315C] z-30 select-none shadow-sm">
+      <header className="w-full bg-[#0A315C] z-30 select-none shadow-sm print:hidden">
         {/* Row 1: Top Bar with Ticker & Clock */}
         <div className="bg-[#051C36] text-white text-sm font-semibold py-2 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-0 border-b border-secondary/20">
           {/* Left: Scrolling Headlines Marquee */}
@@ -96,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
       </header>
 
       {/* 2. Row 3: Sticky Navigation Menu & Quick Actions */}
-      <nav className="sticky top-0 z-40 bg-[#ED7F1E] backdrop-blur-md border-b border-slate-150 shadow-sm select-none">
+      <nav className="sticky top-0 z-40 bg-[#ED7F1E] backdrop-blur-md border-b border-slate-150 shadow-sm select-none print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
 
@@ -158,9 +158,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
               {/* Gallery */}
               <button
                 onClick={() => handleNavClick('media')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'Gallery' ? 'text-white' : 'text-white/90'}`}
+                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'media' ? 'text-white' : 'text-white/90'}`}
               >
-                {t('Gallery')}
+                {t('media')}
+              </button>
+
+              {/* Eligibility */}
+              <button
+                onClick={() => handleNavClick('loan-eligibility')}
+                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'loan-eligibility' ? 'text-white' : 'text-white/90'}`}
+              >
+                {t('loan_eligibility')}
               </button>
 
               {/* Membership */}
@@ -243,7 +251,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 <button onClick={() => handleNavClick('about')} className="text-left py-2 hover:text-primary">{t('about')}</button>
                 <button onClick={() => handleNavClick('management')} className="text-left py-2 hover:text-primary">{t('management')}</button>
                 <button onClick={() => handleNavClick('products')} className="text-left py-2 hover:text-primary">{t('products')}</button>
-                <button onClick={() => handleNavClick('Gallery')} className="text-left py-2 hover:text-primary">{t('Gallery')}</button>
+                <button onClick={() => handleNavClick('media')} className="text-left py-2 hover:text-primary">{t('media')}</button>
+                <button onClick={() => handleNavClick('loan-eligibility')} className="text-left py-2 hover:text-primary">{t('loan_eligibility')}</button>
                 <button onClick={() => handleNavClick('membership')} className="text-left py-2 hover:text-primary">{t('membership')}</button>
                 <button onClick={() => handleNavClick('contact')} className="text-left py-2 hover:text-primary">{t('contact')}</button>
               </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Percent, ArrowUpRight, CheckCircle } from 'lucide-react';
-import { useLanguage } from '../App';
+import { useLanguage } from '../context/LanguageContext';
 
 export const Calculators: React.FC = () => {
   const { t } = useLanguage();

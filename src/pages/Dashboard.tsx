@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../App';
+import { useLanguage } from '../context/LanguageContext';
 import { Landmark, PiggyBank, Briefcase, Plus, TrendingUp, CheckCircle2, UserCheck, CreditCard, RefreshCw, ShieldAlert } from 'lucide-react';
 
 interface DashboardProps {

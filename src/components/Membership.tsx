@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award, CheckCircle2, BadgePercent } from 'lucide-react';
-import { useLanguage } from '../App';
+import { useLanguage } from '../context/LanguageContext';
 
 interface MembershipProps {
   setCurrentTab: (tab: string) => void;

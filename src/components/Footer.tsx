@@ -1,6 +1,6 @@
 import React from 'react';
 import { Globe, Camera, Tv } from 'lucide-react';
-import { useLanguage } from '../App';
+import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 interface FooterProps {
@@ -17,7 +17,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
   };
 
   return (
-    <footer className="bg-[#051C36] text-white border-t border-white/20 pt-16 pb-8 relative">
+    <footer className="bg-[#051C36] text-white border-t border-white/20 pt-16 pb-8 relative print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-12">
