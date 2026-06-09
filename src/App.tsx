@@ -324,48 +324,51 @@ export const translations: TranslationDict = {
     en: 'Shivaji Nagar Branch, Pune',
   },
 
-  // --- Downloads ---
-  form_center: {
-    en: 'Form Center',
+  // --- Community Impact ---
+  impact_badge: {
+    en: 'Social Responsibility',
   },
-  download_docs: {
-    en: 'Download Official Banking Documents',
+  impact_main_title: {
+    en: 'Cooperative Community Impact',
   },
-  download_desc: {
-    en: 'Access, print, and fill official cooperative bank forms. Fill out forms at your convenience before visiting branch counters.',
+  impact_main_desc: {
+    en: 'We dedicate a portion of our profits and extensive resources to drive financial inclusion, micro-enterprise growth, and rural development across the communities we serve.',
   },
-  form1_title: {
-    en: 'Shareholder Membership Application Form',
+  impact_shg_title: {
+    en: 'Women Self-Help Groups',
   },
-  form1_desc: {
-    en: 'Required form to register as a shareholder co-owner and subscribe to initial society share units.',
+  impact_shg_desc: {
+    en: 'Empowering rural women with micro-credit lines, skills training, and collective financial independence programs.',
   },
-  form2_title: {
-    en: 'Savings & FD Account Opening Mandate',
+  impact_shg_stats: {
+    en: 'Active Groups',
   },
-  form2_desc: {
-    en: 'Standard form to authorize opening checking, saving, recurring, or fixed deposit portfolios.',
+  impact_agri_title: {
+    en: 'Agricultural Subsidies',
   },
-  form3_title: {
-    en: 'Unified Customer e-KYC Declaration',
+  impact_agri_desc: {
+    en: 'Providing low-interest crop loans, tractor financing, and seasonal cash advances for local farming families.',
   },
-  form3_desc: {
-    en: 'Mandatory declaration sheet to append photocopies of Aadhaar Card, PAN Card, and passport photos.',
+  impact_agri_stats: {
+    en: 'Funds Disbursed',
   },
-  form4_title: {
-    en: 'Gold Loan Valuation & Appraisal Checklist',
+  impact_micro_title: {
+    en: 'Micro-Enterprise Growth',
   },
-  form4_desc: {
-    en: 'Valuation criteria cataloguing purity testing parameters and sanction checklists for gold loan clients.',
+  impact_micro_desc: {
+    en: 'Supporting street vendors and small shop owners with daily collection accounts and collateral-free starter loans.',
   },
-  download_btn: {
-    en: 'Download Form',
+  impact_micro_stats: {
+    en: 'Businesses Funded',
   },
-  compiling: {
-    en: 'Compiling...',
+  impact_welfare_title: {
+    en: 'Financial Literacy Camps',
   },
-  downloaded: {
-    en: 'Downloaded!',
+  impact_welfare_desc: {
+    en: 'Conducting regular awareness workshops on savings, digital banking safety, and cooperative governance rights.',
+  },
+  impact_welfare_stats: {
+    en: 'Annual Camps',
   },
 
   // --- FAQ ---

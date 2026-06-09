@@ -8,7 +8,7 @@ import { Membership } from '../components/Membership';
 import { Testimonials } from '../components/Testimonials';
 import { News } from '../components/News';
 import { Contact } from '../components/Contact';
-import { Downloads } from '../components/Downloads';
+import { CommunityImpact } from '../components/CommunityImpact';
 import { FAQ } from '../components/FAQ';
 
 interface HomeProps {
@@ -46,7 +46,7 @@ export const Home: React.FC<HomeProps> = ({ setCurrentTab }) => {
       <News />
 
       {/* 8. Downloadable banking PDF templates */}
-      <Downloads />
+      <CommunityImpact />
 
       {/* 9. Accordion FAQs */}
       <FAQ />
