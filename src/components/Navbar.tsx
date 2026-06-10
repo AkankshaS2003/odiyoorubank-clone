@@ -139,23 +139,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 {t('about')}
               </button>
 
-              {/* Management */}
-              <button
-                onClick={() => handleNavClick('management')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'management' ? 'text-white' : 'text-white/90'}`}
-              >
-                {t('management')}
-              </button>
-
-              {/* Products */}
-              <button
-                onClick={() => handleNavClick('products')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'products' ? 'text-white' : 'text-white/90'}`}
-              >
-                {t('products')}
-              </button>
-
-              {/* Gallery */}
+              {/* Gallery (Media) */}
               <button
                 onClick={() => handleNavClick('media')}
                 className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'media' ? 'text-white' : 'text-white/90'}`}
@@ -163,38 +147,47 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 {t('media')}
               </button>
 
-              {/* Eligibility */}
-              <button
-                onClick={() => handleNavClick('loan-eligibility')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'loan-eligibility' ? 'text-white' : 'text-white/90'}`}
-              >
-                {t('loan_eligibility')}
-              </button>
-
-              {/* Membership */}
-              <button
-                onClick={() => handleNavClick('membership')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'membership' ? 'text-white' : 'text-white/90'}`}
-              >
-                {t('membership')}
-              </button>
-
-              {/* Contact Us */}
-              <button
-                onClick={() => handleNavClick('contact')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'contact' ? 'text-white' : 'text-white/90'}`}
-              >
-                {t('contact')}
-              </button>
-
-              {user?.role === 'admin' && (
+              {/* Others Dropdown */}
+              <div className="relative group">
                 <button
-                  onClick={() => handleNavClick('admin')}
-                  className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'admin' ? 'text-white' : 'text-white/90'}`}
+                  className={`flex items-center space-x-1 text-sm font-bold uppercase tracking-wider transition-colors hover:text-white text-white/90`}
                 >
-                  RAG Console
+                  <span>Others</span>
+                  <ChevronDown className="h-4 w-4" />
                 </button>
-              )}
+                <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50 overflow-hidden py-1">
+                  <button
+                    onClick={() => handleNavClick('management')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
+                  >
+                    {t('management')}
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('products')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
+                  >
+                    {t('products')}
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('loan-eligibility')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
+                  >
+                    {t('loan_eligibility')}
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('membership')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
+                  >
+                    {t('membership')}
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('contact')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
+                  >
+                    {t('contact')}
+                  </button>
+                </div>
+              </div>
 
             </nav>
 
@@ -219,32 +212,45 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
               {/* Auth states */}
               <div className="hidden sm:flex items-center space-x-2">
                 {isAuthenticated && user ? (
-                  <>
-                    <button
-                      onClick={() => handleNavClick('dashboard')}
-                      className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs shadow-md transition-all cursor-pointer"
-                    >
-                      {t('dashboard')}
+                  <div className="relative group">
+                    <button className="p-2 text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer flex items-center focus:outline-none">
+                      <User className="h-5 w-5" />
                     </button>
-                    {user.role === 'admin' && (
-                      <button
-                        onClick={() => handleNavClick('admin')}
-                        className="px-4 py-2 rounded-xl bg-[#0A315C] hover:bg-[#051C36] text-[#ED7F1E] font-bold text-xs shadow-md transition-all cursor-pointer"
-                      >
-                        RAG Console
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        logout();
-                        handleNavClick('home');
-                      }}
-                      className="p-2 text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
-                      title={t('logout') || 'Logout'}
-                    >
-                      <LogOut className="h-5 w-5" />
-                    </button>
-                  </>
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                        <p className="text-xs font-bold text-slate-800 capitalize">{user.role || 'User'} Profile</p>
+                        <p className="text-[10px] text-slate-500 truncate">{user.email || user.username || 'Member'}</p>
+                      </div>
+                      <div className="py-1">
+                        <button
+                          onClick={() => handleNavClick('dashboard')}
+                          className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                        >
+                          {t('dashboard')}
+                        </button>
+                        {user.role === 'admin' && (
+                          <button
+                            onClick={() => handleNavClick('admin')}
+                            className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                          >
+                            RAG Console
+                          </button>
+                        )}
+                      </div>
+                      <div className="border-t border-slate-100 py-1">
+                        <button
+                          onClick={() => {
+                            logout();
+                            handleNavClick('home');
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center"
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          {t('logout') || 'Logout'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <button
                     onClick={() => handleNavClick('login')}

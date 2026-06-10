@@ -3,10 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { EligibilityForm } from '../components/LoanEligibility/EligibilityForm';
 import type { LoanRequestData } from '../components/LoanEligibility/EligibilityForm';
 import { EligibilityDashboard } from '../components/LoanEligibility/EligibilityDashboard';
-import { Loader2 } from 'lucide-react';
+import { Calculators } from '../components/Calculators';
+import { Loader2, Calculator, CheckSquare } from 'lucide-react';
 import api from '../services/api';
-import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/Footer';
 import { ArrowLeft } from 'lucide-react';
 
 export interface LoanResponseData {
@@ -24,6 +23,7 @@ interface LoanEligibilityPageProps {
 }
 
 export const LoanEligibilityPage: React.FC<LoanEligibilityPageProps> = ({ setCurrentTab, goBack }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'checker' | 'calculators'>('checker');
   const [step, setStep] = useState<'form' | 'loading' | 'dashboard'>('form');
   const [formData, setFormData] = useState<LoanRequestData | null>(null);
   const [resultData, setResultData] = useState<LoanResponseData | null>(null);
@@ -64,7 +64,6 @@ export const LoanEligibilityPage: React.FC<LoanEligibilityPageProps> = ({ setCur
       
     } catch (error) {
       console.error('Failed to calculate eligibility', error);
-      // Fallback or error handling
       setStep('form');
     }
   };
@@ -86,66 +85,84 @@ export const LoanEligibilityPage: React.FC<LoanEligibilityPageProps> = ({ setCur
               <span>Back</span>
             </button>
           </div>
-          {/* Header Section */}
-          <div className="text-center max-w-3xl mx-auto mb-12 print:hidden">
-            <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">Smart Checker</span>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
-              Smart Loan Eligibility
-            </h1>
-            <p className="text-slate-600 text-lg">
-              Check your loan eligibility instantly and get AI-powered loan recommendations based on your financial profile.
-            </p>
+
+          {/* Tab Toggle Indicators */}
+          <div className="flex justify-center mb-10 print:hidden">
+            <div className="inline-flex p-1 bg-slate-200/80 rounded-2xl">
+              <button
+                onClick={() => setActiveSubTab('checker')}
+                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-2 ${activeSubTab === 'checker' ? 'bg-primary text-white shadow-md' : 'text-slate-655 hover:text-slate-900'}`}
+              >
+                <CheckSquare className="h-4 w-4" />
+                <span>Smart Checker</span>
+              </button>
+
+              <button
+                onClick={() => setActiveSubTab('calculators')}
+                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-2 ${activeSubTab === 'calculators' ? 'bg-primary text-white shadow-md' : 'text-slate-655 hover:text-slate-900'}`}
+              >
+                <Calculator className="h-4 w-4" />
+                <span>Financial Calculators</span>
+              </button>
+            </div>
           </div>
 
           <AnimatePresence mode="wait">
-            {step === 'form' && (
+            {activeSubTab === 'checker' && (
               <motion.div
-                key="form"
+                key="checker"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <EligibilityForm onSubmit={handleCheckEligibility} />
-              </motion.div>
-            )}
-
-            {step === 'loading' && (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.05 }}
-                className="flex flex-col items-center justify-center py-32 space-y-6"
-              >
-                <div className="relative">
-                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
-                  <Loader2 className="h-20 w-20 text-primary animate-spin relative z-10" />
+                {/* Header Section */}
+                <div className="text-center max-w-3xl mx-auto mb-12 print:hidden">
+                  <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">Smart Checker</span>
+                  <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                    Smart Loan Eligibility
+                  </h1>
+                  <p className="text-slate-600 text-lg">
+                    Check your loan eligibility instantly and get AI-powered loan recommendations based on your financial profile.
+                  </p>
                 </div>
-                <motion.h3 
-                  key={loadingText}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-2xl font-bold text-slate-800"
-                >
-                  {loadingText}
-                </motion.h3>
-                <p className="text-slate-500">Securely processing your data via bank-grade encryption</p>
+
+                {step === 'form' && (
+                  <EligibilityForm onSubmit={handleCheckEligibility} />
+                )}
+
+                {step === 'loading' && (
+                  <div className="flex flex-col items-center justify-center py-32 space-y-6">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
+                      <Loader2 className="h-20 w-20 text-primary animate-spin relative z-10" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-800">
+                      {loadingText}
+                    </h3>
+                    <p className="text-slate-500">Securely processing your data via bank-grade encryption</p>
+                  </div>
+                )}
+
+                {step === 'dashboard' && formData && resultData && (
+                  <EligibilityDashboard 
+                    formData={formData} 
+                    resultData={resultData} 
+                    onReset={handleReset} 
+                  />
+                )}
               </motion.div>
             )}
 
-            {step === 'dashboard' && formData && resultData && (
+            {activeSubTab === 'calculators' && (
               <motion.div
-                key="dashboard"
+                key="calculators"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
               >
-                <EligibilityDashboard 
-                  formData={formData} 
-                  resultData={resultData} 
-                  onReset={handleReset} 
-                />
+                <Calculators />
               </motion.div>
             )}
           </AnimatePresence>
