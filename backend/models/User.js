@@ -31,6 +31,11 @@ const UserSchema = new mongoose.Schema({
     enum: ['customer', 'employee', 'admin'],
     default: 'customer'
   },
+  provider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   createdAt: {

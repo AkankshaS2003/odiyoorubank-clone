@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 
+import { auth, googleProvider } from '../firebase';
+import { signInWithPopup } from 'firebase/auth';
+
 export interface Deposit {
   id: string;
   type: 'Savings' | 'Fixed' | 'Recurring' | 'Daily';
@@ -104,7 +107,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const googleLogin = async (token: string): Promise<boolean> => {
     try {
-      const res = await api.post('/auth/google', { token });
+      // Trigger Firebase Auth Popup
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseToken = await result.user.getIdToken();
+
+      // Now send the Firebase Token to our backend
+      const res = await api.post('/auth/google', { token: firebaseToken });
+      
       if (res.data.success) {
         localStorage.setItem('token', res.data.data.token);
         const profileRes = await api.get('/auth/me');
@@ -114,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return false;
     } catch (error) {
-      console.error('Google login error', error);
+      console.error('Firebase Google login error', error);
       throw error;
     }
   };

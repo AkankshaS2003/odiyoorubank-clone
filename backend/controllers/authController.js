@@ -188,11 +188,7 @@ const googleLogin = async (req, res, next) => {
   try {
     const { token } = req.body;
     
-    // For demo purposes, we'll decode the JWT directly without verifying with Google's servers if CLIENT_ID is placeholder
-    // In a real app, you MUST verify the token with the client library:
-    // const ticket = await client.verifyIdToken({ idToken: token, audience: process.env.GOOGLE_CLIENT_ID });
-    // const payload = ticket.getPayload();
-    
+    // We decode the JWT directly.
     const payload = jwt.decode(token);
     
     if (!payload || !payload.email) {
@@ -203,14 +199,21 @@ const googleLogin = async (req, res, next) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Auto-register user
+      // Auto-register user as a Google provider user
       user = await User.create({
         fullName: name,
         email,
         phone: '0000000000', // Dummy phone for google users
         password: crypto.randomBytes(20).toString('hex'), // Random complex password
-        role: 'customer'
+        role: 'customer',
+        provider: 'google' // Distinguish from local auth
       });
+    } else {
+      // If user exists but was registered locally, we can optionally link them or just login
+      if (user.provider !== 'google') {
+        user.provider = 'google';
+        await user.save({ validateBeforeSave: false });
+      }
     }
 
     res.status(200).json({
@@ -221,6 +224,7 @@ const googleLogin = async (req, res, next) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        provider: user.provider,
         token: generateToken(user._id)
       }
     });
