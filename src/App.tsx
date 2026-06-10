@@ -14,11 +14,12 @@ import { Footer } from './components/Footer';
 import { AIChatAssistant } from './components/AIChatAssistant';
 import { LoanEligibilityPage } from './pages/LoanEligibilityPage';
 import { FloatingScrollButton } from './components/FloatingScrollButton';
+import { AdminPanel } from './pages/AdminPanel';
 
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const [history, setHistory] = useState<string[]>(['home']);
   const currentTab = history[history.length - 1] || 'home';
@@ -35,38 +36,56 @@ const AppContent: React.FC = () => {
   };
 
   const renderActiveTab = () => {
-    // Restrict only dashboard tab to authenticated members
+    // Restrict protected tabs to authenticated members
     let tabToRender = currentTab;
-    if (tabToRender === 'dashboard' && !isAuthenticated) {
-      tabToRender = 'login';
+    let showLoginModal = false;
+
+    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility') && !isAuthenticated) {
+      showLoginModal = true;
+      tabToRender = 'home';
+    } else if (tabToRender === 'login') {
+      showLoginModal = true;
+      tabToRender = history.length > 1 && history[history.length - 2] !== 'login' ? history[history.length - 2] : 'home';
     }
 
-    switch (tabToRender) {
-      case 'home':
-        return <Home setCurrentTab={setCurrentTab} />;
-      case 'login':
-        return <Login setCurrentTab={setCurrentTab} />;
-      case 'dashboard':
-        return <Dashboard setCurrentTab={setCurrentTab} />;
-      case 'products':
-        return <ProductsPage />;
-      case 'membership':
-        return <MembershipPage setCurrentTab={setCurrentTab} />;
-      case 'contact':
-      case 'branches':
-      case 'calculators':
-        return <ContactPage />;
-      case 'media':
-        return <MediaPage />;
-      case 'management':
-        return <Management setCurrentTab={setCurrentTab} />;
-      case 'about':
-        return <AboutUs setCurrentTab={setCurrentTab} />;
-      case 'loan-eligibility':
-        return <LoanEligibilityPage setCurrentTab={setCurrentTab} goBack={goBack} />;
-      default:
-        return <Home setCurrentTab={setCurrentTab} />;
-    }
+    const renderComponent = () => {
+      switch (tabToRender) {
+        case 'home':
+          return <Home setCurrentTab={setCurrentTab} />;
+        case 'dashboard':
+          return <Dashboard setCurrentTab={setCurrentTab} />;
+        case 'products':
+          return <ProductsPage />;
+        case 'membership':
+          return <MembershipPage setCurrentTab={setCurrentTab} />;
+        case 'contact':
+        case 'branches':
+        case 'calculators':
+          return <ContactPage />;
+        case 'media':
+          return <MediaPage />;
+        case 'management':
+          return <Management setCurrentTab={setCurrentTab} />;
+        case 'about':
+          return <AboutUs setCurrentTab={setCurrentTab} />;
+        case 'loan-eligibility':
+          return <LoanEligibilityPage setCurrentTab={setCurrentTab} goBack={goBack} />;
+        case 'admin':
+          if (!isAuthenticated || user?.role !== 'admin') {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <AdminPanel setCurrentTab={setCurrentTab} />;
+        default:
+          return <Home setCurrentTab={setCurrentTab} />;
+      }
+    };
+
+    return (
+      <>
+        {renderComponent()}
+        {showLoginModal && <Login setCurrentTab={setCurrentTab} goBack={goBack} />}
+      </>
+    );
   };
 
   return (
@@ -97,12 +116,16 @@ const AppContent: React.FC = () => {
   );
 };
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 export default function App() {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <AppContent />
-      </LanguageProvider>
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
+      <AuthProvider>
+        <LanguageProvider>
+          <AppContent />
+        </LanguageProvider>
+      </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }

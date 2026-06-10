@@ -4,7 +4,7 @@ import { EligibilityForm } from '../components/LoanEligibility/EligibilityForm';
 import type { LoanRequestData } from '../components/LoanEligibility/EligibilityForm';
 import { EligibilityDashboard } from '../components/LoanEligibility/EligibilityDashboard';
 import { Loader2 } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { ArrowLeft } from 'lucide-react';
@@ -33,61 +33,40 @@ export const LoanEligibilityPage: React.FC<LoanEligibilityPageProps> = ({ setCur
     setFormData(data);
     setStep('loading');
     
-    // Simulate multi-step loading sequence
     setTimeout(() => setLoadingText('Calculating Eligibility Score...'), 1000);
     setTimeout(() => setLoadingText('Generating Loan Recommendations...'), 2000);
 
-    setTimeout(() => {
-      // Simulate backend calculation logic since we don't have a real API
-      const incomeNum = Number(data.income);
-      const existingEmiNum = Number(data.existingEmi);
-      const expensesNum = Number(data.expenses);
-      const desiredAmountNum = Number(data.desiredAmount);
-      const tenureMonths = Number(data.loanTenure) * 12;
-
-      // Available income for EMI
-      const netMonthlyIncome = incomeNum - expensesNum - existingEmiNum;
+    try {
+      const res = await api.post('/loans/calculator', {
+        income: Number(data.income),
+        existingEmi: Number(data.existingEmi),
+        age: Number(data.age)
+      });
       
-      // Assume a max EMI they can afford is up to 50% of net income
-      const maxAffordableEmi = netMonthlyIncome > 0 ? netMonthlyIncome * 0.5 : 0;
+      const { eligibleAmount, eligibilityPercentage, estimatedEmi, isEligible } = res.data.data;
       
-      // Very basic loan formula approximation: Max Loan = Affordable EMI * tenure (ignoring complex interest for demo)
-      let calculatedMaxLoan = maxAffordableEmi * tenureMonths * 0.75;
-      calculatedMaxLoan = Math.max(0, Math.round(calculatedMaxLoan / 10000) * 10000); // round to 10k
-
-      // Suggested EMI based on requested loan amount
-      const suggestedEmi = desiredAmountNum > 0 && tenureMonths > 0 
-        ? Math.round(desiredAmountNum / tenureMonths * 1.1) // 10% interest approx factor
-        : 0;
-
-      let score = 50;
-      let risk = "Medium Risk";
-      let prob = "50%";
-
-      if (maxAffordableEmi > suggestedEmi * 1.5) {
-        score = 85 + Math.floor(Math.random() * 10);
-        risk = "Low Risk";
-        prob = "95%";
-      } else if (maxAffordableEmi > suggestedEmi) {
-        score = 65 + Math.floor(Math.random() * 10);
-        risk = "Medium Risk";
-        prob = "70%";
-      } else {
-        score = 30 + Math.floor(Math.random() * 15);
-        risk = "High Risk";
-        prob = "20%";
-      }
+      let score = eligibilityPercentage || 50;
+      let risk = isEligible ? "Low Risk" : "High Risk";
+      let prob = isEligible ? "90%" : "20%";
 
       setResultData({
         eligibilityScore: score,
-        maxLoanAmount: calculatedMaxLoan,
+        maxLoanAmount: eligibleAmount,
         recommendedLoans: [data.loanType, "Personal Loan"],
         riskLevel: risk,
-        monthlyEMI: suggestedEmi,
+        monthlyEMI: estimatedEmi,
         approvalProbability: prob
       });
-      setStep('dashboard');
-    }, 3000);
+      
+      setTimeout(() => {
+        setStep('dashboard');
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Failed to calculate eligibility', error);
+      // Fallback or error handling
+      setStep('form');
+    }
   };
 
   const handleReset = () => {

@@ -187,6 +187,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 {t('contact')}
               </button>
 
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => handleNavClick('admin')}
+                  className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'admin' ? 'text-white' : 'text-white/90'}`}
+                >
+                  RAG Console
+                </button>
+              )}
+
             </nav>
 
             {/* Quick Actions Interaction Area */}
@@ -209,14 +218,41 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
 
               {/* Auth states */}
               <div className="hidden sm:flex items-center space-x-2">
-                <a
-                  href="https://example.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 rounded-xl bg-primary text-white font-bold text-xs shadow-md transition-all hover:bg-primary-dark"
-                >
-                  {t('login')}
-                </a>
+                {isAuthenticated && user ? (
+                  <>
+                    <button
+                      onClick={() => handleNavClick('dashboard')}
+                      className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs shadow-md transition-all cursor-pointer"
+                    >
+                      {t('dashboard')}
+                    </button>
+                    {user.role === 'admin' && (
+                      <button
+                        onClick={() => handleNavClick('admin')}
+                        className="px-4 py-2 rounded-xl bg-[#0A315C] hover:bg-[#051C36] text-[#ED7F1E] font-bold text-xs shadow-md transition-all cursor-pointer"
+                      >
+                        RAG Console
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        logout();
+                        handleNavClick('home');
+                      }}
+                      className="p-2 text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                      title={t('logout') || 'Logout'}
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => handleNavClick('login')}
+                    className="px-4 py-2 rounded-xl bg-[#0A315C] hover:bg-[#051C36] text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+                  >
+                    {t('login')}
+                  </button>
+                )}
               </div>
 
               {/* Mobile Drawer button */}
@@ -255,6 +291,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 <button onClick={() => handleNavClick('loan-eligibility')} className="text-left py-2 hover:text-primary">{t('loan_eligibility')}</button>
                 <button onClick={() => handleNavClick('membership')} className="text-left py-2 hover:text-primary">{t('membership')}</button>
                 <button onClick={() => handleNavClick('contact')} className="text-left py-2 hover:text-primary">{t('contact')}</button>
+                {user?.role === 'admin' && (
+                  <button 
+                    onClick={() => handleNavClick('admin')} 
+                    className="text-left py-2 text-[#0A315C] hover:text-[#0A315C]/80 uppercase font-black"
+                  >
+                    RAG Console
+                  </button>
+                )}
               </div>
             </div>
 

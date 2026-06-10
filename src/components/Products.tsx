@@ -134,7 +134,7 @@ export const Products: React.FC = () => {
     setApplicationError(null);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
 
@@ -161,7 +161,7 @@ export const Products: React.FC = () => {
       }
     } else {
       // Loan Application
-      const success = applyForLoan(
+      const success = await applyForLoan(
         selectedProduct.name as any,
         applyAmount,
         applyDuration

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import api from '../services/api';
 
 export const Contact: React.FC = () => {
   const { t } = useLanguage();
@@ -17,15 +18,25 @@ export const Contact: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.mobile || !formData.message) return;
     
-    // Simulate submission delay
-    setSubmitted(true);
-    setTimeout(() => {
-      setFormData({ name: '', email: '', mobile: '', message: '' });
-    }, 5000);
+    try {
+      await api.post('/contact', {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.mobile,
+        message: formData.message
+      });
+      setSubmitted(true);
+      setTimeout(() => {
+        setFormData({ name: '', email: '', mobile: '', message: '' });
+      }, 5000);
+    } catch (error) {
+      console.error('Contact submission failed', error);
+      alert('Failed to send message. Please try again.');
+    }
   };
 
   return (
