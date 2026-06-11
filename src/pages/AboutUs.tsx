@@ -85,17 +85,70 @@ export const AboutUs: React.FC<AboutUsProps> = ({ setCurrentTab }) => {
               Society About
             </span>
             
-            {/* Custom Card containing the 2 paragraphs of detailed history */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-lg space-y-4 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-slate-300/80">
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-[#0A315C]"></div>
+            {/* Rotating Flower Grid Container */}
+            <div className="relative w-full max-w-[420px] sm:max-w-[480px] aspect-square mx-auto mt-8 sm:mt-12 group [animation:spin_24s_linear_infinite] hover:[animation-play-state:paused]">
               
-              <p className="text-slate-800 text-xs sm:text-sm leading-relaxed font-bold">
-                Odiyoor Sri Vividhoddesha Souharda Sahakari Sangha Niyamitha was established on 20-04-2011 inaugurated and blessed by the founder his Holyness Shree Shree Gurudevananda Swamiji Odiyoor Samsthanam, Odiyoor. Having its Head office @ Odiyoor and Regional office at Pumpwell Mangaluru.
-              </p>
-              
-              <p className="text-slate-650 text-xs sm:text-sm leading-relaxed font-semibold">
-                Odiyoor Sri Vividhoddesha Souharda Sahakari Sangha Niyamitha was Established on 20-04-2011 has been a saga of farsighted vision, dedication, sacrifice, motivation, leadership and hard work on the party is founder President, Lion Sri A. Suresh Rai and all the Directors on the Board as well as Chief Executive Officer Mr Dyananda Shetty Bakrabail. Lion Sri A. Suresh Rai is the founder President since Inspection dt 20-04-2011 for period 2011 – 2016 and re-elected unanimously as President for the Period 2016 – 2021 , again re-elected unanimously as President for the Period 2021 – 2025. He is handling the post of President for more than a decade. During the tenure of Lion Sri A .Suresh Rai‘s Presidency our Sahakari have been honoured and awarded twice . 1) Best Federal Co-op society award sponsored by State Federal co-op Zone Year 2018-2019. 2) Best Federal Co-op society award 2022 under 69th All India Cooperative Sapthaha 2022 dt 18-11-2022 sponsored by Dakshina Kannada District Central Co-op Bank award honored and presented by Sri S. T. Somashekara Minister for co-op State and Dr M. N. Rajendrakumar President Dakshina Kannada District Central Co- op Bank Mangaluru.
-              </p>
+              {/* Central Hub (Stamen) */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-[#0A315C] to-primary rounded-full shadow-2xl z-0 flex items-center justify-center [animation:spin_24s_linear_infinite_reverse] group-hover:[animation-play-state:paused] border-4 border-white">
+                <Landmark className="h-6 w-6 text-white" />
+              </div>
+
+              {/* Petal 1: Foundation (Top Left) */}
+              <div className="absolute top-0 left-0 w-[47%] h-[47%] [animation:spin_24s_linear_infinite_reverse] group-hover:[animation-play-state:paused] z-10">
+                <div className="w-full h-full bg-white p-4 sm:p-5 border border-slate-200 shadow-lg transition-transform duration-500 hover:scale-[1.4] hover:z-50 hover:shadow-2xl hover:border-primary/50 rounded-tl-[50px] rounded-br-[20px] rounded-tr-xl rounded-bl-xl flex flex-col justify-center relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#0A315C] opacity-0 hover:opacity-100 transition-opacity"></div>
+                  <h3 className="text-[#0A315C] font-bold text-[13px] sm:text-sm mb-2 flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#0A315C]/10 flex items-center justify-center text-[10px] font-black shrink-0">1</span>
+                    Foundation
+                  </h3>
+                  <p className="text-slate-650 text-[10px] sm:text-[11px] leading-relaxed font-semibold">
+                    Established on 20-04-2011, inaugurated and blessed by Founder His Holiness Shree Shree Gurudevananda Swamiji. Head office at Odiyoor and Regional office at Pumpwell, Mangaluru.
+                  </p>
+                </div>
+              </div>
+
+              {/* Petal 2: Leadership (Top Right) */}
+              <div className="absolute top-0 right-0 w-[47%] h-[47%] [animation:spin_24s_linear_infinite_reverse] group-hover:[animation-play-state:paused] z-10">
+                <div className="w-full h-full bg-white p-4 sm:p-5 border border-slate-200 shadow-lg transition-transform duration-500 hover:scale-[1.4] hover:z-50 hover:shadow-2xl hover:border-primary/50 rounded-tr-[50px] rounded-bl-[20px] rounded-tl-xl rounded-br-xl flex flex-col justify-center relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#0A315C] opacity-0 hover:opacity-100 transition-opacity"></div>
+                  <h3 className="text-[#0A315C] font-bold text-[13px] sm:text-sm mb-2 flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#0A315C]/10 flex items-center justify-center text-[10px] font-black shrink-0">2</span>
+                    Leadership
+                  </h3>
+                  <p className="text-slate-650 text-[10px] sm:text-[11px] leading-relaxed font-semibold">
+                    A saga of farsighted vision, dedication, and hard work by Founder President, Lion Sri A. Suresh Rai, the Directors, and Chief Executive Officer Mr. Dyananda Shetty Bakrabail.
+                  </p>
+                </div>
+              </div>
+
+              {/* Petal 3: Legacy (Bottom Left) */}
+              <div className="absolute bottom-0 left-0 w-[47%] h-[47%] [animation:spin_24s_linear_infinite_reverse] group-hover:[animation-play-state:paused] z-10">
+                <div className="w-full h-full bg-white p-4 sm:p-5 border border-slate-200 shadow-lg transition-transform duration-500 hover:scale-[1.4] hover:z-50 hover:shadow-2xl hover:border-primary/50 rounded-bl-[50px] rounded-tr-[20px] rounded-tl-xl rounded-br-xl flex flex-col justify-center relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#0A315C] opacity-0 hover:opacity-100 transition-opacity"></div>
+                  <h3 className="text-[#0A315C] font-bold text-[13px] sm:text-sm mb-2 flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#0A315C]/10 flex items-center justify-center text-[10px] font-black shrink-0">3</span>
+                    Legacy
+                  </h3>
+                  <p className="text-slate-650 text-[10px] sm:text-[11px] leading-relaxed font-semibold">
+                    Lion Sri A. Suresh Rai has served as President since inception, unanimously re-elected for the 2016-2021 and 2021-2025 terms, handling the post with excellence for over a decade.
+                  </p>
+                </div>
+              </div>
+
+              {/* Petal 4: Excellence (Bottom Right) */}
+              <div className="absolute bottom-0 right-0 w-[47%] h-[47%] [animation:spin_24s_linear_infinite_reverse] group-hover:[animation-play-state:paused] z-10">
+                <div className="w-full h-full bg-white p-4 sm:p-5 border border-slate-200 shadow-lg transition-transform duration-500 hover:scale-[1.4] hover:z-50 hover:shadow-2xl hover:border-primary/50 rounded-br-[50px] rounded-tl-[20px] rounded-tr-xl rounded-bl-xl flex flex-col justify-center relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-[#0A315C] opacity-0 hover:opacity-100 transition-opacity"></div>
+                  <h3 className="text-[#0A315C] font-bold text-[13px] sm:text-sm mb-2 flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#0A315C]/10 flex items-center justify-center text-[10px] font-black shrink-0">4</span>
+                    Excellence
+                  </h3>
+                  <p className="text-slate-650 text-[10px] sm:text-[11px] leading-relaxed font-semibold">
+                    Honoured with the Best Federal Co-op Society Award (2018-2019) and the 2022 Award by Dakshina Kannada District Central Co-op Bank during this Presidency.
+                  </p>
+                </div>
+              </div>
+
             </div>
             
           </div>

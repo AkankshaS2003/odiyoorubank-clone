@@ -52,7 +52,7 @@ export const LoanEligibilityPage: React.FC<LoanEligibilityPageProps> = ({ setCur
       setResultData({
         eligibilityScore: score,
         maxLoanAmount: eligibleAmount,
-        recommendedLoans: [data.loanType, "Personal Loan"],
+        recommendedLoans: Array.from(new Set([data.loanType, "Personal Loan"])),
         riskLevel: risk,
         monthlyEMI: estimatedEmi,
         approvalProbability: prob

@@ -144,8 +144,8 @@ export const Products: React.FC = () => {
     }
 
     if (selectedProduct.category === 'deposit') {
-      if (user.savingsBalance < applyAmount) {
-        setApplicationError(`Insufficient Savings balance. You currently have ₹${user.savingsBalance.toLocaleString('en-IN')}. Please add funds to your savings account in the Member Dashboard first.`);
+      if ((user.savingsBalance || 0) < applyAmount) {
+        setApplicationError(`Insufficient Savings balance. You currently have ₹${(user.savingsBalance || 0).toLocaleString('en-IN')}. Please add funds to your savings account in the Member Dashboard first.`);
         return;
       }
       
@@ -367,8 +367,8 @@ export const Products: React.FC = () => {
                   {isAuthenticated && user && (
                     <div className="flex justify-between text-xs text-slate-600 border-t border-slate-200/50 pt-2">
                       <span>Available Savings Balance:</span>
-                      <span className={`font-bold ${user.savingsBalance < applyAmount && selectedProduct.category === 'deposit' ? 'text-red-500' : 'text-emerald-600'}`}>
-                        ₹{user.savingsBalance.toLocaleString('en-IN')}
+                      <span className={`font-bold ${(user.savingsBalance || 0) < applyAmount && selectedProduct.category === 'deposit' ? 'text-red-500' : 'text-emerald-600'}`}>
+                        ₹{(user.savingsBalance || 0).toLocaleString('en-IN')}
                       </span>
                     </div>
                   )}

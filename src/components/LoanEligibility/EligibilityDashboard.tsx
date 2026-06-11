@@ -1,11 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import type { LoanRequestData } from './EligibilityForm';
 import type { LoanResponseData } from '../../pages/LoanEligibilityPage';
 import { VisualAnalytics } from './VisualAnalytics';
 import { AIRecommendation } from './AIRecommendation';
 import { EligibleLoanList } from './EligibleLoanList';
 import { Printer, Download, Save, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 interface EligibilityDashboardProps {
@@ -16,6 +16,8 @@ interface EligibilityDashboardProps {
 
 export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ formData, resultData, onReset }) => {
   const dashboardRef = useRef<HTMLDivElement>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handlePrint = () => {
     window.print();
@@ -24,13 +26,30 @@ export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ form
   const handleDownloadPDF = async () => {
     if (!dashboardRef.current) return;
     try {
-      const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true, logging: true });
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = await toPng(dashboardRef.current, { 
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      });
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let heightLeft = pdfHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
       pdf.save(`Loan_Eligibility_Report_${formData.fullName.replace(/\s+/g, '_')}.pdf`);
     } catch (err) {
       console.error('PDF Generation failed', err);
@@ -39,7 +58,18 @@ export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ form
   };
 
   const handleSave = () => {
-    alert("Eligibility report saved to your member dashboard!");
+    setShowModal(true);
+    setSaveSuccess(false);
+  };
+
+  const handleConfirmSave = () => {
+    setShowModal(false);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 5000); // Hide after 5 seconds
+  };
+
+  const handleCancelSave = () => {
+    setShowModal(false);
   };
 
   const dti = (Number(formData.existingEmi) / Number(formData.income)) * 100;
@@ -127,6 +157,44 @@ export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ form
         />
 
       </div>
+
+      {/* Save Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 print:hidden">
+          <div className="bg-white p-8 rounded-2xl shadow-xl w-[90%] max-w-md transform transition-all">
+            <h3 className="text-2xl font-bold text-slate-800 mb-4">Save Report</h3>
+            <p className="text-slate-600 mb-8 text-lg">
+              Are you sure you want to save this eligibility report to your member dashboard?
+            </p>
+            <div className="flex justify-end gap-4">
+              <button 
+                onClick={handleCancelSave}
+                className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleConfirmSave}
+                className="px-6 py-2.5 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Toast */}
+      {saveSuccess && (
+        <div className="fixed bottom-8 right-8 z-50 bg-white border-l-4 border-green-500 p-5 rounded-xl shadow-2xl flex items-center space-x-3 animate-bounce print:hidden">
+          <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+            <ShieldCheck className="h-5 w-5 text-green-600" />
+          </div>
+          <span className="text-green-600 font-bold">
+            Eligibility report saved to your member dashboard!
+          </span>
+        </div>
+      )}
 
     </div>
   );

@@ -2,7 +2,7 @@ import React from 'react';
 import { Hero } from '../components/Hero';
 import { HomeAboutUsSection } from '../components/HomeAboutUsSection';
 import { Products } from '../components/Products';
-import { DigitalBanking } from '../components/DigitalBanking';
+import { HowToJoin } from '../components/HowToJoin';
 import { WhyChooseUs } from '../components/WhyChooseUs';
 import { Membership } from '../components/Membership';
 import { Testimonials } from '../components/Testimonials';
@@ -30,14 +30,16 @@ export const Home: React.FC<HomeProps> = ({ setCurrentTab }) => {
         <Products />
       </div>
 
-      {/* 3. Digital Banking core (e-KYC, mobile app slides) */}
-      <DigitalBanking setCurrentTab={setCurrentTab} />
+      {/* Replaced DigitalBanking with HowToJoin in a different position */}
 
       {/* 4. Core corporate pillars (Trusted cooperative, swift processing) */}
       <WhyChooseUs />
 
       {/* 5. Co-ownership shareholder membership rewards */}
       <Membership setCurrentTab={setCurrentTab} />
+
+      {/* 5b. How to Join Process */}
+      <HowToJoin />
 
       {/* 6. Rating Testimonials carousel */}
       <Testimonials />
