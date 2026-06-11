@@ -7,7 +7,7 @@ export const MediaPage: React.FC = () => {
 
   const galleryImages = [
     { url: '/gallery/y1.png', alt: 'Images' },
-    { url: '/gallery/y2.png', alt: 'Images' },
+    { url: '/gallery/y2.jpg', alt: 'Images' },
     { url: '/gallery/y3.png', alt: 'Images' },
     { url: '/gallery/y4.png', alt: 'Images' },
     { url: '/gallery/y5.png', alt: 'Images' },
@@ -37,12 +37,12 @@ export const MediaPage: React.FC = () => {
               <div
                 key={`row1-${idx}`}
                 onClick={() => setActiveImageIdx(idx % galleryImages.length)}
-                className="relative h-48 sm:h-64 md:h-80 mx-2 sm:mx-3 rounded-3xl cursor-pointer shrink-0 transition-all hover:shadow-lg group/img overflow-hidden border border-slate-150"
+                className="relative h-[25vh] md:h-[30vh] lg:h-[35vh] mx-2 sm:mx-3 rounded-3xl cursor-pointer shrink-0 transition-all hover:shadow-lg group/img overflow-hidden border border-slate-150"
               >
                 <img
                   src={img.url}
                   alt={img.alt}
-                  className="h-full w-auto max-w-none object-cover grayscale transition-all duration-500 group-hover/img:grayscale-0 group-hover/img:scale-105"
+                  className="h-full w-auto max-w-none object-cover grayscale transition-all duration-700 group-hover/img:grayscale-0 group-hover/img:scale-105"
                   loading="lazy"
                 />
               </div>
@@ -57,12 +57,12 @@ export const MediaPage: React.FC = () => {
               <div
                 key={`row2-${idx}`}
                 onClick={() => setActiveImageIdx(galleryImages.length - 1 - (idx % galleryImages.length))}
-                className="relative h-48 sm:h-64 md:h-80 mx-2 sm:mx-3 rounded-3xl cursor-pointer shrink-0 transition-all hover:shadow-lg group/img overflow-hidden border border-slate-150"
+                className="relative h-[25vh] md:h-[30vh] lg:h-[35vh] mx-2 sm:mx-3 rounded-3xl cursor-pointer shrink-0 transition-all hover:shadow-lg group/img overflow-hidden border border-slate-150"
               >
                 <img
                   src={img.url}
                   alt={img.alt}
-                  className="h-full w-auto max-w-none object-cover grayscale transition-all duration-500 group-hover/img:grayscale-0 group-hover/img:scale-105"
+                  className="h-full w-auto max-w-none object-cover grayscale transition-all duration-700 group-hover/img:grayscale-0 group-hover/img:scale-105"
                   loading="lazy"
                 />
               </div>
@@ -111,7 +111,6 @@ export const MediaPage: React.FC = () => {
               className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl border border-white/10 animate-scale-up"
             />
             <div className="text-center text-white space-y-1">
-              <h4 className="font-bold text-sm tracking-wide text-secondary">{galleryImages[activeImageIdx].caption}</h4>
               <p className="text-[10px] text-white/60 font-medium">Image {activeImageIdx + 1} of {galleryImages.length}</p>
             </div>
           </div>
