@@ -60,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'Welcome Bonus Credited', desc: '₹10,000 disburser balance credited to your savings.', time: 'Just now', unread: true },
     { id: 2, title: 'e-KYC Submission Approved', desc: 'Aadhaar & PAN simulated logs verified successfully.', time: '1 hour ago', unread: true },
-    { id: 3, title: 'FD Rates Hiked', desc: 'Earn up to 8.75% p.a. as shareholder member!', time: '1 day ago', unread: false },
+    { id: 3, title: 'FD Rates Hiked', desc: 'Earn up to 9.00% p.a. as shareholder member!', time: '1 day ago', unread: false },
   ]);
 
   return (
@@ -78,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 { scrollamount: '5', className: 'text-white/95 text-base font-medium leading-none flex items-center' },
                 <>
                   <span className="mx-6 font-semibold">• State Best Souharda Cooperative Society Award in the 69th All India Cooperative Week</span>
-                  <span className="mx-6 font-semibold">• Cooperative Fixed Deposit Rates Increased to 8.25%</span>
+                  <span className="mx-6 font-semibold">• Cooperative Fixed Deposit Rates Increased to 8.50%</span>
                   <span className="mx-6 font-semibold">• New Digital Doorstep Banking Service Sanctioned</span>
                 </>
               )}

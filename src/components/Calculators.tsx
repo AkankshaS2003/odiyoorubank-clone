@@ -13,7 +13,7 @@ export const Calculators: React.FC = () => {
 
   // FD State
   const [fdPrincipal, setFdPrincipal] = useState<number>(100000);
-  const [fdRate, setFdRate] = useState<number>(8.25);
+  const [fdRate, setFdRate] = useState<number>(8.50);
   const [fdYears, setFdYears] = useState<number>(5);
 
   // RD State
@@ -25,7 +25,7 @@ export const Calculators: React.FC = () => {
   const [salary, setSalary] = useState<number>(60000);
   const [obligations, setObligations] = useState<number>(10000);
   const [eligTenure, setEligTenure] = useState<number>(240); // Months
-  const [eligRate, setEligRate] = useState<number>(8.25);
+  const [eligRate, setEligRate] = useState<number>(8.50);
 
   // --- EMI Calculation Logic ---
   const calculateEmi = () => {

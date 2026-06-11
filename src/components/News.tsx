@@ -12,7 +12,8 @@ export const News: React.FC = () => {
       icon: Megaphone,
       date: 'May 28, 2026',
       title: t('news1_title'),
-      desc: t('news1_desc')
+      desc: t('news1_desc'),
+      color: 'orange'
     },
     {
       id: 2,
@@ -20,7 +21,8 @@ export const News: React.FC = () => {
       icon: Users,
       date: 'May 15, 2026',
       title: t('news2_title'),
-      desc: t('news2_desc')
+      desc: t('news2_desc'),
+      color: 'blue'
     },
     {
       id: 3,
@@ -28,7 +30,8 @@ export const News: React.FC = () => {
       icon: Landmark,
       date: 'May 02, 2026',
       title: t('news3_title'),
-      desc: t('news3_desc')
+      desc: t('news3_desc'),
+      color: 'orange'
     }
   ];
 
@@ -54,32 +57,32 @@ export const News: React.FC = () => {
             return (
               <div 
                 key={news.id}
-                className="bg-white rounded-3xl overflow-hidden border border-slate-150 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 flex flex-col justify-between"
+                className={`${news.color === 'orange' ? 'bg-[#f97316] text-white border-[#ea580c]' : 'bg-[#0A315C] text-white border-[#061d38]'} rounded-3xl overflow-hidden border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between`}
               >
                 <div className="p-6 space-y-4">
                   
                   {/* Tag & Date */}
                   <div className="flex justify-between items-center text-xs">
-                    <span className="bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    <span className="bg-white/20 text-white font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
                       {news.tag}
                     </span>
-                    <div className="flex items-center space-x-1.5 text-slate-400 font-semibold">
+                    <div className="flex items-center space-x-1.5 text-white/80 font-semibold">
                       <Calendar className="h-4 w-4" />
                       <span>{news.date}</span>
                     </div>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-900 leading-snug hover:text-primary transition-colors cursor-pointer">
+                  <h3 className="text-base font-bold text-white leading-snug hover:text-white/80 transition-colors cursor-pointer">
                     {news.title}
                   </h3>
                   
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                  <p className="text-xs text-white/80 leading-relaxed">
                     {news.desc}
                   </p>
 
                 </div>
 
-                <div className="border-t border-slate-100 p-4 bg-slate-50 flex justify-between items-center text-xs font-bold text-primary cursor-pointer hover:bg-slate-100/50 transition-colors">
+                <div className="border-t border-white/10 p-4 bg-white/5 flex justify-between items-center text-xs font-bold text-white cursor-pointer hover:bg-white/10 transition-colors">
                   <span>{t('read_article')}</span>
                   <ArrowUpRight className="h-4.5 w-4.5" />
                 </div>

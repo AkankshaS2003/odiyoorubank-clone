@@ -121,7 +121,7 @@ export const translations: TranslationDict = {
     en: 'Industry-Best Deposit Rates',
   },
   Best_desc: {
-    en: 'Earn up to 8.25% p.a. on Fixed Deposits, backed by sound capital reserve ratios.',
+    en: 'Earn up to 9.00% p.a. on Fixed Deposits, backed by sound capital reserve ratios.',
   },
   support_title: {
     en: 'Dedicated Local Support',
@@ -244,7 +244,7 @@ export const translations: TranslationDict = {
     en: 'Interest Rates',
   },
   news1_title: {
-    en: 'Cooperative Fixed Deposit Rates Increased to 8.25%',
+    en: 'Cooperative Fixed Deposit Rates Increased to 8.50%',
   },
   news1_desc: {
     en: 'Our governing board has authorized an upward adjustment in FD yield returns to protect capital value for member families.',
@@ -376,7 +376,7 @@ export const translations: TranslationDict = {
     en: 'What is the maximum interest rate offered on cooperative Fixed Deposits?',
   },
   faq2_a: {
-    en: 'We offer an industry-best standard FD interest rate of 8.25% p.a. for general depositors. Registered shareholder members and senior citizens receive a premium bonus rate of 8.75% p.a. interest compounded quarterly.',
+    en: 'We offer an industry-best standard FD interest rate of 8.50% p.a. for general depositors. Registered shareholder members and senior citizens receive a premium bonus rate of 9.00% p.a. interest compounded quarterly.',
   },
   faq3_q: {
     en: 'How do I become an active voting shareholder member of the society?',
@@ -630,7 +630,7 @@ export const translations: TranslationDict = {
     en: "I apologize, but I didn't quite catch that. You can ask me about 'Fixed Deposit rates', 'how to apply for Gold Loans', 'society working hours', or 'membership dividend shares'.",
   },
   chat_resp_fd: {
-    en: 'We offer a peak Fixed Deposit (FD) interest rate of 8.25% p.a. for general members, and an additional +0.50% premium (total 8.75% p.a.) for Senior Citizens and co-ownership shareholders. Interest is compounded quarterly.',
+    en: 'We offer a peak Fixed Deposit (FD) interest rate of 8.50% p.a. for general members, and an additional +0.50% premium (total 9.00% p.a.) for Senior Citizens and co-ownership shareholders. Interest is compounded quarterly.',
   },
   chat_resp_gold: {
     en: 'Our Gold Loans are sanctioned within 30 minutes at low cooperative rates starting from 8.50% p.a. Please carry your gold ornaments and KYC documents (Aadhaar & PAN) to the nearest branch for safe asset appraisals.',

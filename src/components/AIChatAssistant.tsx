@@ -120,7 +120,7 @@ export const AIChatAssistant: React.FC = () => {
         const prompt = currentText.toLowerCase();
 
         if (prompt.includes('fd') || prompt.includes('fixed') || prompt.includes('deposit') || prompt.includes('rate')) {
-          reply = t('chat_resp_fd') || 'Fixed deposit rates start from 4.5% up to 8.25% for society shareholders.';
+          reply = t('chat_resp_fd') || 'Fixed deposit rates start from 4.5% up to 9.00% for society shareholders.';
         } else if (prompt.includes('gold') || prompt.includes('loan') || prompt.includes('home') || prompt.includes('interest')) {
           reply = t('chat_resp_gold') || 'Cooperative loans include Home Loans starting at 8.5% p.a. and Vehicle Loans at 9.5% p.a.';
         } else if (prompt.includes('time') || prompt.includes('hour') || prompt.includes('open') || prompt.includes('saturday')) {

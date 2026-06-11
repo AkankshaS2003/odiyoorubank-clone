@@ -31,7 +31,7 @@ export const Products: React.FC = () => {
       name: t('savings_name'),
       category: 'deposit',
       description: t('savings_desc'),
-      interestRate: '4.50% p.a.',
+      interestRate: '5.00% p.a.',
       badge: 'Most Popular',
       benefits: ['Zero balance facility for members', 'Free monthly physical statements', 'Simulated online fund transfers']
     },
@@ -40,16 +40,16 @@ export const Products: React.FC = () => {
       name: t('fd_name'),
       category: 'deposit',
       description: t('fd_desc'),
-      interestRate: '8.25% p.a.',
+      interestRate: '8.50% p.a.',
       badge: 'Highest Return',
-      benefits: ['Senior Citizen rate: 8.75%', 'Loan options up to 90% of FD value', 'Persistent compounding']
+      benefits: ['Senior Citizen rate: 9.00%', 'Loan options up to 90% of FD value', 'Persistent compounding']
     },
     {
       id: 'prod-recurring',
       name: t('rd_name'),
       category: 'deposit',
       description: t('rd_desc'),
-      interestRate: '7.75% p.a.',
+      interestRate: 'Up to 8.75% p.a.',
       benefits: ['Flexible monthly contributions', 'Compounded quarterly interest', 'Auto-debit from savings']
     },
     {
@@ -57,7 +57,7 @@ export const Products: React.FC = () => {
       name: t('daily_deposit_name'),
       category: 'deposit',
       description: t('daily_deposit_desc'),
-      interestRate: '6.50% p.a.',
+      interestRate: '3.00% to 3.50% p.a.',
       benefits: ['Daily threshold as low as ₹50', 'Doorstep collector agent facility', 'No penalty on early withdrawal']
     },
     {
@@ -85,7 +85,7 @@ export const Products: React.FC = () => {
       name: t('gold_name'),
       category: 'loan',
       description: t('gold_desc'),
-      interestRate: '8.50% p.a.',
+      interestRate: '11.50% - 12.50% p.a.',
       badge: 'Instant Processing',
       benefits: ['Disbursed within 30 minutes', 'LTV up to 75% of gold value', 'Secure government-grade safe vault keeping']
     },
@@ -94,7 +94,7 @@ export const Products: React.FC = () => {
       name: t('vehicle_name'),
       category: 'loan',
       description: t('vehicle_desc'),
-      interestRate: '9.25% p.a.',
+      interestRate: '10.00% - 14.50% p.a.',
       benefits: ['Up to 85% on-road funding', 'Up to 7 years repayment tenure', 'Quick loan sanction']
     },
     {
@@ -246,12 +246,9 @@ export const Products: React.FC = () => {
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Interest Rate</span>
                   <span className="text-lg font-extrabold text-primary">{product.interestRate}</span>
                 </div>
-                <button
-                  onClick={() => handleApplyClick(product)}
-                  className="px-4.5 py-2.5 bg-primary/5 hover:bg-primary hover:text-white rounded-xl text-xs font-bold text-primary transition-all duration-300"
-                >
-                  {t('apply_now')}
-                </button>
+                <div className="px-3 sm:px-4.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Visit branch to apply
+                </div>
               </div>
 
             </div>

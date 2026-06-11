@@ -193,7 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const openNewDeposit = (type: Deposit['type'], amount: number, durationYears: number): boolean => {
     if (!user) return false;
     if ((user.savingsBalance || 0) < amount) return false; 
-    const rates = { Savings: 4.5, Fixed: 8.25, Recurring: 7.75, Daily: 6.50 };
+    const rates = { Savings: 4.5, Fixed: 8.50, Recurring: 7.75, Daily: 6.50 };
     const newDep: Deposit = {
       id: `DEP-${Math.floor(100 + Math.random() * 900)}`,
       type, amount, rate: rates[type],
