@@ -21,9 +21,9 @@ export const HomeAboutUsSection: React.FC<HomeAboutUsSectionProps> = ({ setCurre
             <div className="w-full max-w-md bg-white p-2.5 border border-slate-200 rounded-[28px] sm:rounded-[36px] shadow-xl overflow-hidden aspect-[4/3] relative transition-all duration-700 ease-in-out group-hover:shadow-2xl group-hover:scale-[1.02] group-hover:border-slate-300">
               <div className="w-full h-full overflow-hidden rounded-[20px] sm:rounded-[28px] relative z-10">
                 <img 
-                  src="/about_hero2.png" 
+                  src="/gallery/odiyooru.png" 
                   alt="Odiyooru Souharda Cooperative Society Inauguration" 
-                  className="w-full h-full object-cover filter brightness-95 transition-all duration-700 ease-in-out group-hover:scale-105 group-hover:rotate-1"
+                  className="w-full h-full object-cover transition-all duration-700 ease-in-out "
                 />
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
               </div>

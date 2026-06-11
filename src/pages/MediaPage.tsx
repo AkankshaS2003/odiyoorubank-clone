@@ -6,54 +6,69 @@ export const MediaPage: React.FC = () => {
   const [activeImageIdx, setActiveImageIdx] = useState<number | null>(null);
 
   const galleryImages = [
-    { url: '/gallery/y1.jpg.jpeg', alt: 'Cooperative Event Moment 1', caption: 'Milestone Celebration' },
-    { url: '/gallery/y2.jpg.jpeg', alt: 'Cooperative Event Moment 2', caption: 'Shareholder Gathering' },
-    { url: '/gallery/y3.jpg.jpeg', alt: 'Cooperative Event Moment 3', caption: 'Welfare Distribution Drive' },
-    { url: '/gallery/y4.jpg.jpeg', alt: 'Cooperative Event Moment 4', caption: 'Central Office Inauguration' },
-    { url: '/gallery/y5.jpg.jpeg', alt: 'Cooperative Event Moment 5', caption: 'Community Literacy Workshop' },
-    { url: '/gallery/y6.jpg.jpeg', alt: 'Cooperative Event Moment 6', caption: 'Governing Board Session' },
-    { url: '/gallery/y7.jpg.jpeg', alt: 'Cooperative Event Moment 7', caption: 'Doorstep Banking Launch' },
-    { url: '/gallery/y8.jpg.jpeg', alt: 'Cooperative Event Moment 8', caption: 'Member Facilitation Desk' }
+    { url: '/gallery/y1.png', alt: 'Images' },
+    { url: '/gallery/y2.jpg', alt: 'Images' },
+    { url: '/gallery/y3.png', alt: 'Images' },
+    { url: '/gallery/y4.png', alt: 'Images' },
+    { url: '/gallery/y5.png', alt: 'Images' },
+    { url: '/gallery/y7.png', alt: 'Images' },
+    { url: '/gallery/y6.png', alt: 'Images' },
+    { url: '/gallery/y8.png', alt: 'Images' }
   ];
 
   return (
-    <section className="py-5 bg-white min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 space-y-16">
+    <section className="py-12 bg-white min-h-screen overflow-hidden">
+      {/* Heading Section - Constrained Width */}
+      <div className="max-w-6xl mx-auto px-4 mb-10">
+        <div className="text-center space-y-3">
+          <span className="text-xs font-bold text-accent uppercase tracking-widest block">Event Highlights</span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 font-heading">{t('Gallary')}</h2>
+          <p className="text-slate-500 leading-relaxed text-xs max-w-xl mx-auto font-medium">
+          </p>
+        </div>
+      </div>
 
-        {/* Dynamic Gallery Section */}
-        <div className="space-y-1">
-          <div className="text-center space-y-3">
-            <span className="text-xs font-bold text-accent uppercase tracking-widest block">Event Highlights</span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-heading">{t('Gallary')}</h2>
-            <p className="text-slate-500 leading-relaxed text-xs max-w-xl mx-auto font-medium">
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 pt-4">
-            {galleryImages.map((img, idx) => (
+      {/* Dynamic Gallery Section - Full Window Width */}
+      <div className="w-full flex flex-col gap-6 pt-4">
+        {/* First Row: Right to Left */}
+        <div className="relative w-full flex overflow-hidden marquee-container">
+          <div className="flex w-max animate-scroll-left">
+            {[...galleryImages, ...galleryImages].map((img, idx) => (
               <div
-                key={idx}
-                onClick={() => setActiveImageIdx(idx)}
-                className="relative overflow-hidden rounded-3xl border border-slate-150 shadow-sm cursor-pointer group aspect-square bg-slate-50 transition-all hover:shadow-md active:scale-98"
+                key={`row1-${idx}`}
+                onClick={() => setActiveImageIdx(idx % galleryImages.length)}
+                className="relative h-[25vh] md:h-[30vh] lg:h-[35vh] mx-2 sm:mx-3 rounded-3xl cursor-pointer shrink-0 transition-all hover:shadow-lg group/img overflow-hidden border border-slate-150"
               >
                 <img
                   src={img.url}
                   alt={img.alt}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-auto max-w-none object-cover grayscale transition-all duration-700 group-hover/img:grayscale-0 group-hover/img:scale-105"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[1px]">
-                  <span className="bg-white/20 backdrop-blur-md text-white p-2 rounded-full border border-white/25">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </span>
-                </div>
               </div>
             ))}
           </div>
         </div>
 
+        {/* Second Row: Left to Right */}
+        <div className="relative w-full flex overflow-hidden marquee-container">
+          <div className="flex w-max animate-scroll-right">
+            {[...galleryImages].reverse().concat([...galleryImages].reverse()).map((img, idx) => (
+              <div
+                key={`row2-${idx}`}
+                onClick={() => setActiveImageIdx(galleryImages.length - 1 - (idx % galleryImages.length))}
+                className="relative h-[25vh] md:h-[30vh] lg:h-[35vh] mx-2 sm:mx-3 rounded-3xl cursor-pointer shrink-0 transition-all hover:shadow-lg group/img overflow-hidden border border-slate-150"
+              >
+                <img
+                  src={img.url}
+                  alt={img.alt}
+                  className="h-full w-auto max-w-none object-cover grayscale transition-all duration-700 group-hover/img:grayscale-0 group-hover/img:scale-105"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Lightbox Zoom Modal */}
@@ -96,7 +111,6 @@ export const MediaPage: React.FC = () => {
               className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl border border-white/10 animate-scale-up"
             />
             <div className="text-center text-white space-y-1">
-              <h4 className="font-bold text-sm tracking-wide text-secondary">{galleryImages[activeImageIdx].caption}</h4>
               <p className="text-[10px] text-white/60 font-medium">Image {activeImageIdx + 1} of {galleryImages.length}</p>
             </div>
           </div>

@@ -145,7 +145,7 @@ export const AIChatAssistant: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 select-none">
+    <div className="fixed bottom-6 left-6 z-40 select-none">
       
       {/* Floating Chat Circle Button */}
       {!isOpen && (

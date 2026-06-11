@@ -147,6 +147,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 {t('media')}
               </button>
 
+              {/* Contact Us */}
+              <button
+                onClick={() => handleNavClick('contact')}
+                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'contact' ? 'text-white' : 'text-white/90'}`}
+              >
+                {t('Contact')}
+              </button>
+
               {/* Others Dropdown */}
               <div className="relative group">
                 <button
@@ -179,12 +187,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                     className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
                   >
                     {t('membership')}
-                  </button>
-                  <button
-                    onClick={() => handleNavClick('contact')}
-                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
-                  >
-                    {t('contact')}
                   </button>
                 </div>
               </div>
@@ -219,7 +221,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                     <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50 overflow-hidden">
                       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
                         <p className="text-xs font-bold text-slate-800 capitalize">{user.role || 'User'} Profile</p>
-                        <p className="text-[10px] text-slate-500 truncate">{user.email || user.username || 'Member'}</p>
+                        <p className="text-[10px] text-slate-500 truncate">{user.email || user.fullName || 'Member'}</p>
                       </div>
                       <div className="py-1">
                         <button
