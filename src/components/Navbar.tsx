@@ -10,7 +10,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, systemSettings } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -76,11 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
               {React.createElement(
                 'marquee',
                 { scrollamount: '5', className: 'text-white/95 text-base font-medium leading-none flex items-center' },
-                <>
-                  <span className="mx-6 font-semibold">• State Best Souharda Cooperative Society Award in the 69th All India Cooperative Week</span>
-                  <span className="mx-6 font-semibold">• Cooperative Fixed Deposit Rates Increased to 8.50%</span>
-                  <span className="mx-6 font-semibold">• New Digital Doorstep Banking Service Sanctioned</span>
-                </>
+                <span className="mx-6 font-semibold">{systemSettings?.marqueeText}</span>
               )}
             </div>
           </div>
@@ -224,18 +220,46 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                         <p className="text-[10px] text-slate-500 truncate">{user.email || user.fullName || 'Member'}</p>
                       </div>
                       <div className="py-1">
-                        <button
-                          onClick={() => handleNavClick('dashboard')}
-                          className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
-                        >
-                          {t('dashboard')}
-                        </button>
-                        {user.role === 'admin' && (
+                        {!(user.role === 'admin' || user.role === 'manager' || user.role === 'employee') ? (
+                          <>
+                            <button
+                              onClick={() => {
+                                handleNavClick('dashboard');
+                                alert('Profile Details Section (Simulated)');
+                              }}
+                              className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                            >
+                              Profile
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleNavClick('contact');
+                              }}
+                              className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                            >
+                              Help Center
+                            </button>
+                            <button
+                              onClick={() => {
+                                alert('Account Settings (Simulated)');
+                              }}
+                              className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                            >
+                              Settings
+                            </button>
+                            <button
+                              onClick={() => handleNavClick('dashboard')}
+                              className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors font-extrabold text-[#ED7F1E]"
+                            >
+                              Customer Dashboard
+                            </button>
+                          </>
+                        ) : (
                           <button
                             onClick={() => handleNavClick('admin')}
-                            className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+                            className="w-full text-left px-4 py-2 text-xs font-bold text-[#0A315C] hover:bg-slate-100 transition-colors"
                           >
-                            RAG Console
+                            Admin Dashboard
                           </button>
                         )}
                       </div>
@@ -299,12 +323,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 <button onClick={() => handleNavClick('loan-eligibility')} className="text-left py-2 hover:text-primary">{t('loan_eligibility')}</button>
                 <button onClick={() => handleNavClick('membership')} className="text-left py-2 hover:text-primary">{t('membership')}</button>
                 <button onClick={() => handleNavClick('contact')} className="text-left py-2 hover:text-primary">{t('contact')}</button>
-                {user?.role === 'admin' && (
+                {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'employee') && (
                   <button 
                     onClick={() => handleNavClick('admin')} 
                     className="text-left py-2 text-[#0A315C] hover:text-[#0A315C]/80 uppercase font-black"
                   >
-                    RAG Console
+                    Admin Dashboard
                   </button>
                 )}
               </div>
@@ -313,12 +337,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
             <div className="pt-6 border-t border-slate-100 flex flex-col space-y-3">
               {isAuthenticated && user ? (
                 <>
-                  <button
-                    onClick={() => handleNavClick('dashboard')}
-                    className="w-full py-3 bg-slate-100 font-bold text-slate-700 rounded-xl text-xs hover:bg-slate-200"
-                  >
-                    {t('dashboard')}
-                  </button>
+                  {!(user.role === 'admin' || user.role === 'manager' || user.role === 'employee') && (
+                    <button
+                      onClick={() => handleNavClick('dashboard')}
+                      className="w-full py-3 bg-slate-100 font-bold text-slate-700 rounded-xl text-xs hover:bg-slate-200"
+                    >
+                      {t('dashboard')}
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       logout();

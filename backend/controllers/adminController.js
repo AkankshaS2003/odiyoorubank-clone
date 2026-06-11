@@ -3,6 +3,7 @@ const Account = require('../models/Account');
 const Loan = require('../models/Loan');
 const Contact = require('../models/Contact');
 const KnowledgeBase = require('../models/KnowledgeBase');
+const SystemSettings = require('../models/SystemSettings');
 const { getEmbedding } = require('../services/embeddingService');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
@@ -302,6 +303,146 @@ const deleteDocument = async (req, res, next) => {
   }
 };
 
+// @desc    Get system settings
+// @route   GET /api/admin/settings
+// @access  Public
+const getSettings = async (req, res, next) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = await SystemSettings.create({});
+    }
+    res.status(200).json({ success: true, data: settings });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update system settings
+// @route   PUT /api/admin/settings
+// @access  Private/Admin
+const updateSettings = async (req, res, next) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = await SystemSettings.create({});
+    }
+
+    settings = await SystemSettings.findByIdAndUpdate(settings._id, req.body, {
+      new: true,
+      runValidators: true
+    });
+
+    res.status(200).json({ success: true, data: settings });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all users (for management)
+// @route   GET /api/admin/users
+// @access  Private/Admin or Employee
+const getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().select('-password');
+    res.status(200).json({ success: true, count: users.length, data: users });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user role
+// @route   PUT /api/admin/user/:id/role
+// @access  Private/Admin
+const updateUserRole = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { role: req.body.role }, {
+      new: true,
+      runValidators: true
+    }).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user status (Active/Suspended)
+// @route   PUT /api/admin/user/:id/status
+// @access  Private/Admin or Manager
+const updateUserStatus = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { status: req.body.status }, {
+      new: true,
+      runValidators: true
+    }).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete user
+// @route   DELETE /api/admin/user/:id
+// @access  Private/Admin
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'User deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Create cooperative staff employee
+// @route   POST /api/admin/users
+// @access  Private/Admin
+const createEmployee = async (req, res, next) => {
+  try {
+    const { fullName, email, phone, password, role } = req.body;
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ success: false, error: 'User already exists' });
+    }
+
+    const user = await User.create({
+      fullName,
+      email,
+      phone,
+      password,
+      role: role || 'employee'
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getStats,
   getAllLoans,
@@ -309,5 +450,13 @@ module.exports = {
   getMessages,
   uploadDocument,
   getDocuments,
-  deleteDocument
+  deleteDocument,
+  getSettings,
+  updateSettings,
+  getUsers,
+  updateUserRole,
+  updateUserStatus,
+  deleteUser,
+  createEmployee
 };
+

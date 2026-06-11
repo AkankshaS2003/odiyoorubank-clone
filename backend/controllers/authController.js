@@ -65,6 +65,10 @@ const loginUser = async (req, res, next) => {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
+    if (user.status === 'Suspended') {
+      return res.status(403).json({ success: false, error: 'Your account has been suspended. Please contact administration.' });
+    }
+
     // Check if password matches
     const isMatch = await user.matchPassword(password);
 

@@ -1,11 +1,13 @@
 import React from 'react';
 import { Landmark } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface HomeAboutUsSectionProps {
   setCurrentTab: (tab: string) => void;
 }
 
 export const HomeAboutUsSection: React.FC<HomeAboutUsSectionProps> = ({ setCurrentTab }) => {
+  const { systemSettings } = useAuth();
   const handleKnowMore = () => {
     setCurrentTab('about');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -52,7 +54,7 @@ export const HomeAboutUsSection: React.FC<HomeAboutUsSectionProps> = ({ setCurre
             
             {/* Dynamic Paragraph: Exact website content kept unmodified */}
             <p className="text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-semibold pt-1">
-              Odiyooru Souharda Cooperative Society Ltd is a premier cooperative financial institution established on 20-04-2011, dedicated to empowering communities and micro-merchants through reliable deposits, gold loans, and absolute financial security. Guided by values of trust, progress, and co-ownership, we have been a trusted partner in rural growth and self-reliance for over a decade.
+              {systemSettings?.aboutText || 'Odiyooru Souharda Cooperative Society Ltd is a premier cooperative financial institution established on 20-04-2011, dedicated to empowering communities and micro-merchants through reliable deposits, gold loans, and absolute financial security. Guided by values of trust, progress, and co-ownership, we have been a trusted partner in rural growth and self-reliance for over a decade.'}
             </p>
             
             {/* More Info button with navbar blue color */}

@@ -28,6 +28,7 @@ export interface Loan {
 }
 
 export interface User {
+  _id?: string;
   fullName: string;
   phone: string;
   email: string;
@@ -40,17 +41,30 @@ export interface User {
   deposits?: Deposit[];
   loans?: Loan[];
   savingsBalance?: number;
-  role?: 'customer' | 'employee' | 'admin';
+  role?: 'customer' | 'employee' | 'manager' | 'admin';
+}
+
+export interface SystemSettings {
+  fdRate: number;
+  goldLoanRate: number;
+  savingsRate: number;
+  rdRate: number;
+  marqueeText: string;
+  heroTitle: string;
+  heroDesc: string;
+  aboutText: string;
+  contactPhone: string;
+  contactEmail: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (identifier: string, pass: string) => Promise<boolean>;
-  googleLogin: (token: string) => Promise<boolean>;
+  login: (identifier: string, pass: string) => Promise<string | null>;
+  googleLogin: (token: string) => Promise<string | null>;
   forgotPassword: (email: string) => Promise<boolean>;
-  resetPassword: (token: string, password: string) => Promise<boolean>;
-  registerUser: (data: Partial<User> & { password?: string }) => Promise<boolean>;
+  resetPassword: (token: string, password: string) => Promise<string | null>;
+  registerUser: (data: Partial<User> & { password?: string }) => Promise<string | null>;
   logout: () => void;
   // Preserving mock banking functions so the UI doesn't crash
   openNewDeposit: (type: Deposit['type'], amount: number, durationYears: number) => boolean;
@@ -58,6 +72,8 @@ interface AuthContextType {
   payEmi: (loanId: string) => boolean;
   uploadKyc: (documentType: string, filePlaceholder: string) => boolean;
   addSavingsMoney: (amount: number) => void;
+  systemSettings: SystemSettings;
+  updateSystemSettings: (newSettings: Partial<SystemSettings>) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,8 +81,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings>({
+    fdRate: 8.50,
+    goldLoanRate: 8.50,
+    savingsRate: 4.50,
+    rdRate: 7.75,
+    marqueeText: '• State Best Souharda Cooperative Society Award in the 69th All India Cooperative Week • Cooperative Fixed Deposit Rates Increased to 8.50% • New Digital Doorstep Banking Service Sanctioned',
+    heroTitle: 'Odiyooru Souharda',
+    heroDesc: 'Cooperative Society Ltd',
+    aboutText: '"We, Odiyoor Sree Vividhodesha Souharda Sahakari Sanga has an efficient and experienced team of Board of Directors, to assist and guide the entire society."',
+    contactPhone: '+91 824 2441234',
+    contactEmail: 'support@odiyoorubank.in'
+  });
 
   // Load user from backend on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/admin/settings');
+        if (res.data.success) {
+          setSystemSettings(res.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch system settings', error);
+      }
+    };
+    fetchSettings();
+  }, []);
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('token');
@@ -87,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchUser();
   }, []);
 
-  const login = async (identifier: string, pass: string): Promise<boolean> => {
+  const login = async (identifier: string, pass: string): Promise<string | null> => {
     try {
       const res = await api.post('/auth/login', { email: identifier, password: pass });
       if (res.data.success) {
@@ -96,16 +137,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profileRes = await api.get('/auth/me');
         setUser({ ...profileRes.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
         setIsAuthenticated(true);
-        return true;
+        return profileRes.data.data.role || 'customer';
       }
-      return false;
+      return null;
     } catch (error) {
       console.error('Login error', error);
       throw error;
     }
   };
 
-  const googleLogin = async (token: string): Promise<boolean> => {
+  const googleLogin = async (token: string): Promise<string | null> => {
     try {
       // Trigger Firebase Auth Popup
       const result = await signInWithPopup(auth, googleProvider);
@@ -119,9 +160,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profileRes = await api.get('/auth/me');
         setUser({ ...profileRes.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
         setIsAuthenticated(true);
-        return true;
+        return profileRes.data.data.role || 'customer';
       }
-      return false;
+      return null;
     } catch (error) {
       console.error('Firebase Google login error', error);
       throw error;
@@ -138,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const resetPassword = async (token: string, password: string): Promise<boolean> => {
+  const resetPassword = async (token: string, password: string): Promise<string | null> => {
     try {
       const res = await api.put(`/auth/resetpassword/${token}`, { password });
       if (res.data.success) {
@@ -146,16 +187,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profileRes = await api.get('/auth/me');
         setUser({ ...profileRes.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
         setIsAuthenticated(true);
-        return true;
+        return profileRes.data.data.role || 'customer';
       }
-      return false;
+      return null;
     } catch (error) {
       console.error('Reset password error', error);
       throw error;
     }
   };
 
-  const registerUser = async (data: any): Promise<boolean> => {
+  const registerUser = async (data: any): Promise<string | null> => {
     try {
       const res = await api.post('/auth/register', {
         fullName: data.fullName,
@@ -172,9 +213,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser({ ...profileRes.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
         setIsAuthenticated(true);
         
-        return true;
+        return profileRes.data.data.role || 'customer';
       }
-      return false;
+      return null;
     } catch (error) {
       console.error('Registration error', error);
       throw error;
@@ -224,6 +265,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     saveUser({ ...user, savingsBalance: (user.savingsBalance || 0) + amount });
   };
 
+  const updateSystemSettings = async (newSettings: Partial<SystemSettings>): Promise<boolean> => {
+    try {
+      const res = await api.put('/admin/settings', newSettings);
+      if (res.data.success) {
+        setSystemSettings(res.data.data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to update system settings', error);
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -238,7 +293,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       applyForLoan,
       payEmi,
       uploadKyc,
-      addSavingsMoney
+      addSavingsMoney,
+      systemSettings,
+      updateSystemSettings
     }}>
       {children}
     </AuthContext.Provider>

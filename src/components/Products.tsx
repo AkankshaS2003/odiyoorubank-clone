@@ -14,7 +14,7 @@ export interface ProductItem {
 }
 
 export const Products: React.FC = () => {
-  const { user, isAuthenticated, openNewDeposit, applyForLoan } = useAuth();
+  const { user, isAuthenticated, openNewDeposit, applyForLoan, systemSettings } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'deposit' | 'loan'>('deposit');
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
@@ -31,7 +31,7 @@ export const Products: React.FC = () => {
       name: t('savings_name'),
       category: 'deposit',
       description: t('savings_desc'),
-      interestRate: '5.00% p.a.',
+      interestRate: `${systemSettings?.savingsRate || 4.50}% p.a.`,
       badge: 'Most Popular',
       benefits: ['Zero balance facility for members', 'Free monthly physical statements', 'Simulated online fund transfers']
     },
@@ -40,16 +40,16 @@ export const Products: React.FC = () => {
       name: t('fd_name'),
       category: 'deposit',
       description: t('fd_desc'),
-      interestRate: '8.50% p.a.',
+      interestRate: `${systemSettings?.fdRate || 8.50}% p.a.`,
       badge: 'Highest Return',
-      benefits: ['Senior Citizen rate: 9.00%', 'Loan options up to 90% of FD value', 'Persistent compounding']
+      benefits: [`Senior Citizen rate: ${(systemSettings?.fdRate || 8.50) + 0.5}%`, 'Loan options up to 90% of FD value', 'Persistent compounding']
     },
     {
       id: 'prod-recurring',
       name: t('rd_name'),
       category: 'deposit',
       description: t('rd_desc'),
-      interestRate: 'Up to 8.75% p.a.',
+      interestRate: `Up to ${systemSettings?.rdRate || 7.75}% p.a.`,
       benefits: ['Flexible monthly contributions', 'Compounded quarterly interest', 'Auto-debit from savings']
     },
     {
@@ -85,7 +85,7 @@ export const Products: React.FC = () => {
       name: t('gold_name'),
       category: 'loan',
       description: t('gold_desc'),
-      interestRate: '11.50% - 12.50% p.a.',
+      interestRate: `${systemSettings?.goldLoanRate || 8.50}% p.a.`,
       badge: 'Instant Processing',
       benefits: ['Disbursed within 30 minutes', 'LTV up to 75% of gold value', 'Secure government-grade safe vault keeping']
     },

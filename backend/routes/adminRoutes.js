@@ -6,7 +6,14 @@ const {
   getMessages, 
   uploadDocument, 
   getDocuments, 
-  deleteDocument 
+  deleteDocument,
+  getSettings,
+  updateSettings,
+  getUsers,
+  updateUserRole,
+  updateUserStatus,
+  deleteUser,
+  createEmployee
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
@@ -20,6 +27,9 @@ const upload = multer({
 
 const router = express.Router();
 
+// Public settings retrieval
+router.get('/settings', getSettings);
+
 // All routes here require auth and admin privileges
 router.use(protect);
 router.use(admin);
@@ -28,6 +38,16 @@ router.get('/stats', getStats);
 router.get('/loans', getAllLoans);
 router.put('/loan/:id', updateLoanStatus);
 router.get('/messages', getMessages);
+
+// System Settings (Write access)
+router.put('/settings', updateSettings);
+
+// User & Employee Management
+router.get('/users', getUsers);
+router.post('/users', createEmployee);
+router.put('/user/:id/role', updateUserRole);
+router.put('/user/:id/status', updateUserStatus);
+router.delete('/user/:id', deleteUser);
 
 // RAG Document Management Endpoints
 router.post('/upload', upload.single('file'), uploadDocument);

@@ -51,9 +51,13 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
     try {
       if (view === 'login') {
         if (!email || !password) throw new Error('Please fill all fields');
-        const success = await login(email, password);
-        if (success) {
-          setCurrentTab('dashboard');
+        const role = await login(email, password);
+        if (role) {
+          if (role === 'admin' || role === 'manager' || role === 'employee') {
+            setCurrentTab('home');
+          } else {
+            setCurrentTab('dashboard');
+          }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           setErrorMsg('Invalid Credentials');
@@ -70,15 +74,19 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
           throw new Error('Password must be at least 6 characters');
         }
 
-        const success = await registerUser({
+        const role = await registerUser({
           fullName: name,
           email,
           phone,
           password
         });
         
-        if (success) {
-          setCurrentTab('dashboard');
+        if (role) {
+          if (role === 'admin' || role === 'manager' || role === 'employee') {
+            setCurrentTab('home');
+          } else {
+            setCurrentTab('dashboard');
+          }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           setErrorMsg('Registration failed. Email might already exist.');
@@ -96,11 +104,15 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         if (password !== confirmPassword) throw new Error('Passwords do not match');
         if (password.length < 6) throw new Error('Password must be at least 6 characters');
 
-        const success = await resetPassword(resetToken, password);
-        if (success) {
+        const role = await resetPassword(resetToken, password);
+        if (role) {
           // Clear URL and go to dashboard
           window.history.replaceState({}, document.title, '/');
-          setCurrentTab('dashboard');
+          if (role === 'admin' || role === 'manager' || role === 'employee') {
+            setCurrentTab('home');
+          } else {
+            setCurrentTab('dashboard');
+          }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           setErrorMsg('Invalid or expired reset token');
@@ -119,9 +131,13 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
     setErrorMsg(null);
     try {
       // The token is no longer passed here; AuthContext handles the Firebase popup
-      const success = await googleLogin('');
-      if (success) {
-        setCurrentTab('dashboard');
+      const role = await googleLogin('');
+      if (role) {
+        if (role === 'admin' || role === 'manager' || role === 'employee') {
+          setCurrentTab('home');
+        } else {
+          setCurrentTab('dashboard');
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         setErrorMsg('Google login failed or was cancelled');

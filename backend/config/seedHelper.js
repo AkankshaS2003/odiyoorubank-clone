@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const KnowledgeBase = require('../models/KnowledgeBase');
+const SystemSettings = require('../models/SystemSettings');
 const { getEmbedding } = require('../services/embeddingService');
 
 const initialPolicies = [
@@ -65,6 +66,13 @@ const autoSeed = async () => {
         role: 'customer'
       });
       console.log('🌱 Seeding: Created default member user (member@odiyoorubank.in / password)');
+    }
+
+    // Seed default System Settings
+    const existingSettings = await SystemSettings.findOne();
+    if (!existingSettings) {
+      await SystemSettings.create({});
+      console.log('🌱 Seeding: Created default System Settings');
     }
 
     // 2. Seed Initial RAG Policies

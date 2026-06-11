@@ -71,7 +71,7 @@ const AppContent: React.FC = () => {
         case 'loan-eligibility':
           return <LoanEligibilityPage setCurrentTab={setCurrentTab} goBack={goBack} />;
         case 'admin':
-          if (!isAuthenticated || user?.role !== 'admin') {
+          if (!isAuthenticated || !(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'employee')) {
             return <Home setCurrentTab={setCurrentTab} />;
           }
           return <AdminPanel setCurrentTab={setCurrentTab} />;

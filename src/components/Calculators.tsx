@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Percent, ArrowUpRight, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export const Calculators: React.FC = () => {
   const { t } = useLanguage();
+  const { systemSettings } = useAuth();
   const [activeCalc, setActiveCalc] = useState<'emi' | 'fd' | 'rd' | 'eligibility'>('emi');
 
   // EMI State
@@ -26,6 +28,15 @@ export const Calculators: React.FC = () => {
   const [obligations, setObligations] = useState<number>(10000);
   const [eligTenure, setEligTenure] = useState<number>(240); // Months
   const [eligRate, setEligRate] = useState<number>(8.50);
+
+  useEffect(() => {
+    if (systemSettings) {
+      setEmiRate(systemSettings.goldLoanRate || 8.5);
+      setFdRate(systemSettings.fdRate || 8.5);
+      setRdRate(systemSettings.rdRate || 7.75);
+      setEligRate(systemSettings.goldLoanRate || 8.5);
+    }
+  }, [systemSettings]);
 
   // --- EMI Calculation Logic ---
   const calculateEmi = () => {

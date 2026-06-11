@@ -28,8 +28,13 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['customer', 'employee', 'admin'],
+    enum: ['customer', 'employee', 'manager', 'admin'],
     default: 'customer'
+  },
+  status: {
+    type: String,
+    enum: ['Active', 'Suspended'],
+    default: 'Active'
   },
   provider: {
     type: String,
