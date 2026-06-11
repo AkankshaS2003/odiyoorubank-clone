@@ -113,17 +113,23 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg(null);
     try {
-      if (credentialResponse.credential) {
-        const success = await googleLogin(credentialResponse.credential);
-        if (success) {
-          setCurrentTab('dashboard');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+      // The token is no longer passed here; AuthContext handles the Firebase popup
+      const success = await googleLogin('');
+      if (success) {
+        setCurrentTab('dashboard');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setErrorMsg('Google login failed or was cancelled');
       }
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.error || 'Google login failed');
+      setErrorMsg(err.response?.data?.error || err.message || 'Google login failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -328,14 +334,15 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         {/* Social Logins */}
         {(view === 'login' || view === 'register') && (
           <div className="w-full mt-4 flex justify-center relative z-10">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setErrorMsg('Google Login Failed')}
-              useOneTap
-              shape="pill"
-              theme="filled_black"
-              size="large"
-            />
+            <button
+              type="button"
+              onClick={handleGoogleSuccess}
+              disabled={isLoading}
+              className="w-full max-w-[280px] py-3 bg-white text-slate-800 hover:bg-slate-100 rounded-full font-bold text-[14px] shadow-md transition-all flex items-center justify-center space-x-3 cursor-pointer"
+            >
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-5 w-5" />
+              <span>Continue with Google</span>
+            </button>
           </div>
         )}
 
