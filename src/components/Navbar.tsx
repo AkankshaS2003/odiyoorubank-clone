@@ -127,66 +127,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 {t('home')}
               </button>
 
-              {/* About Us */}
-              <button
-                onClick={() => handleNavClick('about')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'about' ? 'text-white' : 'text-white/90'}`}
-              >
-                {t('about')}
-              </button>
-
-              {/* Gallery (Media) */}
-              <button
-                onClick={() => handleNavClick('media')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'media' ? 'text-white' : 'text-white/90'}`}
-              >
-                {t('media')}
-              </button>
-
-              {/* Contact Us */}
-              <button
-                onClick={() => handleNavClick('contact')}
-                className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'contact' ? 'text-white' : 'text-white/90'}`}
-              >
-                {t('Contact')}
-              </button>
-
-              {/* Others Dropdown */}
-              <div className="relative group">
-                <button
-                  className={`flex items-center space-x-1 text-sm font-bold uppercase tracking-wider transition-colors hover:text-white text-white/90`}
-                >
-                  <span>Others</span>
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left z-50 overflow-hidden py-1">
-                  <button
-                    onClick={() => handleNavClick('management')}
-                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
-                  >
-                    {t('management')}
-                  </button>
-                  <button
-                    onClick={() => handleNavClick('products')}
-                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
-                  >
-                    {t('products')}
-                  </button>
-                  <button
-                    onClick={() => handleNavClick('loan-eligibility')}
-                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
-                  >
-                    {t('loan_eligibility')}
-                  </button>
-                  <button
-                    onClick={() => handleNavClick('membership')}
-                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
-                  >
-                    {t('membership')}
-                  </button>
-                </div>
-              </div>
-
             </nav>
 
             {/* Quick Actions Interaction Area */}
@@ -316,13 +256,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
 
               <div className="flex flex-col space-y-4 text-xs font-bold text-slate-700">
                 <button onClick={() => handleNavClick('home')} className="text-left py-2 hover:text-primary">{t('home')}</button>
-                <button onClick={() => handleNavClick('about')} className="text-left py-2 hover:text-primary">{t('about')}</button>
-                <button onClick={() => handleNavClick('management')} className="text-left py-2 hover:text-primary">{t('management')}</button>
-                <button onClick={() => handleNavClick('products')} className="text-left py-2 hover:text-primary">{t('products')}</button>
-                <button onClick={() => handleNavClick('media')} className="text-left py-2 hover:text-primary">{t('media')}</button>
-                <button onClick={() => handleNavClick('loan-eligibility')} className="text-left py-2 hover:text-primary">{t('loan_eligibility')}</button>
-                <button onClick={() => handleNavClick('membership')} className="text-left py-2 hover:text-primary">{t('membership')}</button>
-                <button onClick={() => handleNavClick('contact')} className="text-left py-2 hover:text-primary">{t('contact')}</button>
                 {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'employee') && (
                   <button 
                     onClick={() => handleNavClick('admin')} 

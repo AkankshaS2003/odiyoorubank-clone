@@ -23,7 +23,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-12">
           
           {/* Left Column: Logo, description, and green social icons */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-7 space-y-6">
             
             {/* Logo Crest inline representation */}
             <div className="flex items-center space-x-3 cursor-pointer" onClick={() => handleNavClick('home')}>
@@ -68,68 +68,8 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
             </div>
           </div>
 
-          {/* Center Column: Quick Links - localized */}
-          <div className="lg:col-span-2 space-y-4 text-left">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              {t('quick_links')} <span className="text-white/90">→</span>
-            </h4>
-            <ul className="space-y-2 text-xs text-white/90 font-semibold">
-              {[
-                { name: 'Home', tab: 'home' },
-                { name: 'About Us', tab: 'about' },
-                { name: 'Management', tab: 'management' },
-                { name: 'Contact Us', tab: 'contact' },
-                { name: 'Membership', tab: 'membership' }
-              ].map((link, i) => (
-                <li key={i}>
-                  <button 
-                    onClick={() => handleNavClick(link.tab)}
-                    className="hover:text-white transition-colors"
-                  >
-                    {link.name === 'Home' 
-                      ? t('home') 
-                      : link.name === 'About Us' 
-                      ? t('about') 
-                      : link.name === 'Management' 
-                      ? t('management') 
-                      : link.name === 'Contact Us' 
-                      ? t('contact') 
-                      : t('membership')}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Right Column: Products - localized */}
-          <div className="lg:col-span-2 space-y-4 text-left">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              {t('footer_prod_title')} <span className="text-white/90">→</span>
-            </h4>
-            <ul className="space-y-2 text-xs text-white/90 font-semibold">
-              {[
-                { name: 'Share Capital', tab: 'membership' },
-                { name: 'Savings Deposit', tab: 'products' },
-                { name: 'Fixed Deposit', tab: 'products' },
-                { name: 'Recurring Deposit', tab: 'products' },
-                { name: 'Nirvritti Vetan Yojana', tab: 'products' },
-                { name: 'Monthly Income scheme', tab: 'products' },
-                { name: 'Daily Deposit', tab: 'products' }
-              ].map((link, i) => (
-                <li key={i}>
-                  <button 
-                    onClick={() => handleNavClick(link.tab)}
-                    className="hover:text-white transition-colors"
-                  >
-                    {link.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           {/* New Column: Contact Us - localized */}
-          <div className="lg:col-span-3 space-y-4 text-left">
+          <div className="lg:col-span-5 space-y-4 text-left">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
               {t('contact')} <span className="text-white/90">→</span>
             </h4>

@@ -1,6 +1,6 @@
 const express = require('express');
 const { handleChat, getChatHistory } = require('../controllers/ragController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, optionalProtect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -30,13 +30,10 @@ const chatRateLimiter = (maxRequests = 30, windowMs = 60 * 1000) => {
   };
 };
 
-// All RAG operations require user authentication
-router.use(protect);
-
 // Chat endpoint (rate limited)
-router.post('/', chatRateLimiter(20, 60 * 1000), handleChat);
+router.post('/', optionalProtect, chatRateLimiter(20, 60 * 1000), handleChat);
 
 // Chat history retrieval
-router.get('/history', getChatHistory);
+router.get('/history', optionalProtect, getChatHistory);
 
 module.exports = router;

@@ -24,11 +24,11 @@ const handleChat = async (req, res, next) => {
     const answer = await generateResponse(question, retrievedDocs);
 
     // 4. Save conversation log in MongoDB
-    await ChatHistory.create({
-      userId: req.user._id,
-      question,
-      answer
-    });
+    const chatLogData = { question, answer };
+    if (req.user) {
+      chatLogData.userId = req.user._id;
+    }
+    await ChatHistory.create(chatLogData);
 
     // 5. Build source citations array (filter duplicate sources for cleaner citation UX)
     const sources = retrievedDocs.map(doc => ({
@@ -57,6 +57,13 @@ const handleChat = async (req, res, next) => {
 // @access  Private
 const getChatHistory = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: []
+      });
+    }
     const history = await ChatHistory.find({ userId: req.user._id })
       .sort({ timestamp: -1 })
       .limit(50); // Limit to past 50 exchanges to optimize performance

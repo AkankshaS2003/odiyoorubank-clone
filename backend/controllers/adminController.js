@@ -157,8 +157,17 @@ const uploadDocument = async (req, res, next) => {
       extractedText = req.file.buffer.toString('utf-8');
     } else if (ext === 'pdf') {
       try {
-        const data = await pdfParse(req.file.buffer);
-        extractedText = data.text;
+        if (typeof pdfParse === 'function') {
+          const data = await pdfParse(req.file.buffer);
+          extractedText = data.text;
+        } else if (pdfParse && typeof pdfParse.PDFParse === 'function') {
+          const uint8array = new Uint8Array(req.file.buffer);
+          const parser = new pdfParse.PDFParse(uint8array);
+          const textInfo = await parser.getText();
+          extractedText = textInfo.text;
+        } else {
+          throw new Error('pdf-parse module format is unrecognized');
+        }
       } catch (err) {
         return res.status(400).json({ success: false, error: `Failed to parse PDF file: ${err.message}` });
       }
