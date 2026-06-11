@@ -523,7 +523,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const isEmployee = currentUser?.role === 'employee';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row pt-20">
       
       {/* 1. SIDEBAR NAVIGATION */}
       <aside className="w-full lg:w-64 bg-[#0A315C] text-white flex flex-col shrink-0 border-r border-[#ED7F1E]/20 select-none">

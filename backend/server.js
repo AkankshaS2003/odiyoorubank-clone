@@ -1,11 +1,11 @@
-const dotenv = require('dotenv');
-// Load env vars at the very beginning of the entrypoint before other modules are imported
-dotenv.config({ override: true });
-
 const express = require('express');
+const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const { errorHandler } = require('./middleware/errorMiddleware');
+
+// Load env vars
+dotenv.config({ override: true });
 
 // Connect to database
 connectDB();
