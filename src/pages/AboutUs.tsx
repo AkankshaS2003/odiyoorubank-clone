@@ -60,7 +60,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ setCurrentTab }) => {
             {/* Image 1: Main background / Left side */}
             <div className="absolute top-0 left-0 w-[78%] h-[280px] sm:h-[340px] rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-10 transition-all duration-700 ease-in-out group-hover:scale-[1.03] group-hover:-translate-x-2 group-hover:-translate-y-2 group-hover:rotate-1">
               <img 
-                src="/about_hero2.png" 
+                src="gallery/odiyooru.png" 
                 alt="Cooperative Society Staff" 
                 className="w-full h-full object-cover filter brightness-95"
               />
@@ -69,7 +69,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ setCurrentTab }) => {
             {/* Image 2: Overlapping bottom right */}
             <div className="absolute bottom-0 right-0 w-[70%] h-[200px] sm:h-[250px] rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-20 transition-all duration-700 ease-in-out group-hover:scale-[1.05] group-hover:translate-x-3 group-hover:translate-y-3 group-hover:-rotate-2">
               <img 
-                src="/about_section2_left.png" 
+                src="gallery/y1.png" 
                 alt="Prosperity and Trust Emblem" 
                 className="w-full h-full object-cover filter brightness-95"
               />
