@@ -285,7 +285,7 @@ export const translations: TranslationDict = {
     en: 'Member Shareholder',
   },
   rev1_branch: {
-    en: 'Sector 15, Rohini Branch, New Delhi',
+    en: 'Hampankatta Branch, Mangaluru',
   },
   rev2_review: {
     en: 'My small business was struggling. Their doorstep collector agents visit my shop daily to collect savings, which are compounded quarterly. Sanctioned a gold loan within 20 minutes without credit history!',
@@ -297,7 +297,7 @@ export const translations: TranslationDict = {
     en: 'Micro-Entrepreneur',
   },
   rev2_branch: {
-    en: 'Gomti Nagar Branch, Lucknow',
+    en: 'Main Road Branch, Puttur',
   },
   rev3_review: {
     en: 'The Monthly Income Scheme (MIS) keeps my retirement payouts secure with prompt direct transfers. The simulated dashboard is very clean, accessible, and transparent. Truly a modern cooperative!',
@@ -309,7 +309,7 @@ export const translations: TranslationDict = {
     en: 'Retiree',
   },
   rev3_branch: {
-    en: 'Shivaji Nagar Branch, Pune',
+    en: 'Car Street Branch, Udupi',
   },
 
   // --- Community Impact ---

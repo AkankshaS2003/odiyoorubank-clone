@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 interface Branch {
   name: string;
-  state: 'Delhi' | 'Uttar Pradesh' | 'Maharashtra' | 'Karnataka';
+  state: 'Dakshina Kannada' | 'Udupi' | 'Bengaluru' | 'Kasaragod';
   address: string;
   phone: string;
   hoursKey: string;
@@ -18,42 +18,42 @@ export const BranchLocator: React.FC = () => {
 
   const branches: Branch[] = [
     {
-      name: 'Central Rohini Headquarters',
-      state: 'Delhi',
-      address: 'Plot No. 24, Institutional Area, Sector 7, Rohini, New Delhi - 110085',
-      phone: '+91 11 4983 2000',
+      name: 'Odiyooru Central Headquarters',
+      state: 'Dakshina Kannada',
+      address: 'Odiyoor post, Tq. Uppala Road, Bantwal, Karnataka - 574243',
+      phone: '+91 8255 200000',
       hoursKey: 'hours_val',
       isHead: true
     },
     {
-      name: 'Gomti Nagar Branch',
-      state: 'Uttar Pradesh',
-      address: '102, Cyber Tower, Near Patrakar Puram, Gomti Nagar, Lucknow - 226010',
-      phone: '+91 522 400 9041',
+      name: 'Hampankatta Branch',
+      state: 'Dakshina Kannada',
+      address: '1st Floor, City Center Mall Road, Hampankatta, Mangaluru, Karnataka - 575001',
+      phone: '+91 824 242 4041',
       hoursKey: 'hours_val',
       isHead: false
     },
     {
-      name: 'Shivaji Nagar Branch',
-      state: 'Maharashtra',
-      address: 'Shop No. 4-6, Ground Floor, Pune Commercial Hub, F.C. Road, Shivaji Nagar, Pune - 411005',
-      phone: '+91 20 2567 4832',
+      name: 'Car Street Branch',
+      state: 'Udupi',
+      address: 'Shop No. 4, Temple Square, Car Street, Udupi, Karnataka - 576101',
+      phone: '+91 820 252 4832',
       hoursKey: 'hours_val',
       isHead: false
     },
     {
       name: 'Indiranagar Branch',
-      state: 'Karnataka',
-      address: '89/1, 100 Feet Road, HAL 2nd Stage, Indiranagar, Bengaluru - 560038',
+      state: 'Bengaluru',
+      address: '89/1, 100 Feet Road, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka - 560038',
       phone: '+91 80 4124 9382',
       hoursKey: 'hours_val',
       isHead: false
     },
     {
-      name: 'Ghatkopar Branch',
-      state: 'Maharashtra',
-      address: 'Wing B, Ghatkopar Commercial Center, LBS Marg, Ghatkopar West, Mumbai - 400086',
-      phone: '+91 22 2509 3824',
+      name: 'Uppala Branch',
+      state: 'Kasaragod',
+      address: 'Ground Floor, Highway Complex, Uppala, Kasaragod, Kerala - 671322',
+      phone: '+91 4998 209 382',
       hoursKey: 'hours_val',
       isHead: false
     }
@@ -103,10 +103,10 @@ export const BranchLocator: React.FC = () => {
               onChange={(e) => setStateFilter(e.target.value)}
             >
               <option value="All">{t('all_states')}</option>
-              <option value="Delhi">Delhi</option>
-              <option value="Uttar Pradesh">Uttar Pradesh</option>
-              <option value="Maharashtra">Maharashtra</option>
-              <option value="Karnataka">Karnataka</option>
+              <option value="Dakshina Kannada">Dakshina Kannada</option>
+              <option value="Udupi">Udupi</option>
+              <option value="Bengaluru">Bengaluru</option>
+              <option value="Kasaragod">Kasaragod</option>
             </select>
           </div>
 
