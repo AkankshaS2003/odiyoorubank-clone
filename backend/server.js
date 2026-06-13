@@ -1,11 +1,13 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const path = require('path');
+
+// Load env vars FIRST before other imports
+dotenv.config({ path: path.join(__dirname, '.env'), override: true });
+
 const cors = require('cors');
 const connectDB = require('./config/db');
 const { errorHandler } = require('./middleware/errorMiddleware');
-
-// Load env vars
-dotenv.config({ override: true });
 
 // Connect to database
 connectDB();
@@ -25,6 +27,7 @@ app.use('/api/loans', require('./routes/loanRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/chat', require('./routes/ragRoutes'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
 
 // Error handler middleware
 app.use(errorHandler);

@@ -7,6 +7,7 @@ const SystemSettings = require('../models/SystemSettings');
 const { getEmbedding } = require('../services/embeddingService');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
+const nodemailer = require('nodemailer');
 
 // @desc    Get dashboard stats
 // @route   GET /api/admin/stats
@@ -94,14 +95,51 @@ const updateLoanStatus = async (req, res, next) => {
 const getMessages = async (req, res, next) => {
   try {
     const messages = await Contact.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: messages });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
 
-    res.status(200).json({
-      success: true,
-      count: messages.length,
-      data: messages
+// @desc    Reply to Contact Message
+// @route   POST /api/admin/messages/:id/reply
+// @access  Private/Admin
+const replyToMessage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { replyText } = req.body;
+
+    const message = await Contact.findById(id);
+    if (!message) {
+      return res.status(404).json({ success: false, error: 'Message not found' });
+    }
+
+    if (!replyText) {
+      return res.status(400).json({ success: false, error: 'Reply text is required' });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+      port: process.env.SMTP_PORT || 587,
+      auth: {
+        user: process.env.SMTP_USER || 'ethereal.user@ethereal.email',
+        pass: process.env.SMTP_PASS || 'ethereal.pass',
+      },
     });
+
+    const mailOptions = {
+      from: `"Odiyooru Souharda" <${process.env.SMTP_USER || 'noreply@odiyoorubank.in'}>`,
+      to: message.email,
+      subject: 'Re: Your Inquiry with Odiyooru Souharda Cooperative Society',
+      text: replyText,
+    };
+
+    await transporter.sendMail(mailOptions);
+    
+    res.status(200).json({ success: true, data: 'Reply sent successfully' });
   } catch (error) {
-    next(error);
+    console.error('Failed to send reply email:', error);
+    res.status(500).json({ success: false, error: 'Failed to send reply email' });
   }
 };
 
@@ -457,6 +495,7 @@ module.exports = {
   updateUserRole,
   updateUserStatus,
   deleteUser,
-  createEmployee
+  createEmployee,
+  replyToMessage
 };
 

@@ -1,9 +1,8 @@
 const genAI = require('../config/gemini');
 
 /**
- * Generate 768-dimensional vector embedding for the input text using Gemini API
- * @param {string} text The text to embed
- * @returns {Promise<number[]>} The vector embedding
+ * @param {string} text 
+ * @returns {Promise<number[]>} 
  */
 const getEmbedding = async (text) => {
   if (!genAI) {
@@ -11,9 +10,12 @@ const getEmbedding = async (text) => {
   }
 
   try {
-    // text-embedding-004 is the standard embedding model for Gemini
-    const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
-    const result = await model.embedContent(text);
+    const model = genAI.getGenerativeModel({ model: 'gemini-embedding-2' });
+    const result = await model.embedContent({
+      content: { parts: [{ text }] },
+      taskType: 'RETRIEVAL_DOCUMENT',
+      outputDimensionality: 768
+    });
     
     if (result && result.embedding && result.embedding.values) {
       return result.embedding.values;

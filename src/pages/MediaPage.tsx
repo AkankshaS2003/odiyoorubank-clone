@@ -7,7 +7,7 @@ export const MediaPage: React.FC = () => {
 
   const galleryImages = [
     { url: '/gallery/y1.png', alt: 'Images' },
-    { url: '/gallery/y2.png', alt: 'Images' },
+    { url: '/gallery/y2.jpg', alt: 'Images' },
     { url: '/gallery/y3.png', alt: 'Images' },
     { url: '/gallery/y4.png', alt: 'Images' },
     { url: '/gallery/y5.png', alt: 'Images' },

@@ -13,7 +13,8 @@ const {
   updateUserRole,
   updateUserStatus,
   deleteUser,
-  createEmployee
+  createEmployee,
+  replyToMessage
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
@@ -38,6 +39,7 @@ router.get('/stats', getStats);
 router.get('/loans', getAllLoans);
 router.put('/loan/:id', updateLoanStatus);
 router.get('/messages', getMessages);
+router.post('/messages/:id/reply', replyToMessage);
 
 // System Settings (Write access)
 router.put('/settings', updateSettings);

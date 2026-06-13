@@ -7,7 +7,7 @@ interface MembershipPageProps {
 
 export const MembershipPage: React.FC<MembershipPageProps> = ({ setCurrentTab }) => {
   return (
-    <div className="pt-16 min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50">
       <Membership setCurrentTab={setCurrentTab} />
     </div>
   );

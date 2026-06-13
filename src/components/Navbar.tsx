@@ -184,6 +184,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                   >
                     {t('membership')}
                   </button>
+                  <button
+                    onClick={() => handleNavClick('branches')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
+                  >
+                    Branches
+                  </button>
+                  <button
+                    onClick={() => handleNavClick('reviews')}
+                    className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
+                  >
+                    Reviews
+                  </button>
                 </div>
               </div>
 
@@ -223,35 +235,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                         {!(user.role === 'admin' || user.role === 'manager' || user.role === 'employee') ? (
                           <>
                             <button
-                              onClick={() => {
-                                handleNavClick('dashboard');
-                                alert('Profile Details Section (Simulated)');
-                              }}
+                              onClick={() => handleNavClick('dashboard')}
                               className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
                             >
                               Profile
                             </button>
                             <button
-                              onClick={() => {
-                                handleNavClick('contact');
-                              }}
+                              onClick={() => handleNavClick('contact')}
                               className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
                             >
                               Help Center
-                            </button>
-                            <button
-                              onClick={() => {
-                                alert('Account Settings (Simulated)');
-                              }}
-                              className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
-                            >
-                              Settings
-                            </button>
-                            <button
-                              onClick={() => handleNavClick('dashboard')}
-                              className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors font-extrabold text-[#ED7F1E]"
-                            >
-                              Customer Dashboard
                             </button>
                           </>
                         ) : (
@@ -322,6 +315,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 <button onClick={() => handleNavClick('media')} className="text-left py-2 hover:text-primary">{t('media')}</button>
                 <button onClick={() => handleNavClick('loan-eligibility')} className="text-left py-2 hover:text-primary">{t('loan_eligibility')}</button>
                 <button onClick={() => handleNavClick('membership')} className="text-left py-2 hover:text-primary">{t('membership')}</button>
+                <button onClick={() => handleNavClick('reviews')} className="text-left py-2 hover:text-primary">Reviews</button>
                 <button onClick={() => handleNavClick('contact')} className="text-left py-2 hover:text-primary">{t('contact')}</button>
                 {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'employee') && (
                   <button 

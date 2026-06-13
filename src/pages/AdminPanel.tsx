@@ -62,7 +62,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   
   // Tab State: matching all 14 specified modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings'
+    'dashboard' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'reviews'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -91,6 +91,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [users, setUsers] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [adminReviews, setAdminReviews] = useState<any[]>([]);
 
   // Search & Filter States
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,6 +101,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Email Reply State
+  const [replyMessageId, setReplyMessageId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
 
   // Form States (CMS / Settings / Employee Creation)
   const [cmsState, setCmsState] = useState({
@@ -132,6 +137,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     fetchDocuments();
     loadCmsState();
     loadAuditLogs();
+    fetchAdminReviews();
   }, []);
 
   useEffect(() => {
@@ -238,6 +244,57 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
       }
     } catch (err) {
       console.error('Failed to fetch indexed docs', err);
+    }
+  };
+
+  const fetchAdminReviews = async () => {
+    try {
+      const res = await api.get('/reviews/admin');
+      if (res.data.success) {
+        setAdminReviews(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch reviews', err);
+    }
+  };
+
+  const handleReviewStatusUpdate = async (id: string, status: string) => {
+    setActionLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await api.put(`/reviews/admin/${id}`, { status });
+      if (res.data.success) {
+        setSuccess(`Review marked as ${status}.`);
+        addAuditLog(`Updated review status to ${status} for Review ID ${id}`);
+        fetchAdminReviews();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update review status');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReplySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyMessageId || !replyText.trim()) return;
+    
+    setActionLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await api.post(`/admin/messages/${replyMessageId}/reply`, { replyText });
+      if (res.data.success) {
+        setSuccess('Reply sent successfully via email!');
+        addAuditLog(`Sent email reply to message ID ${replyMessageId}`);
+        setReplyMessageId(null);
+        setReplyText('');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to send reply');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -493,18 +550,14 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'customers', label: 'Customers', icon: Users },
-    { id: 'loans', label: 'Loan Applications', icon: Briefcase },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
-    { id: 'cms', label: 'Website Content', icon: FileText },
     { id: 'branches', label: 'Branch Management', icon: MapPin },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
-    { id: 'downloads', label: 'Forms & Downloads', icon: Download },
     { id: 'rag', label: 'RAG Knowledge Base', icon: Database },
-    { id: 'chatbot', label: 'Chatbot Analytics', icon: MessageSquare },
     { id: 'users', label: 'User Management', icon: UserCheck },
     { id: 'employees', label: 'Employee Management', icon: Contact },
     { id: 'audit', label: 'Audit Logs', icon: History },
-    { id: 'settings', label: 'Settings', icon: Sliders }
+    { id: 'reviews', label: 'Reviews', icon: MessageSquare },
   ] as const;
 
   // Filtered customer list
@@ -523,7 +576,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const isEmployee = currentUser?.role === 'employee';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row pt-20">
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
       
       {/* 1. SIDEBAR NAVIGATION */}
       <aside className="w-full lg:w-64 bg-[#0A315C] text-white flex flex-col shrink-0 border-r border-[#ED7F1E]/20 select-none">
@@ -641,9 +694,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   </div>
 
                   <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm flex items-center space-x-4">
-                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
-                      <DollarSign className="h-6 w-6" />
-                    </div>
+                    
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Deposits</span>
                       <span className="text-2xl font-extrabold text-slate-900 mt-0.5 block">₹{(stats.totalDeposits || 50000).toLocaleString('en-IN')}</span>
@@ -687,50 +738,12 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     </div>
                   </div>
 
-                  {/* Chart 2: Loans Count by Type */}
-                  <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm">
-                    <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-6">Active Credit distribution</h3>
-                    <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={loanAnalyticsData}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                          <XAxis dataKey="name" stroke="#94A3B8" fontSize={10} fontStyle="bold" />
-                          <YAxis stroke="#94A3B8" fontSize={10} fontStyle="bold" />
-                          <Tooltip />
-                          <Bar dataKey="count" fill="#ED7F1E" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                  
 
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Deposit Split Chart */}
-                  <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm lg:col-span-1">
-                    <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-6">Deposits Portfolio</h3>
-                    <div className="h-56 w-full flex items-center justify-center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={depositGrowthData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={50}
-                            outerRadius={70}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {depositGrowthData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                          <Legend wrapperStyle={{ fontSize: 10, fontWeight: 'bold' }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
+                  
 
                   {/* Contact Inquiry Summary Logs */}
                   <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm lg:col-span-2">
@@ -752,6 +765,12 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                             <div>
                               <p className="font-bold text-slate-800">{msg.name} ({msg.email})</p>
                               <p className="text-slate-500 mt-1 italic">"{msg.message}"</p>
+                              <button 
+                                onClick={() => setReplyMessageId(msg._id)}
+                                className="mt-2 text-[10px] text-primary font-bold hover:underline"
+                              >
+                                Reply via Email
+                              </button>
                             </div>
                             <span className="text-[10px] text-slate-400 font-mono tracking-tighter block shrink-0">{new Date(msg.createdAt).toLocaleDateString()}</span>
                           </div>
@@ -1229,8 +1248,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
               <div className="space-y-8">
                 {/* RAG Title */}
                 <div>
-                  <h2 className="text-lg font-black text-slate-900 uppercase">RAG Policies Indexer</h2>
-                  <p className="text-xs text-slate-400 font-bold mt-1">Upload banking guidelines to train the AI NLP assistant.</p>
+                  <h2 className="text-lg font-black text-slate-900 uppercase">RAG Assistant</h2>
                 </div>
 
                 {/* Split Section: Index File Left, Indexed Files Table Right */}
@@ -1666,6 +1684,74 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 </form>
               </div>
             )}
+
+            {activeTab === 'reviews' && (
+              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                <div className="flex flex-col pb-6 border-b border-slate-100 gap-2 mb-6">
+                  <h2 className="text-lg font-black text-slate-900 uppercase">Review Moderation</h2>
+                  <p className="text-xs text-slate-400 font-bold mt-1">Approve or reject customer reviews for public display.</p>
+                </div>
+
+                {adminReviews.length === 0 ? (
+                  <div className="text-center py-16">
+                    <MessageSquare className="h-12 w-12 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs text-slate-400 font-bold">No reviews found.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-150 text-[10px] text-slate-400 font-black uppercase tracking-wider">
+                          <th className="pb-3 pl-2">Customer Name</th>
+                          <th className="pb-3">Rating</th>
+                          <th className="pb-3">Comment</th>
+                          <th className="pb-3">Status</th>
+                          <th className="pb-3 text-right pr-2">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-xs text-slate-700 font-semibold divide-y divide-slate-100/50">
+                        {adminReviews.map((review) => (
+                          <tr key={review._id} className="hover:bg-slate-50/50">
+                            <td className="py-4 pl-2 font-bold text-slate-900">{review.name}</td>
+                            <td className="py-4">{review.rating} / 5</td>
+                            <td className="py-4 max-w-xs truncate" title={review.comment}>{review.comment}</td>
+                            <td className="py-4">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                review.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                review.status === 'rejected' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                                'bg-amber-50 text-amber-600 border border-amber-100'
+                              }`}>
+                                {review.status}
+                              </span>
+                            </td>
+                            <td className="py-4 text-right pr-2 space-x-2 shrink-0">
+                              {review.status !== 'approved' && (
+                                <button
+                                  onClick={() => handleReviewStatusUpdate(review._id, 'approved')}
+                                  disabled={actionLoading}
+                                  className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 cursor-pointer"
+                                >
+                                  Approve
+                                </button>
+                              )}
+                              {review.status !== 'rejected' && (
+                                <button
+                                  onClick={() => handleReviewStatusUpdate(review._id, 'rejected')}
+                                  disabled={actionLoading}
+                                  className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 cursor-pointer"
+                                >
+                                  Reject
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
 
@@ -1710,6 +1796,38 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
               <span>Total: {docChunks.length} chunks</span>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* REPLY MODAL */}
+      {replyMessageId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 border border-slate-150 shadow-2xl animate-scale-up relative flex flex-col">
+            <button 
+              onClick={() => { setReplyMessageId(null); setReplyText(''); }} 
+              className="absolute top-5 right-5 text-slate-455 hover:text-slate-655 p-1 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h3 className="text-base font-extrabold text-slate-900 mb-4">Reply to Message</h3>
+            <form onSubmit={handleReplySubmit}>
+              <textarea
+                required
+                rows={5}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs"
+                placeholder="Type your reply here..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+              />
+              <button
+                type="submit"
+                disabled={actionLoading}
+                className="mt-4 px-6 py-2.5 bg-[#0A315C] hover:bg-[#051C36] text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 w-full sm:w-auto"
+              >
+                {actionLoading ? 'Sending...' : 'Send Reply'}
+              </button>
+            </form>
           </div>
         </div>
       )}

@@ -52,7 +52,7 @@ export const HomeAboutUsSection: React.FC<HomeAboutUsSectionProps> = ({ setCurre
               <div className="w-16 h-1 bg-[#ED7F1E] rounded-full"></div>
             </div>
             
-            {/* Dynamic Paragraph: Exact website content kept unmodified */}
+            {/* Dynamic Paragraph: Extended historical content added per user request */}
             <p className="text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed font-semibold pt-1">
               {systemSettings?.aboutText || 'Odiyooru Souharda Cooperative Society Ltd is a premier cooperative financial institution established on 20-04-2011, dedicated to empowering communities and micro-merchants through reliable deposits, gold loans, and absolute financial security. Guided by values of trust, progress, and co-ownership, we have been a trusted partner in rural growth and self-reliance for over a decade.'}
             </p>

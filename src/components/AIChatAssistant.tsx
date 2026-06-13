@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Landmark, User, ShieldAlert, BookOpen } from 'lucide-react';
+import { MessageSquare, X, Send, Landmark, User, ShieldAlert, BookOpen, Maximize, Minimize } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
 
@@ -22,6 +22,14 @@ export const AIChatAssistant: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // Simple Markdown formatter for the bot's text
+  const formatMarkdown = (text: string) => {
+    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-[#0A315C]">$1</strong>');
+    formatted = formatted.replace(/^\*\s+(.*)$/gm, '<div class="flex items-start mt-1"><span class="mr-2 text-[#ED7F1E] font-black">•</span><span>$1</span></div>');
+    return formatted;
+  };
 
   // Initialize and load chat history upon component mount
   useEffect(() => {
@@ -160,7 +168,7 @@ export const AIChatAssistant: React.FC = () => {
 
       {/* Floating Chat Dialogue Window */}
       {isOpen && (
-        <div className="w-80 md:w-[420px] h-[520px] bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col animate-scale-up">
+        <div className={`bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col animate-scale-up ${isFullScreen ? 'fixed inset-2 md:inset-6 z-[9999]' : 'w-80 md:w-[420px] h-[520px]'}`}>
           
           {/* Header */}
           <div className="bg-[#0A315C] p-4 text-white flex justify-between items-center shrink-0">
@@ -176,12 +184,21 @@ export const AIChatAssistant: React.FC = () => {
                 </span>
               </div>
             </div>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 hover:text-white cursor-pointer transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div className="flex items-center space-x-1">
+              <button 
+                onClick={() => setIsFullScreen(!isFullScreen)}
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 hover:text-white cursor-pointer transition-colors"
+                title="Toggle Fullscreen"
+              >
+                {isFullScreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              </button>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 hover:text-white cursor-pointer transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Messages Body */}
@@ -201,10 +218,14 @@ export const AIChatAssistant: React.FC = () => {
                   <div className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
                     msg.sender === 'user' 
                       ? 'bg-[#0A315C] text-white rounded-tr-none' 
-                      : 'bg-white text-slate-800 border border-slate-150 rounded-tl-none'
+                      : 'bg-white text-slate-800 border border-slate-150 rounded-tl-none shadow-[0_2px_8px_rgb(0,0,0,0.04)]'
                   }`}>
                     {/* Answer text */}
-                    <div className="whitespace-pre-wrap font-semibold">{msg.text}</div>
+                    {msg.sender === 'user' ? (
+                      <div className="whitespace-pre-wrap font-semibold">{msg.text}</div>
+                    ) : (
+                      <div className="whitespace-pre-wrap font-medium" dangerouslySetInnerHTML={{ __html: formatMarkdown(msg.text) }} />
+                    )}
                     
                     {/* Citations Footer */}
                     {msg.sources && msg.sources.length > 0 && (
