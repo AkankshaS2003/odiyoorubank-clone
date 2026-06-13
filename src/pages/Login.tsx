@@ -56,7 +56,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
           if (role === 'admin' || role === 'manager' || role === 'employee') {
             setCurrentTab('home');
           } else {
-            setCurrentTab('dashboard');
+            setCurrentTab('home');
           }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
@@ -85,7 +85,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
           if (role === 'admin' || role === 'manager' || role === 'employee') {
             setCurrentTab('home');
           } else {
-            setCurrentTab('dashboard');
+            setCurrentTab('home');
           }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
@@ -111,7 +111,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
           if (role === 'admin' || role === 'manager' || role === 'employee') {
             setCurrentTab('home');
           } else {
-            setCurrentTab('dashboard');
+            setCurrentTab('home');
           }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
@@ -136,7 +136,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         if (role === 'admin' || role === 'manager' || role === 'employee') {
           setCurrentTab('home');
         } else {
-          setCurrentTab('dashboard');
+          setCurrentTab('home');
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {

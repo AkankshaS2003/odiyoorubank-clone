@@ -11,9 +11,13 @@ const getEmbedding = async (text) => {
   }
 
   try {
-    // text-embedding-004 is the standard embedding model for Gemini
-    const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
-    const result = await model.embedContent(text);
+    // gemini-embedding-2 is the standard embedding model for Gemini
+    const model = genAI.getGenerativeModel({ model: 'gemini-embedding-2' });
+    const result = await model.embedContent({
+      content: { parts: [{ text }] },
+      taskType: 'RETRIEVAL_DOCUMENT',
+      outputDimensionality: 768
+    });
     
     if (result && result.embedding && result.embedding.values) {
       return result.embedding.values;

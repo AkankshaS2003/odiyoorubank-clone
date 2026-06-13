@@ -13,7 +13,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
 
   if (!isAuthenticated || !user) {
     return (
-      <section className="min-h-screen pt-36 pb-16 flex items-center justify-center bg-slate-50 px-4">
+      <section className="min-h-screen pb-16 flex items-center justify-center bg-slate-50 px-4">
         <div className="bg-white border border-slate-150 p-8 rounded-3xl shadow-xl text-center space-y-4 max-w-md w-full">
           <ShieldAlert className="h-12 w-12 text-rose-500 mx-auto" />
           <h3 className="text-xl font-bold text-slate-900">{t('access_restricted')}</h3>
@@ -32,7 +32,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
   }
 
   return (
-    <section className="min-h-screen pt-28 pb-16 bg-slate-50 relative">
+    <section className="min-h-screen pb-16 bg-slate-50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Member Greeting Details Panel */}
@@ -47,13 +47,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
               
               <div className="flex flex-wrap gap-2 mt-1.5 text-[11px] text-slate-500 font-semibold">
                 <span>Member ID: {user.memberId || 'ODI-M-84931'}</span>
-                <span>•</span>
-                <span>PAN: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[10px]">{user.pan}</code></span>
-                <span>•</span>
-                <span className={`inline-flex items-center space-x-1 ${user.kycStatus === 'Verified' ? 'text-emerald-600' : 'text-amber-500'}`}>
-                  <span>eKYC Status:</span>
-                  <span className="font-bold">{user.kycStatus === 'Verified' ? 'Verified' : user.kycStatus === 'Pending' ? 'Pending' : 'Unsubmitted'}</span>
-                </span>
               </div>
             </div>
           </div>
@@ -97,16 +90,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
                 <span className="text-sm font-semibold text-slate-500">Phone</span>
                 <span className="text-sm font-bold text-slate-900">{user.phone}</span>
               </div>
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <span className="text-sm font-semibold text-slate-500">PAN</span>
-                <span className="text-sm font-bold text-slate-900 font-mono">{user.pan}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <span className="text-sm font-semibold text-slate-500">KYC Status</span>
-                <span className={`text-xs px-2.5 py-1 rounded-lg font-bold ${user.kycStatus === 'Verified' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                  {user.kycStatus}
-                </span>
-              </div>
+
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                 <span className="text-sm font-semibold text-slate-500">Account Type</span>
                 <span className="text-sm font-bold text-slate-900">Savings Account</span>

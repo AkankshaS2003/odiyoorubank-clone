@@ -68,13 +68,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
             </span>
           </h1>
 
-          <p className="text-xs sm:text-sm font-bold text-slate-300 tracking-wider uppercase">
-            REG NO: DRP:S.9:88:RGN:520:2010-11
-          </p>
 
-          <p className="text-slate-350 text-xs sm:text-sm font-semibold max-w-lg leading-relaxed pt-1">
-            Enjoy fixed deposit interest rates up to <span className="text-white font-extrabold">{systemSettings?.fdRate || 8.50}% p.a.</span> and instant processing gold loans with safe government-grade custody.
-          </p>
 
           <div className="flex flex-wrap gap-4 pt-4">
             <button 

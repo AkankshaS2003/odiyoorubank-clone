@@ -1,49 +1,75 @@
-const genAI = require('../config/gemini');
+const genAI = require("../config/gemini");
 
 /**
- * Generate assistant response using Gemini 2.5 Flash and prompt instructions
- * @param {string} question The user question
- * @param {any[]} contextDocs The retrieved relevant documents
- * @returns {Promise<string>} Generated response text
+ * Generate AI response using Gemini
+ * @param {string} question
+ * @param {Array} contextDocs
+ * @returns {Promise<string>}
  */
-const generateResponse = async (question, contextDocs) => {
-  if (!genAI) {
-    throw new Error('Gemini API client is not initialized. Please verify your GEMINI_API_KEY in your .env file.');
-  }
-
+const generateResponse = async (question, contextDocs = []) => {
   try {
-    const systemPrompt = `You are an AI Assistant for a Cooperative Bank.
-
-Answer only from the provided context.
-
-If information is not found in context, politely respond:
-'Sorry, I could not find that information in the bank records.'
-
-Never hallucinate.
-Never generate financial information that is not present in retrieved documents.`;
+    if (!genAI) {
+      throw new Error(
+        "Gemini API client is not initialized. Check GEMINI_API_KEY."
+      );
+    }
 
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
-      systemInstruction: systemPrompt
     });
 
-    // Format retrieved documents as context
-    const contextText = contextDocs && contextDocs.length > 0
-      ? contextDocs.map((doc, idx) => `Document [${idx + 1}]: Title: ${doc.title}\nCategory: ${doc.category}\nSource: ${doc.source}\nContent: ${doc.content}`).join('\n\n')
-      : "No context documents provided.";
+    const systemPrompt = `
+You are an AI Assistant for a Cooperative Bank.
 
-    const prompt = `Context Information:\n${contextText}\n\nUser Question: ${question}\n\nAssistant Response:`;
+Rules:
+1. Answer ONLY using the provided context.
+2. If the answer is not available in the context, respond exactly:
+   "Sorry, I could not find that information in the bank records."
+3. Never make up information.
+4. Never provide financial advice beyond the provided documents.
+5. Keep answers concise and professional.
+`;
+
+    const contextText =
+      contextDocs.length > 0
+        ? contextDocs
+            .map(
+              (doc, index) => `
+Document ${index + 1}
+Title: ${doc.title || "N/A"}
+Category: ${doc.category || "N/A"}
+Source: ${doc.source || "N/A"}
+
+${doc.content || ""}
+`
+            )
+            .join("\n\n")
+        : "No relevant documents found.";
+
+    const prompt = `
+${systemPrompt}
+
+BANK CONTEXT:
+${contextText}
+
+USER QUESTION:
+${question}
+
+ANSWER:
+`;
 
     const result = await model.generateContent(prompt);
-    
-    if (result && result.response) {
-      return result.response.text();
-    } else {
-      throw new Error('Empty response received from Gemini Generative API.');
+
+    const response = result?.response?.text();
+
+    if (!response) {
+      throw new Error("Empty response received from Gemini.");
     }
+
+    return response;
   } catch (error) {
-    console.error('Error generating AI answer:', error);
-    throw new Error(`Gemini service failed to generate response: ${error.message}`);
+    console.error("Gemini Response Error:", error);
+    throw new Error(`Gemini service failed: ${error.message}`);
   }
 };
 
