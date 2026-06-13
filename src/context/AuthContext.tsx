@@ -35,6 +35,8 @@ export interface User {
   aadhaar?: string;
   pan?: string;
   address?: string;
+  dob?: string;
+  bloodGroup?: string;
   memberId?: string;
   kycStatus?: 'Pending' | 'Verified' | 'Unsubmitted';
   kycDocumentUrl?: string;
@@ -72,6 +74,7 @@ interface AuthContextType {
   payEmi: (loanId: string) => boolean;
   uploadKyc: (documentType: string, filePlaceholder: string) => boolean;
   addSavingsMoney: (amount: number) => void;
+  becomeMember: (address: string, dob: string, bloodGroup: string) => string | null;
   systemSettings: SystemSettings;
   updateSystemSettings: (newSettings: Partial<SystemSettings>) => Promise<boolean>;
 }
@@ -260,6 +263,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
+  const becomeMember = (address: string, dob: string, bloodGroup: string): string | null => {
+    if (!user) return null;
+    if (user.memberId) return user.memberId; // Already a member
+    const newMemberId = `ODI-M-${Math.floor(10000 + Math.random() * 90000)}`;
+    saveUser({ ...user, address, dob, bloodGroup, memberId: newMemberId });
+    return newMemberId;
+  };
+
   const addSavingsMoney = (amount: number) => {
     if (!user) return;
     saveUser({ ...user, savingsBalance: (user.savingsBalance || 0) + amount });
@@ -294,6 +305,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       payEmi,
       uploadKyc,
       addSavingsMoney,
+      becomeMember,
       systemSettings,
       updateSystemSettings
     }}>

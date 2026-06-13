@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Award, CheckCircle2, BadgePercent } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { MembershipModal } from './MembershipModal';
 
 interface MembershipProps {
   setCurrentTab: (tab: string) => void;
@@ -8,6 +10,16 @@ interface MembershipProps {
 
 export const Membership: React.FC<MembershipProps> = ({ setCurrentTab }) => {
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleBecomeMemberClick = () => {
+    if (isAuthenticated) {
+      setIsModalOpen(true);
+    } else {
+      setCurrentTab('login');
+    }
+  };
 
   const benefits = [
     {
@@ -83,7 +95,7 @@ export const Membership: React.FC<MembershipProps> = ({ setCurrentTab }) => {
                   </div>
                   
                   <button
-                    onClick={() => setCurrentTab('contact')}
+                    onClick={handleBecomeMemberClick}
                     className="w-full py-4 bg-white hover:bg-slate-50 text-primary hover:text-primary-dark font-extrabold rounded-xl shadow-lg transition-all transform active:scale-95 text-center block text-sm"
                   >
                     {t('become_member')}
@@ -95,6 +107,7 @@ export const Membership: React.FC<MembershipProps> = ({ setCurrentTab }) => {
           </div>
         </div>
       </div>
+      <MembershipModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 };

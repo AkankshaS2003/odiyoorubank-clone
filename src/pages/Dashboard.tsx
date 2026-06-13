@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { UserCheck, ShieldAlert } from 'lucide-react';
+import { UserCheck, ShieldAlert, Award } from 'lucide-react';
+import { MembershipCard } from '../components/MembershipCard';
 
 interface DashboardProps {
   setCurrentTab: (tab: string) => void;
@@ -66,6 +67,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
             </button>
           </div>
         </div>
+
+        {user.memberId && (
+          <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm mb-8 flex flex-col items-center">
+            <div className="w-full mb-6 flex items-center justify-between">
+              <div>
+                <h4 className="font-extrabold text-lg text-slate-900 flex items-center gap-2">
+                  <Award className="h-5 w-5 text-secondary" />
+                  Digital Membership Card
+                </h4>
+                <p className="text-xs text-slate-500 mt-1">Official society shareholder ID. Keep this secure.</p>
+              </div>
+            </div>
+            <MembershipCard />
+          </div>
+        )}
 
         {/* Dashboard Profile Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
