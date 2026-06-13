@@ -5,7 +5,7 @@ import { Products } from '../components/Products';
 import { HowToJoin } from '../components/HowToJoin';
 import { WhyChooseUs } from '../components/WhyChooseUs';
 import { Membership } from '../components/Membership';
-import { Testimonials } from '../components/Testimonials';
+
 import { News } from '../components/News';
 import { Contact } from '../components/Contact';
 import { CommunityImpact } from '../components/CommunityImpact';
@@ -41,8 +41,7 @@ export const Home: React.FC<HomeProps> = ({ setCurrentTab }) => {
       {/* 5b. How to Join Process */}
       <HowToJoin />
 
-      {/* 6. Rating Testimonials carousel */}
-      <Testimonials />
+
 
       {/* 7. Society Announcements journal and awareness drives */}
       <News />

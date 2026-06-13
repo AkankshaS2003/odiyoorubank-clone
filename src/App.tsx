@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Home } from './pages/Home';
@@ -25,6 +25,10 @@ const AppContent: React.FC = () => {
   const { t } = useLanguage();
   const [history, setHistory] = useState<string[]>(['home']);
   const currentTab = history[history.length - 1] || 'home';
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentTab]);
 
   const setCurrentTab = (tab: string) => {
     setHistory(prev => {

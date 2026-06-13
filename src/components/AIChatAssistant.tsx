@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Landmark, User, ShieldAlert, BookOpen, Maximize, Minimize } from 'lucide-react';
+import { MessageSquare, X, Send, Landmark, User, ShieldAlert, BookOpen, Maximize, Minimize, Mic, MicOff } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
 
@@ -23,6 +23,32 @@ export const AIChatAssistant: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  const startListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support speech recognition.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setMessageText((prev) => prev + (prev ? " " : "") + transcript);
+    };
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+    };
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
+  };
 
   // Simple Markdown formatter for the bot's text
   const formatMarkdown = (text: string) => {
@@ -168,7 +194,7 @@ export const AIChatAssistant: React.FC = () => {
 
       {/* Floating Chat Dialogue Window */}
       {isOpen && (
-        <div className={`bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col animate-scale-up ${isFullScreen ? 'fixed inset-2 md:inset-6 z-[9999]' : 'w-80 md:w-[420px] h-[520px]'}`}>
+        <div className={`bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col animate-scale-up ${isFullScreen ? 'w-[90vw] md:w-[600px] h-[80vh] z-[9999]' : 'w-80 md:w-[420px] h-[520px]'}`}>
           
           {/* Header */}
           <div className="bg-[#0A315C] p-4 text-white flex justify-between items-center shrink-0">
@@ -177,7 +203,7 @@ export const AIChatAssistant: React.FC = () => {
                 <Landmark className="h-5 w-5 text-[#ED7F1E]" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm">{t('chat_title') || 'Cooperative AI Assistant'}</h4>
+                <h4 className="font-extrabold text-sm">{t('chat_title') || 'Digital Assistant'}</h4>
                 <span className="text-[10px] text-emerald-400 font-bold block flex items-center space-x-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping inline-block mr-1"></span>
                   <span>{t('chat_status') || 'Online • Verified Bank Records'}</span>
@@ -306,6 +332,14 @@ export const AIChatAssistant: React.FC = () => {
 
           {/* Chat Form Input */}
           <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-150 bg-white flex items-center space-x-2 shrink-0">
+            <button
+              type="button"
+              onClick={startListening}
+              className={`p-3 rounded-xl transition-colors flex items-center justify-center cursor-pointer ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+              title="Voice Input"
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </button>
             <input
               type="text"
               placeholder={t('chat_placeholder') || 'Ask me about timings, loans, deposits...'}

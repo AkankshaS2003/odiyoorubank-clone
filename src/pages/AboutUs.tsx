@@ -43,9 +43,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ setCurrentTab }) => {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight font-heading uppercase drop-shadow-md">
             About Us
           </h1>
-          <p className="text-white text-xs sm:text-sm font-semibold tracking-wider uppercase">
-            Home • About Us
-          </p>
+
         </div>
         
       </div>

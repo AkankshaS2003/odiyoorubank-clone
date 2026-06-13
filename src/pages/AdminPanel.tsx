@@ -102,9 +102,9 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Email Reply State
-  const [replyMessageId, setReplyMessageId] = useState<string | null>(null);
-  const [replyText, setReplyText] = useState('');
+  const [adminBranches, setAdminBranches] = useState<any[]>([]);
+  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
+  const [branchForm, setBranchForm] = useState({ name: '', address: '', phone: '' });
 
   // Form States (CMS / Settings / Employee Creation)
   const [cmsState, setCmsState] = useState({
@@ -135,10 +135,25 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     fetchUsers();
     fetchMessages();
     fetchDocuments();
+    fetchBranches();
     loadCmsState();
     loadAuditLogs();
     fetchAdminReviews();
   }, []);
+
+  const fetchBranches = async () => {
+    try {
+      const res = await api.get('/branches');
+      const sorted = res.data.sort((a: any, b: any) => {
+        if (a.type === 'Head Office' && b.type !== 'Head Office') return -1;
+        if (b.type === 'Head Office' && a.type !== 'Head Office') return 1;
+        return a.name.localeCompare(b.name);
+      });
+      setAdminBranches(sorted);
+    } catch (err) {
+      console.error('Failed to fetch branches', err);
+    }
+  };
 
   useEffect(() => {
     if (systemSettings) {
@@ -276,27 +291,6 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     }
   };
 
-  const handleReplySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!replyMessageId || !replyText.trim()) return;
-    
-    setActionLoading(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      const res = await api.post(`/admin/messages/${replyMessageId}/reply`, { replyText });
-      if (res.data.success) {
-        setSuccess('Reply sent successfully via email!');
-        addAuditLog(`Sent email reply to message ID ${replyMessageId}`);
-        setReplyMessageId(null);
-        setReplyText('');
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to send reply');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   // Update Loan Status
   const handleLoanStatusChange = async (loanId: string, status: 'Approved' | 'Rejected') => {
@@ -765,12 +759,12 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                             <div>
                               <p className="font-bold text-slate-800">{msg.name} ({msg.email})</p>
                               <p className="text-slate-500 mt-1 italic">"{msg.message}"</p>
-                              <button 
-                                onClick={() => setReplyMessageId(msg._id)}
-                                className="mt-2 text-[10px] text-primary font-bold hover:underline"
+                              <a 
+                                href={`mailto:${msg.email}?subject=${encodeURIComponent('Reply to your inquiry at Odiyooru Bank')}&body=${encodeURIComponent(`Hi ${msg.name},\n\nRegarding your message:\n"${msg.message}"\n\n`)}`}
+                                className="mt-2 text-[10px] text-primary font-bold hover:underline inline-block"
                               >
                                 Reply via Email
-                              </button>
+                              </a>
                             </div>
                             <span className="text-[10px] text-slate-400 font-mono tracking-tighter block shrink-0">{new Date(msg.createdAt).toLocaleDateString()}</span>
                           </div>
@@ -1134,25 +1128,65 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs flex justify-between items-center">
-                    <div>
-                      <p className="font-extrabold text-slate-800 uppercase">Central HQ - Odiyooru Post</p>
-                      <p className="text-slate-450 mt-0.5">Tq. Uppala Road, Bantwal, Karnataka 574243</p>
-                    </div>
-                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-black text-[9px] uppercase tracking-wider">Active</span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs flex justify-between items-center opacity-60">
-                    <div>
-                      <p className="font-extrabold text-slate-800 uppercase">Mangalore City Branch</p>
-                      <p className="text-slate-450 mt-0.5">Kodialbail, Mangaluru, Karnataka 575003</p>
-                    </div>
-                    <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-655 font-black text-[9px] uppercase tracking-wider">Simulated</span>
-                  </div>
+                  {adminBranches.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-slate-400 font-semibold italic">No branches registered.</div>
+                  ) : (
+                    adminBranches.map((branch: any) => (
+                      <div key={branch._id} className={`p-4 border rounded-2xl text-xs flex justify-between items-center transition-all ${branch.isPublished ? 'bg-slate-50 border-slate-200' : 'bg-slate-100 border-slate-200 opacity-60'}`}>
+                        <div className="flex-1 pr-4">
+                          <p className="font-extrabold text-slate-800 uppercase flex items-center space-x-2">
+                            <span>{branch.name}</span>
+                            {branch.type === 'Head Office' && (
+                              <span className="bg-[#0A315C] text-white px-1.5 py-0.5 rounded text-[8px] ml-2 shrink-0">HQ</span>
+                            )}
+                          </p>
+                          <p className="text-slate-500 mt-1 leading-relaxed">{branch.address}</p>
+                          <p className="text-slate-400 font-mono mt-1.5 text-[11px]">{branch.phone}</p>
+                        </div>
+                        <div className="flex flex-col space-y-3 items-end shrink-0 justify-center min-w-[80px]">
+                          <button
+                            disabled={actionLoading}
+                            onClick={async () => {
+                              setActionLoading(true);
+                              try {
+                                await api.put(`/branches/${branch._id}`, { isPublished: !branch.isPublished });
+                                fetchBranches();
+                              } catch (e) {
+                                console.error(e);
+                              } finally {
+                                setActionLoading(false);
+                              }
+                            }}
+                            className={`text-[11px] font-bold uppercase transition-colors hover:underline ${branch.isPublished ? 'text-slate-500 hover:text-slate-700' : 'text-emerald-600 hover:text-emerald-700'}`}
+                          >
+                            {branch.isPublished ? 'Unpublish' : 'Publish'}
+                          </button>
+                          <button
+                            disabled={actionLoading}
+                            onClick={async () => {
+                              if (!window.confirm('Are you sure you want to delete this branch?')) return;
+                              setActionLoading(true);
+                              try {
+                                await api.delete(`/branches/${branch._id}`);
+                                fetchBranches();
+                              } catch (e) {
+                                console.error(e);
+                              } finally {
+                                setActionLoading(false);
+                              }
+                            }}
+                            className="text-[11px] font-bold uppercase text-red-500 hover:text-red-700 hover:underline transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
 
                 <button
-                  onClick={() => alert('Add Branch feature simulated!')}
+                  onClick={() => setIsBranchModalOpen(true)}
                   className="mt-6 px-4 py-2.5 bg-[#ED7F1E] hover:bg-[#d66a10] text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition-colors flex items-center space-x-1 cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
@@ -1800,32 +1834,41 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
         </div>
       )}
 
-      {/* REPLY MODAL */}
-      {replyMessageId && (
+
+      {/* BRANCH MODAL */}
+      {isBranchModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 border border-slate-150 shadow-2xl animate-scale-up relative flex flex-col">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-slate-150 shadow-2xl animate-scale-up relative">
             <button 
-              onClick={() => { setReplyMessageId(null); setReplyText(''); }} 
+              onClick={() => setIsBranchModalOpen(false)} 
               className="absolute top-5 right-5 text-slate-455 hover:text-slate-655 p-1 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
-            <h3 className="text-base font-extrabold text-slate-900 mb-4">Reply to Message</h3>
-            <form onSubmit={handleReplySubmit}>
-              <textarea
-                required
-                rows={5}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs"
-                placeholder="Type your reply here..."
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-              />
-              <button
-                type="submit"
-                disabled={actionLoading}
-                className="mt-4 px-6 py-2.5 bg-[#0A315C] hover:bg-[#051C36] text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 w-full sm:w-auto"
-              >
-                {actionLoading ? 'Sending...' : 'Send Reply'}
+            <h3 className="text-base font-extrabold text-slate-900 mb-4">Register New Branch</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setActionLoading(true);
+              try {
+                await api.post('/branches', branchForm);
+                fetchBranches();
+                addAuditLog(`Registered new branch: ${branchForm.name}`);
+                setIsBranchModalOpen(false);
+                setBranchForm({ name: '', address: '', phone: '' });
+              } catch (e: any) {
+                console.error(e);
+                alert(e.response?.data?.error || 'Failed to register branch. If you just added this feature, please restart your backend server!');
+              } finally {
+                setActionLoading(false);
+              }
+            }}>
+              <div className="space-y-3">
+                <input required type="text" placeholder="Branch Name" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.name} onChange={e => setBranchForm({...branchForm, name: e.target.value})} />
+                <input required type="text" placeholder="Branch Address" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.address} onChange={e => setBranchForm({...branchForm, address: e.target.value})} />
+                <input required type="text" placeholder="Phone Number" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.phone} onChange={e => setBranchForm({...branchForm, phone: e.target.value})} />
+              </div>
+              <button disabled={actionLoading} type="submit" className="mt-4 px-6 py-2.5 bg-[#0A315C] hover:bg-[#051C36] text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 w-full">
+                {actionLoading ? 'Saving...' : 'Register Branch'}
               </button>
             </form>
           </div>

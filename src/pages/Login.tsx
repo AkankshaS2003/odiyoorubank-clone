@@ -67,6 +67,9 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         if (!name || !email || !phone || !password || !confirmPassword) {
           throw new Error('Please fill all fields');
         }
+        if (phone.length !== 10) {
+          throw new Error('Phone number must be exactly 10 digits');
+        }
         if (password !== confirmPassword) {
           throw new Error('Passwords do not match');
         }
@@ -231,10 +234,15 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 <input
                   type="tel"
                   required
+                  maxLength={10}
                   placeholder="Mobile Number"
                   className="w-full px-5 py-3.5 text-[15px] bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    if (val.length > 0 && !/^[6-9]/.test(val[0])) return;
+                    setPhone(val);
+                  }}
                 />
               </div>
             </>
