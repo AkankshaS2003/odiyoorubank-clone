@@ -175,7 +175,7 @@ export const Products: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-slate-50 relative">
+    <section className="pt-4 pb-20 bg-slate-50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

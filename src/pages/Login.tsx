@@ -64,14 +64,11 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         }
       } 
       else if (view === 'register') {
-        if (!name || !email || !phone || !password || !confirmPassword) {
+        if (!name || !email || !phone || !password) {
           throw new Error('Please fill all fields');
         }
         if (phone.length !== 10) {
           throw new Error('Phone number must be exactly 10 digits');
-        }
-        if (password !== confirmPassword) {
-          throw new Error('Passwords do not match');
         }
         if (password.length < 6) {
           throw new Error('Password must be at least 6 characters');
@@ -166,7 +163,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
       />
       
       {/* Centered Modal Card */}
-      <div className="relative bg-[#0A315C] border border-white/20 w-full max-w-[420px] rounded-[32px] shadow-2xl p-10 flex flex-col items-center animate-scale-up overflow-hidden z-10">
+      <div className="relative bg-[#0A315C] border border-white/20 w-full max-w-[340px] rounded-[24px] shadow-2xl p-6 flex flex-col items-center animate-scale-up overflow-hidden z-10">
         
         {/* Subtle decorative glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[150px] bg-gradient-to-b from-[#ED7F1E]/20 to-transparent pointer-events-none" />
@@ -193,10 +190,10 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
           <div className="mt-2 flex items-center justify-center space-x-2">
             <div className="h-px w-8 bg-white/20"></div>
             <span className="text-[10px] text-white/50 uppercase tracking-widest font-semibold">
-              {view === 'login' && 'Secure Login'}
-              {view === 'register' && 'Member Registration'}
-              {view === 'forgot' && 'Password Recovery'}
-              {view === 'reset' && 'Set New Password'}
+              {view === 'login' && t('Secure Login')}
+              {view === 'register' && t('Member Registration')}
+              {view === 'forgot' && t('Password Recovery')}
+              {view === 'reset' && t('Set New Password')}
             </span>
             <div className="h-px w-8 bg-white/20"></div>
           </div>
@@ -216,7 +213,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="w-full space-y-4 relative z-10">
+        <form onSubmit={handleSubmit} className="w-full space-y-3 relative z-10">
           
           {view === 'register' && (
             <>
@@ -224,8 +221,8 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 <input
                   type="text"
                   required
-                  placeholder="Full Name"
-                  className="w-full px-5 py-3.5 text-[15px] bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
+                  placeholder={t('Full Name')}
+                  className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -235,13 +232,21 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                   type="tel"
                   required
                   maxLength={10}
-                  placeholder="Mobile Number"
-                  className="w-full px-5 py-3.5 text-[15px] bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
+                  placeholder={t('Mobile Number')}
+                  className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                   value={phone}
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '');
-                    if (val.length > 0 && !/^[6-9]/.test(val[0])) return;
                     setPhone(val);
+                  }}
+                  onBlur={() => {
+                    if (phone.length > 0 && !/^[6-9]/.test(phone[0])) {
+                      setErrorMsg(t('Please enter a valid phone number starting with 6-9'));
+                    } else if (phone.length > 0 && phone.length !== 10) {
+                      setErrorMsg(t('Phone number must be exactly 10 digits'));
+                    } else {
+                      setErrorMsg(null);
+                    }
                   }}
                 />
               </div>
@@ -253,8 +258,8 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               <input
                 type="email"
                 required
-                placeholder="Email Address"
-                className="w-full px-5 py-3.5 text-[15px] bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
+                placeholder={t('Email Address')}
+                className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -266,28 +271,28 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                placeholder={view === 'reset' ? 'New Password' : 'Password'}
-                className="w-full pl-5 pr-12 py-3.5 text-[15px] bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
+                placeholder={view === 'reset' ? t('New Password') : t('Password')}
+                className="w-full pl-4 pr-12 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button
                 type="button"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                className="absolute right-3 inset-y-0 flex items-center justify-center text-white/40 hover:text-white transition-colors px-1"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           )}
 
-          {(view === 'register' || view === 'reset') && (
+          {view === 'reset' && (
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                placeholder="Confirm Password"
-                className="w-full pl-5 pr-12 py-3.5 text-[15px] bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
+                placeholder={t('Confirm Password')}
+                className="w-full pl-4 pr-12 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -298,14 +303,14 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
             <div className="flex items-center justify-between pt-1 px-1">
               <label className="flex items-center space-x-2 cursor-pointer group">
                 <input type="checkbox" className="rounded border-white/20 bg-white/5 text-[#ED7F1E] focus:ring-[#ED7F1E] focus:ring-offset-[#0A315C]" />
-                <span className="text-sm text-white/60 group-hover:text-white transition-colors">Remember me</span>
+                <span className="text-sm text-white/60 group-hover:text-white transition-colors">{t('Remember me')}</span>
               </label>
               <button 
                 type="button" 
                 onClick={() => { setView('forgot'); setErrorMsg(null); setSuccessMsg(null); }}
                 className="text-sm text-[#ED7F1E] font-semibold hover:text-white transition-colors hover:underline underline-offset-4"
               >
-                Forgot Password?
+                {t('Forgot Password?')}
               </button>
             </div>
           )}
@@ -313,14 +318,14 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 mt-2 bg-gradient-to-r from-[#ED7F1E] to-[#d66a10] hover:from-[#d66a10] hover:to-[#c45e09] disabled:from-white/20 disabled:to-white/20 disabled:text-white/40 text-white rounded-2xl font-bold text-[15px] shadow-lg shadow-[#ED7F1E]/20 transition-all flex items-center justify-center border border-white/10"
+            className="w-full py-2.5 mt-2 bg-gradient-to-r from-[#ED7F1E] to-[#d66a10] hover:from-[#d66a10] hover:to-[#c45e09] disabled:from-white/20 disabled:to-white/20 disabled:text-white/40 text-white rounded-xl font-bold text-sm shadow-lg shadow-[#ED7F1E]/20 transition-all flex items-center justify-center border border-white/10"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
             ) : (
-              view === 'login' ? 'Log in Securely' : 
-              view === 'register' ? 'Register Account' : 
-              view === 'forgot' ? 'Send Reset Link' : 'Update Password'
+              view === 'login' ? t('Log in Securely') : 
+              view === 'register' ? t('Register Account') : 
+              view === 'forgot' ? t('Send Reset Link') : t('Update Password')
             )}
           </button>
         </form>
@@ -328,7 +333,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         {(view === 'login' || view === 'register') && (
           <div className="w-full flex items-center justify-center mt-6 mb-8 relative z-10">
             <span className="text-[14px] text-white/60">
-              {view === 'login' ? "Don't have an account?" : "Already have an account?"}
+              {view === 'login' ? t("Don't have an account?") : t("Already have an account?")}
               <button 
                 onClick={() => {
                   setView(view === 'login' ? 'register' : 'login');
@@ -338,7 +343,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 }} 
                 className="ml-2 text-[#ED7F1E] font-bold hover:text-white transition-colors hover:underline underline-offset-4"
               >
-                {view === 'login' ? 'Sign up' : 'Log in'}
+                {view === 'login' ? t('Sign up') : t('Log in')}
               </button>
             </span>
           </div>
@@ -350,7 +355,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               onClick={() => { setView('login'); setErrorMsg(null); setSuccessMsg(null); }}
               className="text-[14px] text-white/60 hover:text-white transition-colors font-semibold flex items-center"
             >
-              ← Back to Log in
+              ← {t('Back to Log in')}
             </button>
           </div>
         )}
@@ -362,10 +367,10 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               type="button"
               onClick={handleGoogleSuccess}
               disabled={isLoading}
-              className="w-full max-w-[280px] py-3 bg-white text-slate-800 hover:bg-slate-100 rounded-full font-bold text-[14px] shadow-md transition-all flex items-center justify-center space-x-3 cursor-pointer"
+              className="w-full max-w-[280px] py-2.5 bg-white text-slate-800 hover:bg-slate-100 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-5 w-5" />
-              <span>Continue with Google</span>
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-4 w-4" />
+              <span>{t('Continue with Google')}</span>
             </button>
           </div>
         )}

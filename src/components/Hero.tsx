@@ -58,7 +58,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
           
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white/10 text-white border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest leading-none">
             <Landmark className="h-3 w-3 text-[#ED7F1E]" />
-            <span>Cooperative Trust & Progress</span>
+            <span>{t('Cooperative Trust & Progress')}</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-[1.1] text-white">
@@ -78,7 +78,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
               }}
               className="px-6 py-3.5 bg-[#ED7F1E] hover:bg-[#d66a10] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center space-x-2 cursor-pointer group"
             >
-              <span>Explore Products</span>
+              <span>{t('Explore Products')}</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

@@ -52,7 +52,7 @@ export const LoanEligibilityPage: React.FC<LoanEligibilityPageProps> = ({ setCur
       setResultData({
         eligibilityScore: score,
         maxLoanAmount: eligibleAmount,
-        recommendedLoans: Array.from(new Set([data.loanType, "Personal Loan"])),
+        recommendedLoans: (isEligible && eligibleAmount > 0) ? Array.from(new Set([data.loanType, "Personal Loan"])) : [],
         riskLevel: risk,
         monthlyEMI: estimatedEmi,
         approvalProbability: prob
@@ -77,7 +77,7 @@ export const LoanEligibilityPage: React.FC<LoanEligibilityPageProps> = ({ setCur
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <main className="flex-grow pt-8 pb-20 px-4 sm:px-6 lg:px-8 print:pt-0 print:pb-0">
+      <main className="flex-grow pt-2 pb-20 px-4 sm:px-6 lg:px-8 print:pt-0 print:pb-0">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 print:hidden">
             <button onClick={() => { if (goBack) goBack(); else if (setCurrentTab) setCurrentTab('home'); }} className="flex items-center text-slate-500 hover:text-slate-800 transition-colors font-bold">

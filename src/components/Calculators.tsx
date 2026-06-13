@@ -127,7 +127,7 @@ export const Calculators: React.FC = () => {
   const eligRes = calculateEligibility();
 
   return (
-    <section className="py-20 bg-white relative">
+    <section className="pt-4 pb-20 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

@@ -82,7 +82,7 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({ onSubmit }) =>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Full Name</label>
-              <input required type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" placeholder="John Doe" />
+              <input required type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" placeholder="" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Age</label>

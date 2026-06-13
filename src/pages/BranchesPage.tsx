@@ -10,7 +10,7 @@ export const BranchesPage: React.FC = () => {
   useEffect(() => {
     const fetchPublishedBranches = async () => {
       try {
-        const res = await api.get('/branches?publishedOnly=true');
+        const res = await api.get('/branches');
         const sorted = res.data.sort((a: any, b: any) => {
           if (a.type === 'Head Office' && b.type !== 'Head Office') return -1;
           if (b.type === 'Head Office' && a.type !== 'Head Office') return 1;

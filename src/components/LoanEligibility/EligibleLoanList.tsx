@@ -48,7 +48,7 @@ export const EligibleLoanList: React.FC<EligibleLoanListProps> = ({ recommendedL
               </div>
 
               <button className="w-full py-3 bg-slate-50 group-hover:bg-primary group-hover:text-white text-slate-600 font-bold rounded-xl flex items-center justify-center space-x-2 transition-colors">
-                <span>Apply Now</span>
+                <span>Visit branch for more details</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>

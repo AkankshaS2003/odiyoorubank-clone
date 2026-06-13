@@ -17,7 +17,7 @@ export const MediaPage: React.FC = () => {
   ];
 
   return (
-    <section className="py-12 bg-white min-h-screen overflow-hidden">
+    <section className="pt-4 pb-12 bg-white min-h-screen overflow-hidden">
       {/* Heading Section - Constrained Width */}
       <div className="max-w-6xl mx-auto px-4 mb-10">
         <div className="text-center space-y-3">

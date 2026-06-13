@@ -72,7 +72,8 @@ export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ form
     setShowModal(false);
   };
 
-  const dti = (Number(formData.existingEmi) / Number(formData.income)) * 100;
+  const incomeValue = Number(formData.income);
+  const dti = incomeValue > 0 ? (Number(formData.existingEmi) / incomeValue) * 100 : 0;
 
   return (
     <div className="space-y-8">
@@ -151,10 +152,12 @@ export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ form
         />
 
         {/* Eligible Loans */}
-        <EligibleLoanList 
-          recommendedLoans={resultData.recommendedLoans} 
-          maxLoanAmount={resultData.maxLoanAmount} 
-        />
+        {resultData.recommendedLoans.length > 0 && (
+          <EligibleLoanList 
+            recommendedLoans={resultData.recommendedLoans} 
+            maxLoanAmount={resultData.maxLoanAmount} 
+          />
+        )}
 
       </div>
 
