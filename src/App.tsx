@@ -15,7 +15,6 @@ import { AIChatAssistant } from './components/AIChatAssistant';
 import { LoanEligibilityPage } from './pages/LoanEligibilityPage';
 import { FloatingScrollButton } from './components/FloatingScrollButton';
 import { AdminPanel } from './pages/AdminPanel';
-import { ReviewsPage } from './pages/ReviewsPage';
 import { BranchesPage } from './pages/BranchesPage';
 
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
@@ -82,8 +81,7 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />;
           }
           return <AdminPanel setCurrentTab={setCurrentTab} />;
-        case 'reviews':
-          return <ReviewsPage />;
+
         default:
           return <Home setCurrentTab={setCurrentTab} />;
       }

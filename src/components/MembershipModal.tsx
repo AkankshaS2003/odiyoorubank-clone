@@ -14,14 +14,13 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const [address, setAddress] = useState(user?.address || '');
   const [dob, setDob] = useState(user?.dob || '');
   const [bloodGroup, setBloodGroup] = useState(user?.bloodGroup || '');
-  const [isSubmitted, setIsSubmitted] = useState(!!user?.memberId);
+  const [isSubmitted, setIsSubmitted] = useState(user?.membershipStatus === 'pending');
 
-  // If user is already a member when opening, show card directly
   React.useEffect(() => {
-    if (isOpen && user?.memberId) {
+    if (isOpen && user?.membershipStatus === 'pending') {
       setIsSubmitted(true);
     }
-  }, [isOpen, user?.memberId]);
+  }, [isOpen, user?.membershipStatus]);
 
   if (!isOpen || !user) return null;
 
@@ -55,10 +54,10 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
               </div>
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
-                  {isSubmitted ? 'Your Membership Card' : 'Shareholder Membership Application'}
+                  {isSubmitted ? 'Application Pending' : 'Shareholder Membership Application'}
                 </h2>
                 <p className="text-xs text-slate-500 font-medium">
-                  {isSubmitted ? 'Digital cooperative society ID' : 'Complete details to generate your digital ID card'}
+                  {isSubmitted ? 'Pending Admin Approval' : 'Complete details to generate your digital ID card'}
                 </p>
               </div>
             </div>
@@ -74,13 +73,12 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
             {isSubmitted ? (
               <div className="flex flex-col items-center py-4">
                 <div className="w-full max-w-md mb-8 text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full mb-4">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-full mb-4">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">Membership Generated</h3>
-                  <p className="text-sm text-slate-500">Your official digital shareholder membership card is ready. You can download and print it.</p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Application Under Review</h3>
+                  <p className="text-sm text-slate-500">Your membership application has been submitted and is currently pending admin approval. You will be able to access your digital ID card once approved.</p>
                 </div>
-                <MembershipCard />
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -147,8 +145,8 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                 <div className="bg-blue-50 text-blue-800 p-4 rounded-xl flex items-start gap-3 border border-blue-100">
                   <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
                   <p className="text-xs leading-relaxed font-medium">
-                    By submitting this form, you agree to become a registered shareholder of Odiyooru Souharda Cooperative Society. 
-                    A digital membership card will be generated instantly for your records.
+                    By submitting this form, you agree to apply to become a registered shareholder of Odiyooru Souharda Cooperative Society. 
+                    Your application will be sent for admin approval.
                   </p>
                 </div>
 
@@ -156,7 +154,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                   type="submit"
                   className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-lg transition-colors"
                 >
-                  Generate Membership Card
+                  Apply for Membership Card
                 </button>
               </form>
             )}

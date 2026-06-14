@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { UserCheck, ShieldAlert, Award } from 'lucide-react';
@@ -11,6 +11,7 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
   const { user, isAuthenticated } = useAuth();
   const { t } = useLanguage();
+  const [showCard, setShowCard] = useState(false);
 
   if (!isAuthenticated || !user) {
     return (
@@ -68,7 +69,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
           </div>
         </div>
 
-        {user.memberId && (
+        {user.membershipStatus === 'pending' && (
+          <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm mb-8 flex flex-col items-center">
+            <div className="w-full text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-full mb-4">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Membership Application Pending</h3>
+              <p className="text-sm text-slate-500">Your membership application has been submitted and is currently pending admin approval. Please check back later.</p>
+            </div>
+          </div>
+        )}
+
+        {user.membershipStatus === 'approved' && !showCard && (
+          <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm mb-8 flex flex-col items-center">
+            <h4 className="font-extrabold text-lg text-slate-900 mb-4 flex items-center gap-2">
+              <Award className="h-5 w-5 text-emerald-600" />
+              {t('Membership Approved!')}
+            </h4>
+            <p className="text-sm text-slate-500 mb-6 text-center">Your application has been successful and your ID card has been generated.</p>
+            <button 
+              onClick={() => setShowCard(true)}
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md transition-colors"
+            >
+              Click Here
+            </button>
+          </div>
+        )}
+
+        {user.membershipStatus === 'approved' && showCard && (
           <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm mb-8 flex flex-col items-center">
             <div className="w-full mb-6 flex items-center justify-between">
               <div>

@@ -16,7 +16,12 @@ const SystemSettingsSchema = new mongoose.Schema({
     default: '"We, Odiyoor Sree Vividhodesha Souharda Sahakari Sanga has an efficient and experienced team of Board of Directors, to assist and guide the entire society."' 
   },
   contactPhone: { type: String, default: '+91 824 2441234' },
-  contactEmail: { type: String, default: 'support@odiyoorubank.in' }
+  contactEmail: { type: String, default: 'support@odiyoorubank.in' },
+  announcements: [{
+    title: String,
+    desc: String,
+    publishedAt: { type: Date, default: Date.now }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('SystemSettings', SystemSettingsSchema);

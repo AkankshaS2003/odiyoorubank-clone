@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard,
+  ShieldCheck,
   Users,
   Briefcase,
   TrendingUp,
@@ -62,7 +63,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   
   // Tab State: matching all 14 specified modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'reviews'
+    'dashboard' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -91,13 +92,13 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [users, setUsers] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
-  const [adminReviews, setAdminReviews] = useState<any[]>([]);
+  const [memberships, setMemberships] = useState<any[]>([]);
 
   // Announcements States
-  const [announcements, setAnnouncements] = useState([
+  const announcements = systemSettings?.announcements || [
     { title: 'State Best Souharda Award Recipient', desc: 'Celebrations across all branches in honor of cooperative recognitions.' },
     { title: 'Cooperative FD Interest rate Hike', desc: 'Interest rates hiked up to 8.50% p.a. for shareholders and seniors.' }
-  ]);
+  ];
   const [isPublishingNotice, setIsPublishingNotice] = useState(false);
   const [newNoticeTitle, setNewNoticeTitle] = useState('');
   const [newNoticeDesc, setNewNoticeDesc] = useState('');
@@ -145,8 +146,37 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     fetchBranches();
     loadCmsState();
     loadAuditLogs();
-    fetchAdminReviews();
+    fetchMemberships();
   }, []);
+
+  const fetchMemberships = async () => {
+    try {
+      const res = await api.get('/admin/memberships');
+      if (res.data.success) {
+        setMemberships(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch memberships', err);
+    }
+  };
+
+  const handleMembershipStatusChange = async (userId: string, status: string) => {
+    setActionLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await api.put(`/admin/membership/${userId}/status`, { status });
+      if (res.data.success) {
+        setSuccess(`Membership application ${status}`);
+        addAuditLog(`Updated membership status to ${status} for user ${userId}`);
+        fetchMemberships();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update membership status');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const fetchBranches = async () => {
     try {
@@ -269,34 +299,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     }
   };
 
-  const fetchAdminReviews = async () => {
-    try {
-      const res = await api.get('/reviews/admin');
-      if (res.data.success) {
-        setAdminReviews(res.data.data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch reviews', err);
-    }
-  };
 
-  const handleReviewStatusUpdate = async (id: string, status: string) => {
-    setActionLoading(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      const res = await api.put(`/reviews/admin/${id}`, { status });
-      if (res.data.success) {
-        setSuccess(`Review marked as ${status}.`);
-        addAuditLog(`Updated review status to ${status} for Review ID ${id}`);
-        fetchAdminReviews();
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update review status');
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
 
   // Update Loan Status
@@ -552,14 +555,14 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'customers', label: 'Customers', icon: Users },
+    { id: 'memberships', label: 'Memberships', icon: ShieldCheck },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
     { id: 'branches', label: 'Branch Management', icon: MapPin },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'rag', label: 'RAG Knowledge Base', icon: Database },
     { id: 'users', label: 'User Management', icon: UserCheck },
     { id: 'employees', label: 'Employee Management', icon: Contact },
-    { id: 'audit', label: 'Audit Logs', icon: History },
-    { id: 'reviews', label: 'Reviews', icon: MessageSquare },
+    { id: 'audit', label: 'Audit Logs', icon: History }
   ] as const;
 
   // Filtered customer list
@@ -780,6 +783,99 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================== */}
+            {/* NEW TAB: MEMBERSHIPS */}
+            {/* ========================================== */}
+            {activeTab === 'memberships' && (
+              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 uppercase">Membership Applications</h2>
+                    <p className="text-xs text-slate-400 font-bold mt-1">Review, approve, or reject new shareholder memberships.</p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                        <th className="p-4 rounded-l-xl">User & Contact</th>
+                        <th className="p-4">Demographics</th>
+                        <th className="p-4">Address</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-center rounded-r-xl">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {memberships.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
+                            No membership applications found.
+                          </td>
+                        </tr>
+                      ) : (
+                        memberships.map((m: any) => (
+                          <tr key={m._id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-bold">
+                                  {m.fullName.charAt(0)}
+                                </div>
+                                <div>
+                                  <p className="font-bold text-slate-900">{m.fullName}</p>
+                                  <p className="text-[10px] text-slate-500">{m.email} | {m.phone}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 text-xs">
+                              <p className="font-semibold text-slate-800">DOB: {m.dob}</p>
+                              <p className="text-slate-500">Blood: <span className="font-bold text-rose-500">{m.bloodGroup}</span></p>
+                            </td>
+                            <td className="p-4 text-xs font-medium text-slate-600 max-w-[200px] truncate">
+                              {m.address}
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                m.membershipStatus === 'approved' ? 'bg-emerald-100 text-emerald-700' :
+                                m.membershipStatus === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                                'bg-blue-100 text-blue-700'
+                              }`}>
+                                {m.membershipStatus}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              {m.membershipStatus === 'pending' ? (
+                                <div className="flex justify-center gap-2">
+                                  <button
+                                    onClick={() => handleMembershipStatusChange(m._id, 'approved')}
+                                    disabled={actionLoading}
+                                    className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition-colors border border-emerald-200"
+                                    title="Approve"
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleMembershipStatusChange(m._id, 'rejected')}
+                                    disabled={actionLoading}
+                                    className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-colors border border-rose-200"
+                                    title="Reject"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-slate-400 font-semibold">{m.memberId || '-'}</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
@@ -1253,9 +1349,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                         Cancel
                       </button>
                       <button 
-                        onClick={() => {
+                        onClick={async () => {
                           if (newNoticeTitle && newNoticeDesc) {
-                            setAnnouncements([...announcements, { title: newNoticeTitle, desc: newNoticeDesc }]);
+                            const updatedAnnouncements = [...announcements, { title: newNoticeTitle, desc: newNoticeDesc }];
+                            await updateSystemSettings({ announcements: updatedAnnouncements });
                             setIsPublishingNotice(false);
                             setNewNoticeTitle('');
                             setNewNoticeDesc('');
@@ -1762,74 +1859,6 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     Save Configuration
                   </button>
                 </form>
-              </div>
-            )}
-
-            {activeTab === 'reviews' && (
-              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
-                <div className="flex flex-col pb-6 border-b border-slate-100 gap-2 mb-6">
-                  <h2 className="text-lg font-black text-slate-900 uppercase">Review Moderation</h2>
-                  <p className="text-xs text-slate-400 font-bold mt-1">Approve or reject customer reviews for public display.</p>
-                </div>
-
-                {adminReviews.length === 0 ? (
-                  <div className="text-center py-16">
-                    <MessageSquare className="h-12 w-12 text-slate-300 mx-auto mb-2" />
-                    <p className="text-xs text-slate-400 font-bold">No reviews found.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-150 text-[10px] text-slate-400 font-black uppercase tracking-wider">
-                          <th className="pb-3 pl-2">Customer Name</th>
-                          <th className="pb-3">Rating</th>
-                          <th className="pb-3">Comment</th>
-                          <th className="pb-3">Status</th>
-                          <th className="pb-3 text-right pr-2">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-xs text-slate-700 font-semibold divide-y divide-slate-100/50">
-                        {adminReviews.map((review) => (
-                          <tr key={review._id} className="hover:bg-slate-50/50">
-                            <td className="py-4 pl-2 font-bold text-slate-900">{review.name}</td>
-                            <td className="py-4">{review.rating} / 5</td>
-                            <td className="py-4 max-w-xs truncate" title={review.comment}>{review.comment}</td>
-                            <td className="py-4">
-                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                                review.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                                review.status === 'rejected' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                                'bg-amber-50 text-amber-600 border border-amber-100'
-                              }`}>
-                                {review.status}
-                              </span>
-                            </td>
-                            <td className="py-4 text-right pr-2 space-x-2 shrink-0">
-                              {review.status !== 'approved' && (
-                                <button
-                                  onClick={() => handleReviewStatusUpdate(review._id, 'approved')}
-                                  disabled={actionLoading}
-                                  className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 cursor-pointer"
-                                >
-                                  Approve
-                                </button>
-                              )}
-                              {review.status !== 'rejected' && (
-                                <button
-                                  onClick={() => handleReviewStatusUpdate(review._id, 'rejected')}
-                                  disabled={actionLoading}
-                                  className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 cursor-pointer"
-                                >
-                                  Reject
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
               </div>
             )}
           </>

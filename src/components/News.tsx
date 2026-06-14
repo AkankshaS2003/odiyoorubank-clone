@@ -1,39 +1,53 @@
 import React from 'react';
-import { Calendar, ArrowUpRight, Megaphone, Users, Landmark } from 'lucide-react';
+import { Calendar, Megaphone, Users, Landmark } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export const News: React.FC = () => {
   const { t } = useLanguage();
+  const { systemSettings } = useAuth();
 
-  const newsItems = [
-    {
-      id: 1,
-      tag: t('news1_tag'),
-      icon: Megaphone,
-      date: 'May 28, 2026',
-      title: t('news1_title'),
-      desc: t('news1_desc'),
-      color: 'orange'
-    },
-    {
-      id: 2,
-      tag: t('news2_tag'),
-      icon: Users,
-      date: 'May 15, 2026',
-      title: t('news2_title'),
-      desc: t('news2_desc'),
-      color: 'blue'
-    },
-    {
-      id: 3,
-      tag: t('news3_tag'),
-      icon: Landmark,
-      date: 'May 02, 2026',
-      title: t('news3_title'),
-      desc: t('news3_desc'),
-      color: 'orange'
-    }
-  ];
+  const liveAnnouncements = systemSettings?.announcements || [];
+
+  const newsItems = liveAnnouncements.length > 0 
+    ? liveAnnouncements.map((ann: any, index: number) => ({
+        id: index,
+        tag: 'Notice',
+        icon: Megaphone,
+        date: new Date(ann.publishedAt || Date.now()).toLocaleDateString(),
+        title: ann.title,
+        desc: ann.desc,
+        color: index % 2 === 0 ? 'orange' : 'blue'
+      })).reverse() // Show newest first
+    : [
+        {
+          id: 1,
+          tag: t('news1_tag'),
+          icon: Megaphone,
+          date: 'May 28, 2026',
+          title: t('news1_title'),
+          desc: t('news1_desc'),
+          color: 'orange'
+        },
+        {
+          id: 2,
+          tag: t('news2_tag'),
+          icon: Users,
+          date: 'May 15, 2026',
+          title: t('news2_title'),
+          desc: t('news2_desc'),
+          color: 'blue'
+        },
+        {
+          id: 3,
+          tag: t('news3_tag'),
+          icon: Landmark,
+          date: 'May 02, 2026',
+          title: t('news3_title'),
+          desc: t('news3_desc'),
+          color: 'orange'
+        }
+      ];
 
   return (
     <section className="py-20 bg-slate-50 relative">
@@ -79,14 +93,7 @@ export const News: React.FC = () => {
                   <p className="text-xs text-white/80 leading-relaxed">
                     {news.desc}
                   </p>
-
                 </div>
-
-                <div className="border-t border-white/10 p-4 bg-white/5 flex justify-between items-center text-xs font-bold text-white cursor-pointer hover:bg-white/10 transition-colors">
-                  <span>{t('read_article')}</span>
-                  <ArrowUpRight className="h-4.5 w-4.5" />
-                </div>
-
               </div>
             );
           })}

@@ -14,7 +14,9 @@ const {
   updateUserStatus,
   deleteUser,
   createEmployee,
-  replyToMessage
+  replyToMessage,
+  getMemberships,
+  updateMembershipStatus
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
@@ -55,5 +57,9 @@ router.delete('/user/:id', deleteUser);
 router.post('/upload', upload.single('file'), uploadDocument);
 router.get('/documents', getDocuments);
 router.delete('/document/:id', deleteDocument);
+
+// Membership Management
+router.get('/memberships', getMemberships);
+router.put('/membership/:id/status', updateMembershipStatus);
 
 module.exports = router;

@@ -54,7 +54,31 @@ const getAccountDetails = async (req, res, next) => {
   }
 };
 
+// @desc    Apply for membership
+// @route   POST /api/account/membership/apply
+// @access  Private
+const applyMembership = async (req, res, next) => {
+  try {
+    const { address, dob, bloodGroup } = req.body;
+
+    const user = await req.user.constructor.findByIdAndUpdate(req.user._id, {
+      address,
+      dob,
+      bloodGroup,
+      membershipStatus: 'pending'
+    }, { new: true });
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getProfile,
-  getAccountDetails
+  getAccountDetails,
+  applyMembership
 };

@@ -41,6 +41,16 @@ const UserSchema = new mongoose.Schema({
     enum: ['local', 'google'],
     default: 'local'
   },
+  address: String,
+  dob: String,
+  bloodGroup: String,
+  memberId: String,
+  savingsBalance: { type: Number, default: 0 },
+  membershipStatus: {
+    type: String,
+    enum: ['none', 'pending', 'approved', 'rejected'],
+    default: 'none'
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   createdAt: {
@@ -50,9 +60,9 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Encrypt password using bcrypt
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
 
   const salt = await bcrypt.genSalt(10);

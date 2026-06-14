@@ -14,14 +14,14 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
   const [slideIndex, setSlideIndex] = useState(0);
 
   const slides = [
-    { url: '/gallery/hero_1.png', alt: 'Community Banking' },
-    { url: '/gallery/hero_2.png', alt: 'Business Growth' }
+    { url: '/hero-img-1.jpg', alt: 'Agriculture and Progress' },
+    { url: '/hero-img-2.jpg', alt: 'Family and Pride' }
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setSlideIndex((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [slides.length]);
 
@@ -56,7 +56,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-20 text-white w-full flex flex-col justify-center select-none pt-12">
         <div className="max-w-2xl space-y-5">
           
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white/10 text-white border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest leading-none">
+          <div className="inline-flex items-center space-x-1.5 text-white text-[10px] font-black uppercase tracking-widest leading-none mb-2">
             <Landmark className="h-3 w-3 text-[#ED7F1E]" />
             <span>{t('Cooperative Trust & Progress')}</span>
           </div>

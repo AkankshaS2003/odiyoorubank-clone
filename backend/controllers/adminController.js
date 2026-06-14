@@ -195,7 +195,8 @@ const uploadDocument = async (req, res, next) => {
       extractedText = req.file.buffer.toString('utf-8');
     } else if (ext === 'pdf') {
       try {
-        const data = await pdfParse(req.file.buffer);
+        const parser = typeof pdfParse === 'function' ? pdfParse : (pdfParse.default || pdfParse.PDFParse || pdfParse);
+        const data = await parser(req.file.buffer);
         extractedText = data.text;
       } catch (err) {
         return res.status(400).json({ success: false, error: `Failed to parse PDF file: ${err.message}` });
@@ -481,6 +482,51 @@ const createEmployee = async (req, res, next) => {
   }
 };
 
+// @desc    Get all membership applications
+// @route   GET /api/admin/memberships
+// @access  Private/Admin
+const getMemberships = async (req, res, next) => {
+  try {
+    const users = await User.find({ membershipStatus: { $in: ['pending', 'approved', 'rejected'] } })
+      .select('-password')
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json({ success: true, count: users.length, data: users });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update membership status
+// @route   PUT /api/admin/membership/:id/status
+// @access  Private/Admin
+const updateMembershipStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    let updateData = { membershipStatus: status };
+
+    if (status === 'approved') {
+      const user = await User.findById(req.params.id);
+      if (!user.memberId) {
+        updateData.memberId = `ODI-M-${Math.floor(10000 + Math.random() * 90000)}`;
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true
+    }).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.status(200).json({ success: true, data: updatedUser });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getStats,
   getAllLoans,
@@ -496,6 +542,8 @@ module.exports = {
   updateUserStatus,
   deleteUser,
   createEmployee,
-  replyToMessage
+  replyToMessage,
+  getMemberships,
+  updateMembershipStatus
 };
 

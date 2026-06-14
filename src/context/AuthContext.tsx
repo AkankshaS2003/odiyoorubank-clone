@@ -74,7 +74,7 @@ interface AuthContextType {
   payEmi: (loanId: string) => boolean;
   uploadKyc: (documentType: string, filePlaceholder: string) => boolean;
   addSavingsMoney: (amount: number) => void;
-  becomeMember: (address: string, dob: string, bloodGroup: string) => string | null;
+  becomeMember: (address: string, dob: string, bloodGroup: string) => Promise<boolean>;
   systemSettings: SystemSettings;
   updateSystemSettings: (newSettings: Partial<SystemSettings>) => Promise<boolean>;
 }
@@ -263,12 +263,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const becomeMember = (address: string, dob: string, bloodGroup: string): string | null => {
-    if (!user) return null;
-    if (user.memberId) return user.memberId; // Already a member
-    const newMemberId = `ODI-M-${Math.floor(10000 + Math.random() * 90000)}`;
-    saveUser({ ...user, address, dob, bloodGroup, memberId: newMemberId });
-    return newMemberId;
+  const becomeMember = async (address: string, dob: string, bloodGroup: string): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const res = await api.post('/account/membership/apply', { address, dob, bloodGroup });
+      if (res.data.success) {
+        saveUser(res.data.data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to apply for membership', error);
+      return false;
+    }
   };
 
   const addSavingsMoney = (amount: number) => {
