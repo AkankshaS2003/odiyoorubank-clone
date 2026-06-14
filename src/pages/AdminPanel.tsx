@@ -93,10 +93,17 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [adminReviews, setAdminReviews] = useState<any[]>([]);
 
+  // Announcements States
+  const [announcements, setAnnouncements] = useState([
+    { title: 'State Best Souharda Award Recipient', desc: 'Celebrations across all branches in honor of cooperative recognitions.' },
+    { title: 'Cooperative FD Interest rate Hike', desc: 'Interest rates hiked up to 8.50% p.a. for shareholders and seniors.' }
+  ]);
+  const [isPublishingNotice, setIsPublishingNotice] = useState(false);
+  const [newNoticeTitle, setNewNoticeTitle] = useState('');
+  const [newNoticeDesc, setNewNoticeDesc] = useState('');
+
   // Search & Filter States
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Loading & Feedback States
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -527,10 +534,11 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   const loanAnalyticsData = [
     { name: 'Personal', count: loans.filter(l => l.loanType === 'Personal Loan').length || 3 },
-    { name: 'Home', count: loans.filter(l => l.loanType === 'Home Loan').length || 5 },
-    { name: 'Education', count: loans.filter(l => l.loanType === 'Education Loan').length || 2 },
+    { name: 'Home', count: loans.filter(l => l.loanType === 'Home Loan' || l.loanType === 'Housing Loan').length || 5 },
+    { name: 'Mortgage', count: loans.filter(l => l.loanType === 'Member\'s Mortgage Loans').length || 2 },
+    { name: 'Surity', count: loans.filter(l => l.loanType === 'Member\'s Surity Loans').length || 2 },
     { name: 'Gold', count: loans.filter(l => l.loanType === 'Gold Loan').length || 8 },
-    { name: 'Vehicle', count: loans.filter(l => l.loanType === 'Vehicle Loan').length || 4 }
+    { name: 'Vehicle', count: loans.filter(l => l.loanType === 'Vehicle Loan' || l.loanType === 'Member\'s Old Vehicle Loans').length || 4 }
   ];
 
   const depositGrowthData = [
@@ -1206,30 +1214,68 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-slate-800">State Best Souharda Award Recipient</span>
-                      <span className="text-[9px] font-bold text-white bg-emerald-500 px-2 py-0.5 rounded-full uppercase">Published</span>
+                  {announcements.map((ann, idx) => (
+                    <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-bold text-slate-800">{ann.title}</span>
+                        <span className="text-[9px] font-bold text-white bg-emerald-500 px-2 py-0.5 rounded-full uppercase">Published</span>
+                      </div>
+                      <p className="text-slate-500 leading-normal">{ann.desc}</p>
                     </div>
-                    <p className="text-slate-500 leading-normal">Celebrations across all branches in honor of cooperative recognitions.</p>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-slate-800">Cooperative FD Interest rate Hike</span>
-                      <span className="text-[9px] font-bold text-white bg-emerald-500 px-2 py-0.5 rounded-full uppercase">Published</span>
-                    </div>
-                    <p className="text-slate-500 leading-normal">Interest rates hiked up to 8.50% p.a. for shareholders and seniors.</p>
-                  </div>
+                  ))}
                 </div>
 
-                <button
-                  onClick={() => alert('New Notice feature simulated!')}
-                  className="mt-6 px-4 py-2.5 bg-[#0A315C] hover:bg-[#051C36] text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition-colors flex items-center space-x-1 cursor-pointer"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Publish Notice Bulletin</span>
-                </button>
+                {isPublishingNotice ? (
+                  <div className="mt-6 p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-3">
+                    <input 
+                      type="text" 
+                      placeholder="Announcement Title"
+                      value={newNoticeTitle}
+                      onChange={(e) => setNewNoticeTitle(e.target.value)}
+                      className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-primary"
+                    />
+                    <textarea 
+                      placeholder="Announcement Description (Visible to public)"
+                      rows={3}
+                      value={newNoticeDesc}
+                      onChange={(e) => setNewNoticeDesc(e.target.value)}
+                      className="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-primary resize-none"
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <button 
+                        onClick={() => {
+                          setIsPublishingNotice(false);
+                          setNewNoticeTitle('');
+                          setNewNoticeDesc('');
+                        }}
+                        className="px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (newNoticeTitle && newNoticeDesc) {
+                            setAnnouncements([...announcements, { title: newNoticeTitle, desc: newNoticeDesc }]);
+                            setIsPublishingNotice(false);
+                            setNewNoticeTitle('');
+                            setNewNoticeDesc('');
+                          }
+                        }}
+                        className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                      >
+                        Submit & Publish
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setIsPublishingNotice(true)}
+                    className="mt-6 px-4 py-2.5 bg-[#0A315C] hover:bg-[#051C36] text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition-colors flex items-center space-x-1 cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Publish Notice Bulletin</span>
+                  </button>
+                )}
               </div>
             )}
 

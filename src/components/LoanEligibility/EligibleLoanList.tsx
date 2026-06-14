@@ -13,7 +13,9 @@ export const EligibleLoanList: React.FC<EligibleLoanListProps> = ({ recommendedL
       case 'Agricultural Loan': return { rate: 7.0, max: Math.min(maxLoanAmount, 500000) };
       case 'Vehicle Loan': return { rate: 9.0, max: Math.min(maxLoanAmount, 750000) };
       case 'Personal Loan': return { rate: 11.5, max: Math.min(maxLoanAmount, 300000) };
-      case 'Education Loan': return { rate: 8.0, max: Math.min(maxLoanAmount, 1000000) };
+      case 'Member\'s Old Vehicle Loans': return { rate: 12.0, max: Math.min(maxLoanAmount, 500000) };
+      case 'Member\'s Surity Loans': return { rate: 13.0, max: Math.min(maxLoanAmount, 200000) };
+      case 'Member\'s Mortgage Loans': return { rate: 9.5, max: Math.min(maxLoanAmount, 5000000) };
       case 'Gold Loan': return { rate: 8.5, max: Math.min(maxLoanAmount, 1500000) };
       default: return { rate: 10.0, max: maxLoanAmount };
     }

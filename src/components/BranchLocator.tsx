@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Landmark, Clock, Filter } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import api from '../services/api';
 
 interface Branch {
   name: string;
@@ -16,48 +17,41 @@ export const BranchLocator: React.FC = () => {
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState<string>('All');
 
-  const branches: Branch[] = [
-    {
-      name: 'Odiyooru Central Headquarters',
-      state: 'Dakshina Kannada',
-      address: 'Odiyoor post, Tq. Uppala Road, Bantwal, Karnataka - 574243',
-      phone: '+91 8255 200000',
-      hoursKey: 'hours_val',
-      isHead: true
-    },
-    {
-      name: 'Hampankatta Branch',
-      state: 'Dakshina Kannada',
-      address: '1st Floor, City Center Mall Road, Hampankatta, Mangaluru, Karnataka - 575001',
-      phone: '+91 824 242 4041',
-      hoursKey: 'hours_val',
-      isHead: false
-    },
-    {
-      name: 'Car Street Branch',
-      state: 'Udupi',
-      address: 'Shop No. 4, Temple Square, Car Street, Udupi, Karnataka - 576101',
-      phone: '+91 820 252 4832',
-      hoursKey: 'hours_val',
-      isHead: false
-    },
-    {
-      name: 'Indiranagar Branch',
-      state: 'Bengaluru',
-      address: '89/1, 100 Feet Road, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka - 560038',
-      phone: '+91 80 4124 9382',
-      hoursKey: 'hours_val',
-      isHead: false
-    },
-    {
-      name: 'Uppala Branch',
-      state: 'Kasaragod',
-      address: 'Ground Floor, Highway Complex, Uppala, Kasaragod, Kerala - 671322',
-      phone: '+91 4998 209 382',
-      hoursKey: 'hours_val',
-      isHead: false
-    }
-  ];
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await api.get('/branches?publishedOnly=true');
+        const sorted = res.data.sort((a: any, b: any) => {
+          if (a.type === 'Head Office' && b.type !== 'Head Office') return -1;
+          if (b.type === 'Head Office' && a.type !== 'Head Office') return 1;
+          return a.name.localeCompare(b.name);
+        });
+        
+        const mappedBranches = sorted.map((b: any) => {
+          const address = b.address.toLowerCase();
+          let state = 'Dakshina Kannada';
+          if (address.includes('udupi')) state = 'Udupi';
+          else if (address.includes('bengaluru')) state = 'Bengaluru';
+          else if (address.includes('kasaragod')) state = 'Kasaragod';
+
+          return {
+            name: b.name,
+            state: state as Branch['state'],
+            address: b.address,
+            phone: b.phone,
+            hoursKey: 'hours_val',
+            isHead: b.type === 'Head Office'
+          };
+        });
+        setBranches(mappedBranches);
+      } catch (err) {
+        console.error('Failed to fetch branches', err);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   const filtered = branches.filter((b) => {
     const matchesSearch = b.name.toLowerCase().includes(search.toLowerCase()) || 

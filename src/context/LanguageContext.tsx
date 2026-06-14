@@ -1192,14 +1192,6 @@ export const translations: TranslationDict = {
     en: 'Simulate personal financial security for weddings, travel, medical needs, or retail consolidation.',
     kn: `ವೈಯಕ್ತಿಕ ಅಗತ್ಯಗಳಿಗಾಗಿ ಸಾಲ.`,
   },
-  education_name: {
-    en: 'Education Loan',
-    kn: `ಶಿಕ್ಷಣ ಸಾಲ`,
-  },
-  education_desc: {
-    en: 'Empower your child higher educational goals in top Indian and international universities with low interest rates.',
-    kn: `ಕಡಿಮೆ ಬಡ್ಡಿ ದರದಲ್ಲಿ ಶಿಕ್ಷಣ ಸಾಲ.`,
-  },
   housing_name: {
     en: 'Housing Loan',
     kn: `ಗೃಹ ಸಾಲ`,
@@ -1207,6 +1199,30 @@ export const translations: TranslationDict = {
   housing_desc: {
     en: 'Build or purchase your dream house with affordable cooperative society home loan schemes.',
     kn: `ಕೈಗೆಟುಕುವ ಗೃಹ ಸಾಲ ಯೋಜನೆಗಳು.`,
+  },
+  old_vehicle_name: {
+    en: "Member's Old Vehicle Loans",
+    kn: `ಹಳೆಯ ವಾಹನ ಸಾಲ`,
+  },
+  old_vehicle_desc: {
+    en: 'Eligibility for a pre-owned car loan from Mahindra Finance depends on the individual appraisal and the product, and all loans are given at the sole discretion of the company. The basic eligibility criteria are as below:',
+    kn: `ಪೂರ್ವ ಸ್ವಾಮ್ಯದ ಕಾರು ಸಾಲಕ್ಕೆ ಅರ್ಹತೆ.`,
+  },
+  surity_name: {
+    en: "Member's Surity Loans",
+    kn: `ಜಾಮೀನು ಸಾಲ`,
+  },
+  surity_desc: {
+    en: 'This is among the most utilized loan scheme that can be used for any purpose like buying house hold appliances, marriage at home, to meet any family expenses / emergency. The loan is offered with minimum of conditions and has been designed with a common man\'s need in mind.',
+    kn: `ಯಾವುದೇ ಉದ್ದೇಶಕ್ಕಾಗಿ ಬಳಸಬಹುದಾದ ಸಾಲ ಯೋಜನೆ.`,
+  },
+  mortgage_name: {
+    en: "Member's Mortgage Loans",
+    kn: `ಅಡಮಾನ ಸಾಲ`,
+  },
+  mortgage_desc: {
+    en: 'A mortgage is a type of loan used to purchase or maintain a home, land, or other types of real estate. The borrower agrees to pay the lender over time, typically in a series of regular payments that are divided into principal and interest.',
+    kn: `ಮನೆ, ಭೂಮಿ ಖರೀದಿಸಲು ಬಳಸುವ ಸಾಲ.`,
   },
 
 
@@ -1367,9 +1383,9 @@ export const translations: TranslationDict = {
     en: 'Contact Support',
     kn: 'ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ'
   },
-  'Please enter a valid phone number starting with 6-9': {
-    en: 'Please enter a valid phone number starting with 6-9',
-    kn: 'ದಯವಿಟ್ಟು 6-9 ರಿಂದ ಪ್ರಾರಂಭವಾಗುವ ಮಾನ್ಯವಾದ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ'
+  'Please enter a valid phone number': {
+    en: 'Please enter a valid phone number ',
+    kn: 'ದಯವಿಟ್ಟು  ಮಾನ್ಯವಾದ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ'
   },
   'Phone number must be exactly 10 digits': {
     en: 'Phone number must be exactly 10 digits',

@@ -144,7 +144,9 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({ onSubmit }) =>
                 <option value="Personal Loan">Personal Loan</option>
                 <option value="Vehicle Loan">Vehicle Loan</option>
                 <option value="Agricultural Loan">Agricultural Loan</option>
-                <option value="Education Loan">Education Loan</option>
+                <option value="Member's Old Vehicle Loans">Member's Old Vehicle Loans</option>
+                <option value="Member's Surity Loans">Member's Surity Loans</option>
+                <option value="Member's Mortgage Loans">Member's Mortgage Loans</option>
                 <option value="Gold Loan">Gold Loan</option>
               </select>
             </div>

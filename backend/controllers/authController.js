@@ -12,26 +12,45 @@ const generateToken = (id) => {
   });
 };
 
+const getNextMemberId = async () => {
+  const allUsers = await User.find({ memberId: { $regex: /^ODI-M-\d+$/ } }).select('memberId');
+  let maxSeq = 0;
+  for (const u of allUsers) {
+    if (u.memberId) {
+      const seq = parseInt(u.memberId.replace('ODI-M-', ''), 10);
+      if (!isNaN(seq) && seq > maxSeq) {
+        maxSeq = seq;
+      }
+    }
+  }
+  return `ODI-M-${maxSeq + 1}`;
+};
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res, next) => {
   try {
     const { fullName, email, phone, password, role } = req.body;
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+    const cleanPhone = phone ? phone.trim() : '';
 
     // Check if user exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: cleanEmail });
 
     if (userExists) {
       return res.status(400).json({ success: false, error: 'User already exists' });
     }
 
+    const memberId = await getNextMemberId();
+
     // Create user (No account number needed anymore)
     const user = await User.create({
       fullName,
-      email,
-      phone,
+      email: cleanEmail,
+      phone: cleanPhone,
       password,
+      memberId,
       role: role || 'customer'
     });
 
@@ -42,6 +61,7 @@ const registerUser = async (req, res, next) => {
         fullName: user.fullName,
         email: user.email,
         phone: user.phone,
+        memberId: user.memberId,
         role: user.role,
         token: generateToken(user._id)
       }
@@ -57,9 +77,10 @@ const registerUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
 
     // Check for user email
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: cleanEmail }).select('+password');
 
     if (!user) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
@@ -83,6 +104,7 @@ const loginUser = async (req, res, next) => {
         fullName: user.fullName,
         email: user.email,
         phone: user.phone,
+        memberId: user.memberId,
         role: user.role,
         token: generateToken(user._id)
       }
@@ -113,7 +135,8 @@ const getMe = async (req, res, next) => {
 // @access  Public
 const forgotPassword = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const cleanEmail = req.body.email ? req.body.email.toLowerCase().trim() : '';
+    const user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
       return res.status(404).json({ success: false, error: 'There is no user with that email' });
@@ -200,17 +223,13 @@ const googleLogin = async (req, res, next) => {
     }
 
     const { email, name, sub } = payload;
-    let user = await User.findOne({ email });
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+    let user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
-      // Auto-register user as a Google provider user
-      user = await User.create({
-        fullName: name,
-        email,
-        phone: '0000000000', // Dummy phone for google users
-        password: crypto.randomBytes(20).toString('hex'), // Random complex password
-        role: 'customer',
-        provider: 'google' // Distinguish from local auth
+      return res.status(404).json({
+        success: false,
+        error: 'Account not found. Please register an account first before using Google Login.'
       });
     } else {
       // If user exists but was registered locally, we can optionally link them or just login
@@ -227,6 +246,7 @@ const googleLogin = async (req, res, next) => {
         fullName: user.fullName,
         email: user.email,
         phone: user.phone,
+        memberId: user.memberId,
         role: user.role,
         provider: user.provider,
         token: generateToken(user._id)

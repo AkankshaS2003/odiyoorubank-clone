@@ -241,7 +241,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                   }}
                   onBlur={() => {
                     if (phone.length > 0 && !/^[6-9]/.test(phone[0])) {
-                      setErrorMsg(t('Please enter a valid phone number starting with 6-9'));
+                      setErrorMsg(t('Please enter a valid phone number '));
                     } else if (phone.length > 0 && phone.length !== 10) {
                       setErrorMsg(t('Phone number must be exactly 10 digits'));
                     } else {
@@ -281,7 +281,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 className="absolute right-3 inset-y-0 flex items-center justify-center text-white/40 hover:text-white transition-colors px-1"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
               </button>
             </div>
           )}
