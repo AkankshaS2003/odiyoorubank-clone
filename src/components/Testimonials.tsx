@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 
 interface Testimonial {
   id: number;
@@ -12,33 +11,32 @@ interface Testimonial {
 }
 
 export const Testimonials: React.FC = () => {
-  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
 
   const reviews: Testimonial[] = [
     {
       id: 1,
-      name: t('rev1_name'),
-      role: t('rev1_role'),
-      branch: t('rev1_branch'),
+      name: "Dr. Suresh Kumar Malhotra",
+      role: "Member Shareholder",
+      branch: "Hampankatta Branch, Mangaluru",
       rating: 5,
-      review: t('rev1_review')
+      review: "I have held a Fixed Deposit here for 8 years. The cooperative rates are consistently 1.5% higher than public sector retail banks. Extremely courteous staff and highly secure portal!"
     },
     {
       id: 2,
-      name: t('rev2_name'),
-      role: t('rev2_role'),
-      branch: t('rev2_branch'),
+      name: "Sunita Devi Yadav",
+      role: "Micro-Entrepreneur",
+      branch: "Main Road Branch, Puttur",
       rating: 5,
-      review: t('rev2_review')
+      review: "My small business was struggling. Their doorstep collector agents visit my shop daily to collect savings, which are compounded quarterly. Sanctioned a gold loan within 20 minutes without credit history!"
     },
     {
       id: 3,
-      name: t('rev3_name'),
-      role: t('rev3_role'),
-      branch: t('rev3_branch'),
+      name: "Anirudh R. Deshmukh",
+      role: "Retiree",
+      branch: "Car Street Branch, Udupi",
       rating: 5,
-      review: t('rev3_review')
+      review: "The Monthly Income Scheme (MIS) keeps my retirement payouts secure with prompt direct transfers. The simulated dashboard is very clean, accessible, and transparent. Truly a modern cooperative!"
     }
   ];
 
@@ -67,9 +65,9 @@ export const Testimonials: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center mb-12">
-          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{t('member_voices')}</span>
+          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{"Member Voices"}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-            {t('trusted_by')}
+            {"Trusted By Over 50,000+ Indians"}
           </h2>
         </div>
 

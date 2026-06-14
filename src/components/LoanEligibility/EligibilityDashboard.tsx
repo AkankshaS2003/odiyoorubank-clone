@@ -63,6 +63,14 @@ export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ form
   };
 
   const handleConfirmSave = () => {
+    // Save to localStorage
+    const savedReport = {
+      formData,
+      resultData,
+      date: new Date().toISOString()
+    };
+    localStorage.setItem('odiyooru_saved_eligibility_report', JSON.stringify(savedReport));
+
     setShowModal(false);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 5000); // Hide after 5 seconds

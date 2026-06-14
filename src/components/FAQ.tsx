@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 
 interface FaqItem {
   q: string;
@@ -8,29 +7,28 @@ interface FaqItem {
 }
 
 export const FAQ: React.FC = () => {
-  const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const faqs: FaqItem[] = [
     {
-      q: t('faq1_q'),
-      a: t('faq1_a')
+      q: "Is Odiyooru Souharda Cooperative Society Ltd regulated by the RBI?",
+      a: "We operate as a Multi-State Cooperative Credit Society registered under the Multi-State Cooperative Societies Act, 2002. While commercial banks are directly governed under RBI Banking Regulation acts, credit societies are governed by state/central cooperative commissioners and maintain capital reserve ratios matching RBI compliance guidelines."
     },
     {
-      q: t('faq2_q'),
-      a: t('faq2_a')
+      q: "What is the maximum interest rate offered on cooperative Fixed Deposits?",
+      a: "We offer an industry-best standard FD interest rate of 8.50% p.a. for general depositors. Registered shareholder members and senior citizens receive a premium bonus rate of 9.00% p.a. interest compounded quarterly."
     },
     {
-      q: t('faq3_q'),
-      a: t('faq3_a')
+      q: "How do I become an active voting shareholder member of the society?",
+      a: "You can subscribe to initial Share Capital units (minimum investment ₹10,000) by visiting your nearest branch. Upon successful KYC checks and board sanction, you gain legal co-ownership, annual dividend rights, and voting powers at general body governance boards."
     },
     {
-      q: t('faq4_q'),
-      a: t('faq4_a')
+      q: "What is the processing time and security metrics for Gold Loans?",
+      a: "Gold Loans are disbursed at cheap rates starting from 8.50% p.a. within 30 minutes of counter valuations. Your physical gold ornaments are secured inside specialized government-grade vault keeps backed by comprehensive insurance coverage."
     },
     {
-      q: t('faq5_q'),
-      a: t('faq5_a')
+      q: "Do I get tax exemption benefits on deposits held inside cooperative societies?",
+      a: "Yes, interest earned on cooperative credit deposits receives exemptions under Section 80P of the Income Tax Act, offering better tax-adjusted yields than standard retail bank FD accounts."
     }
   ];
 
@@ -40,9 +38,9 @@ export const FAQ: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center mb-12">
-          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{t('faq_guide')}</span>
+          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{"FAQ Guide"}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-            {t('frequent_inquiries')}
+            {"Frequently Answered Inquiries"}
           </h2>
         </div>
 

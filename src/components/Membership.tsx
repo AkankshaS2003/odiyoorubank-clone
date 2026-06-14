@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Award, CheckCircle2, BadgePercent } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { MembershipModal } from './MembershipModal';
 
@@ -9,7 +8,6 @@ interface MembershipProps {
 }
 
 export const Membership: React.FC<MembershipProps> = ({ setCurrentTab }) => {
-  const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -23,20 +21,20 @@ export const Membership: React.FC<MembershipProps> = ({ setCurrentTab }) => {
 
   const benefits = [
     {
-      title: t('voting_title'),
-      desc: t('voting_desc')
+      title: "Democratic Voting Rights",
+      desc: "Each shareholder member receives equal voting power at our Annual General Body meetings to elect board governance."
     },
     {
-      title: t('profit_title'),
-      desc: t('profit_desc')
+      title: "Annual Profit Sharing & Dividends",
+      desc: "Society profits are distributed back to member shareholders as competitive cash dividends pro-rata to share capital."
     },
     {
-      title: t('priority_title'),
-      desc: t('priority_desc')
+      title: "Priority Interest Bonuses",
+      desc: "Receive an additional +0.50% interest return premium on standard Fixed and Recurring Deposits."
     },
     {
-      title: t('subsidized_title'),
-      desc: t('subsidized_desc')
+      title: "Subsidized Loan Processing",
+      desc: "Enjoy priority queues, minimal evaluation checklists, and zero prepayment penalties on all loans."
     }
   ];
 
@@ -50,12 +48,12 @@ export const Membership: React.FC<MembershipProps> = ({ setCurrentTab }) => {
             
             {/* Left Content column */}
             <div className="lg:col-span-6 space-y-6">
-              <span className="text-sm font-bold text-primary uppercase tracking-widest block">{t('coop_pride')}</span>
+              <span className="text-sm font-bold text-primary uppercase tracking-widest block">{"Cooperative Pride"}</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
-                {t('coowner_title')}
+                {"Don't Just Be a Customer. Be a Co-Owner."}
               </h2>
               <p className="text-slate-600 leading-relaxed text-sm">
-                {t('coowner_desc')}
+                {"Unlike commercial retail banks, our cooperative credit society is owned and managed directly by our members."}
               </p>
 
               <div className="space-y-4 pt-2">
@@ -82,23 +80,23 @@ export const Membership: React.FC<MembershipProps> = ({ setCurrentTab }) => {
                   <div className="bg-white/10 border border-white/20 p-3 rounded-2xl w-12 h-12 flex items-center justify-center">
                     <Award className="h-6 w-6 text-secondary" />
                   </div>
-                  <h3 className="text-2xl font-extrabold font-sans">{t('become_today')}</h3>
+                  <h3 className="text-2xl font-extrabold font-sans">{"Become a Member Today"}</h3>
                   <p className="text-xs text-white/80 leading-relaxed">
-                    {t('become_today_desc')}
+                    {"Invest a minimum of ₹10,000 in society share capital to instantly register as an active legal shareholder. Experience transparent community growth and financial security."}
                   </p>
                 </div>
 
                 <div className="space-y-4 pt-6 relative z-10">
                   <div className="flex items-center space-x-3 text-xs bg-white/5 border border-white/10 p-3 rounded-xl">
                     <BadgePercent className="h-5 w-5 text-secondary shrink-0" />
-                    <span>{t('dividend_highlight')}</span>
+                    <span>{"Receive up to 12% annual dividend disburser payouts!"}</span>
                   </div>
                   
                   <button
                     onClick={handleBecomeMemberClick}
                     className="w-full py-4 bg-white hover:bg-slate-50 text-primary hover:text-primary-dark font-extrabold rounded-xl shadow-lg transition-all transform active:scale-95 text-center block text-sm"
                   >
-                    {t('become_member')}
+                    {"Become Member Shareholder"}
                   </button>
                 </div>
               </div>

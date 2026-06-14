@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { useLanguage } from '../context/LanguageContext';
 
 export const MediaPage: React.FC = () => {
-  const { t } = useLanguage();
   const [activeImageIdx, setActiveImageIdx] = useState<number | null>(null);
 
   const galleryImages = [
@@ -22,7 +20,7 @@ export const MediaPage: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 mb-10">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold text-accent uppercase tracking-widest block">Event Highlights</span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 font-heading">{t('Gallary')}</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 font-heading">{"Gallary"}</h2>
           <p className="text-slate-500 leading-relaxed text-xs max-w-xl mx-auto font-medium">
           </p>
         </div>

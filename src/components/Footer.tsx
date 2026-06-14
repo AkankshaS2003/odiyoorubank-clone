@@ -1,6 +1,5 @@
 import React from 'react';
 import { Globe, Camera, Tv } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 interface FooterProps {
@@ -8,7 +7,6 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
-  const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
   
   const handleNavClick = (tabName: string) => {
@@ -44,7 +42,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
 
             {/* Exact Bio text from image - localized */}
             <p className="text-xs text-white/90 leading-relaxed max-w-xl font-medium">
-              {t('footer_bio')}
+              {"We have various strategic partnerships and alliances with eminent Indian and global companies which cater to various aspects of our daily operations on PAN India scale. Not only do these partnerships widen our business platform but they also lay a foundation for a sustainable future."}
             </p>
 
             {/* Social Icons */}
@@ -71,7 +69,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
           {/* Center Column: Quick Links - localized */}
           <div className="lg:col-span-2 space-y-4 text-left">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              {t('quick_links')} <span className="text-white/90">→</span>
+              {"Quick Links"} <span className="text-white/90">→</span>
             </h4>
             <ul className="space-y-2 text-xs text-white/90 font-semibold">
               {[
@@ -87,14 +85,14 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
                     className="hover:text-white transition-colors"
                   >
                     {link.name === 'Home' 
-                      ? t('home') 
+                      ? "Home" 
                       : link.name === 'About Us' 
-                      ? t('about') 
+                      ? "About Us" 
                       : link.name === 'Management' 
-                      ? t('management') 
+                      ? "Management" 
                       : link.name === 'Contact Us' 
-                      ? t('contact') 
-                      : t('membership')}
+                      ? "Contact Us" 
+                      : "Membership"}
                   </button>
                 </li>
               ))}
@@ -104,7 +102,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
           {/* Right Column: Products - localized */}
           <div className="lg:col-span-2 space-y-4 text-left">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              {t('footer_prod_title')} <span className="text-white/90">→</span>
+              {"Products"} <span className="text-white/90">→</span>
             </h4>
             <ul className="space-y-2 text-xs text-white/90 font-semibold">
               {[
@@ -131,7 +129,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
           {/* New Column: Contact Us - localized */}
           <div className="lg:col-span-3 space-y-4 text-left">
             <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              {t('contact')} <span className="text-white/90">→</span>
+              {"Contact Us"} <span className="text-white/90">→</span>
             </h4>
             <div className="space-y-3 text-xs text-white/90 font-semibold leading-relaxed">
               <p className="text-white font-extrabold text-xs leading-snug">
@@ -157,7 +155,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentTab }) => {
 
         {/* Bottom copyright details - localized */}
         <div className="border-t border-white/20 pt-6 mt-8 text-center text-[10px] text-white/90 font-bold uppercase tracking-wider">
-          <span>{t('copyright')}</span>
+          <span>{"Copyright © 2026 Odiyooru Souharda Cooperative Society Ltd. All rights reserved."}</span>
         </div>
 
       </div>

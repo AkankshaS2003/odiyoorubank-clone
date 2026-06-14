@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Phone, Landmark, Clock, Filter } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
 
 interface Branch {
@@ -13,7 +12,6 @@ interface Branch {
 }
 
 export const BranchLocator: React.FC = () => {
-  const { t } = useLanguage();
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState<string>('All');
 
@@ -66,12 +64,12 @@ export const BranchLocator: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{t('branches_title')}</span>
+          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{"Branches"}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
-            {t('locator_subtitle')}
+            {"Cooperative Network Branch Locator"}
           </h2>
           <p className="text-slate-600">
-            {t('locator_desc')}
+            {"Find the nearest society office or deposit collection hub in your city."}
           </p>
         </div>
 
@@ -82,7 +80,7 @@ export const BranchLocator: React.FC = () => {
             <Search className="absolute left-3.5 top-3.5 h-4.5 w-4.5 text-slate-400" />
             <input
               type="text"
-              placeholder={t('search_placeholder')}
+              placeholder={"Search branch name, address, pin code..."}
               className="w-full pl-10.5 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none text-sm text-slate-800"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -96,7 +94,7 @@ export const BranchLocator: React.FC = () => {
               value={stateFilter}
               onChange={(e) => setStateFilter(e.target.value)}
             >
-              <option value="All">{t('all_states')}</option>
+              <option value="All">{"All States"}</option>
               <option value="Dakshina Kannada">Dakshina Kannada</option>
               <option value="Udupi">Udupi</option>
               <option value="Bengaluru">Bengaluru</option>
@@ -110,7 +108,7 @@ export const BranchLocator: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {filtered.length === 0 ? (
             <div className="col-span-2 text-center py-10 bg-white border border-slate-150 rounded-3xl">
-              <p className="text-slate-400 font-medium text-sm">{t('no_branches')}</p>
+              <p className="text-slate-400 font-medium text-sm">{"No cooperative branches found matching your filters."}</p>
             </div>
           ) : (
             filtered.map((b, idx) => (
@@ -120,7 +118,7 @@ export const BranchLocator: React.FC = () => {
               >
                 {b.isHead && (
                   <span className="absolute top-4 right-4 bg-primary/10 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    {t('central_hq_badge')}
+                    {"Central HQ"}
                   </span>
                 )}
 
@@ -147,7 +145,7 @@ export const BranchLocator: React.FC = () => {
                   </div>
                   <div className="flex items-start space-x-2">
                     <Clock className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                    <span className="text-[11px] leading-relaxed">{t(b.hoursKey)}</span>
+                    <span className="text-[11px] leading-relaxed">Monday - Saturday: 09:30 AM - 04:30 PM (Closed on Sundays, 2nd & 4th Saturdays)</span>
                   </div>
                 </div>
 

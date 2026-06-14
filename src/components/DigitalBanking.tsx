@@ -1,34 +1,32 @@
 import React from 'react';
 import { Smartphone, Send, UserCheck, FileText, CheckCircle2 } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 
 interface DigitalBankingProps {
   setCurrentTab: (tab: string) => void;
 }
 
 export const DigitalBanking: React.FC<DigitalBankingProps> = ({ setCurrentTab }) => {
-  const { t } = useLanguage();
   
   const services = [
     {
       icon: Smartphone,
-      title: t('mob_sim_title'),
-      desc: t('mob_sim_desc')
+      title: "Mobile App Simulator",
+      desc: "Track accounts, deposit slips, and statement drafts on your smartphone. Paperless passbooks inside."
     },
     {
       icon: Send,
-      title: t('instant_title'),
-      desc: t('instant_desc')
+      title: "Instant Fund Transfers",
+      desc: "Simulate instant RTGS, NEFT, and IMPS money transfers straight from your active savings accounts."
     },
     {
       icon: UserCheck,
-      title: t('ekyc_title'),
-      desc: t('ekyc_desc')
+      title: "e-KYC Document Uploads",
+      desc: "Submit Aadhaar and PAN documents online. Instant mock verification within our secure portal."
     },
     {
       icon: FileText,
-      title: t('statement_title'),
-      desc: t('statement_desc')
+      title: "Download Bank Statements",
+      desc: "Access your full statement history as highly structured simulated spreadsheets or print-ready PDF formats."
     }
   ];
 
@@ -40,20 +38,20 @@ export const DigitalBanking: React.FC<DigitalBankingProps> = ({ setCurrentTab })
           
           {/* Left Text Detail Column */}
           <div className="lg:col-span-5 space-y-6">
-            <span className="text-sm font-bold text-primary uppercase tracking-widest block">{t('fintech_core')}</span>
+            <span className="text-sm font-bold text-primary uppercase tracking-widest block">{"Fintech Core"}</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
-              {t('nextgen_title')}
+              {"Next-Gen Cooperative Digital Experience"}
             </h2>
             <p className="text-slate-600 leading-relaxed">
-              {t('nextgen_desc')}
+              {"We bridge the personal touch of community cooperative credit with the robust speed, accessibility, and high-security architectures of modern mobile fintech platforms."}
             </p>
 
             <div className="space-y-3 pt-2">
               {[
-                t('ekyc_point'),
-                t('transfer_point'),
-                t('ledger_point'),
-                t('forms_point')
+                "Government approved Aadhaar e-KYC channels",
+                "Simulated IMPS/NEFT transfers disburser modules",
+                "Secure localStorage encrypted digital ledger logs",
+                "Downloadable legal bank forms templates"
               ].map((point, index) => (
                 <div key={index} className="flex items-center space-x-2 text-xs font-semibold text-slate-700">
                   <CheckCircle2 className="h-4.5 w-4.5 text-accent shrink-0" />
@@ -67,7 +65,7 @@ export const DigitalBanking: React.FC<DigitalBankingProps> = ({ setCurrentTab })
               className="inline-flex items-center space-x-2 px-6 py-3.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-md transition-all transform active:scale-95 text-sm"
             >
               <Smartphone className="h-4.5 w-4.5" />
-              <span>{t('launch_portal')}</span>
+              <span>{"Launch e-Banking Portal"}</span>
             </button>
           </div>
 

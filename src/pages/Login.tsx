@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, ShieldAlert, CheckCircle2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
 import { GoogleLogin } from '@react-oauth/google';
 
 interface LoginProps {
@@ -11,7 +10,6 @@ interface LoginProps {
 
 export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
   const { login, registerUser, forgotPassword, resetPassword, googleLogin } = useAuth();
-  const { t } = useLanguage();
   
   // 'login' | 'register' | 'forgot' | 'reset'
   const [view, setView] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
@@ -190,10 +188,10 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
           <div className="mt-2 flex items-center justify-center space-x-2">
             <div className="h-px w-8 bg-white/20"></div>
             <span className="text-[10px] text-white/50 uppercase tracking-widest font-semibold">
-              {view === 'login' && t('Secure Login')}
-              {view === 'register' && t('Member Registration')}
-              {view === 'forgot' && t('Password Recovery')}
-              {view === 'reset' && t('Set New Password')}
+              {view === 'login' && "Secure Login"}
+              {view === 'register' && "Member Registration"}
+              {view === 'forgot' && "Password Recovery"}
+              {view === 'reset' && "Set New Password"}
             </span>
             <div className="h-px w-8 bg-white/20"></div>
           </div>
@@ -221,7 +219,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 <input
                   type="text"
                   required
-                  placeholder={t('Full Name')}
+                  placeholder={"Full Name"}
                   className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -232,7 +230,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                   type="tel"
                   required
                   maxLength={10}
-                  placeholder={t('Mobile Number')}
+                  placeholder={"Mobile Number"}
                   className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                   value={phone}
                   onChange={(e) => {
@@ -241,9 +239,9 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                   }}
                   onBlur={() => {
                     if (phone.length > 0 && !/^[6-9]/.test(phone[0])) {
-                      setErrorMsg(t('Please enter a valid phone number '));
+                      setErrorMsg("Please enter a valid phone number ");
                     } else if (phone.length > 0 && phone.length !== 10) {
-                      setErrorMsg(t('Phone number must be exactly 10 digits'));
+                      setErrorMsg("Phone number must be exactly 10 digits");
                     } else {
                       setErrorMsg(null);
                     }
@@ -258,7 +256,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               <input
                 type="email"
                 required
-                placeholder={t('Email Address')}
+                placeholder={"Email Address"}
                 className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -271,7 +269,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                placeholder={view === 'reset' ? t('New Password') : t('Password')}
+                placeholder={view === 'reset' ? "New Password" : "Password"}
                 className="w-full pl-4 pr-12 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -291,7 +289,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                placeholder={t('Confirm Password')}
+                placeholder={"Confirm Password"}
                 className="w-full pl-4 pr-12 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -303,14 +301,14 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
             <div className="flex items-center justify-between pt-1 px-1">
               <label className="flex items-center space-x-2 cursor-pointer group">
                 <input type="checkbox" className="rounded border-white/20 bg-white/5 text-[#ED7F1E] focus:ring-[#ED7F1E] focus:ring-offset-[#0A315C]" />
-                <span className="text-sm text-white/60 group-hover:text-white transition-colors">{t('Remember me')}</span>
+                <span className="text-sm text-white/60 group-hover:text-white transition-colors">{"Remember me"}</span>
               </label>
               <button 
                 type="button" 
                 onClick={() => { setView('forgot'); setErrorMsg(null); setSuccessMsg(null); }}
                 className="text-sm text-[#ED7F1E] font-semibold hover:text-white transition-colors hover:underline underline-offset-4"
               >
-                {t('Forgot Password?')}
+                {"Forgot Password?"}
               </button>
             </div>
           )}
@@ -323,9 +321,9 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
             ) : (
-              view === 'login' ? t('Log in Securely') : 
-              view === 'register' ? t('Register Account') : 
-              view === 'forgot' ? t('Send Reset Link') : t('Update Password')
+              view === 'login' ? "Log in Securely" : 
+              view === 'register' ? "Register Account" : 
+              view === 'forgot' ? "Send Reset Link" : "Update Password"
             )}
           </button>
         </form>
@@ -333,7 +331,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         {(view === 'login' || view === 'register') && (
           <div className="w-full flex items-center justify-center mt-6 mb-8 relative z-10">
             <span className="text-[14px] text-white/60">
-              {view === 'login' ? t("Don't have an account?") : t("Already have an account?")}
+              {view === 'login' ? "Don't have an account?" : "Already have an account?"}
               <button 
                 onClick={() => {
                   setView(view === 'login' ? 'register' : 'login');
@@ -343,7 +341,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 }} 
                 className="ml-2 text-[#ED7F1E] font-bold hover:text-white transition-colors hover:underline underline-offset-4"
               >
-                {view === 'login' ? t('Sign up') : t('Log in')}
+                {view === 'login' ? "Sign up" : "Log in"}
               </button>
             </span>
           </div>
@@ -355,7 +353,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               onClick={() => { setView('login'); setErrorMsg(null); setSuccessMsg(null); }}
               className="text-[14px] text-white/60 hover:text-white transition-colors font-semibold flex items-center"
             >
-              ← {t('Back to Log in')}
+              ← {"Back to Log in"}
             </button>
           </div>
         )}
@@ -370,7 +368,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               className="w-full max-w-[280px] py-2.5 bg-white text-slate-800 hover:bg-slate-100 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-4 w-4" />
-              <span>{t('Continue with Google')}</span>
+              <span>{"Continue with Google"}</span>
             </button>
           </div>
         )}

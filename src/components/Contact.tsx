@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 export const Contact: React.FC = () => {
-  const { t } = useLanguage();
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
@@ -63,12 +61,12 @@ export const Contact: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{t('connect_us')}</span>
+          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{"Connect With Us"}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
-            {t('here_to_help')}
+            {"We Are Here To Help You"}
           </h2>
           <p className="text-slate-600">
-            {t('here_to_help_desc')}
+            {"Reach out to our cooperative relationship managers for queries on gold loans, deposit schemes, or shareholder accounts."}
           </p>
         </div>
 
@@ -78,15 +76,15 @@ export const Contact: React.FC = () => {
           <div className="lg:col-span-5 space-y-8">
             
             <div className="bg-slate-50 border border-slate-150 p-8 rounded-3xl space-y-6 shadow-sm">
-              <h3 className="text-xl font-bold text-slate-900">{t('hq_office')}</h3>
+              <h3 className="text-xl font-bold text-slate-900">{"Headquarters Office"}</h3>
               
               <div className="space-y-4 text-sm text-slate-600">
                 <div className="flex items-start space-x-3.5">
                   <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{t('central_address')}</h4>
+                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{"Odiyooru Souharda Cooperative Society Ltd"}</h4>
                     <p className="leading-relaxed">
-                      {t('hq_address_val')}
+                      {"Odiyoor post, Tq. Uppala Road 574243, Bantwal, Karnataka 574243"}
                     </p>
                   </div>
                 </div>
@@ -94,7 +92,7 @@ export const Contact: React.FC = () => {
                 <div className="flex items-start space-x-3.5">
                   <Phone className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{t('direct_helpdesk')}</h4>
+                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{"Direct Helpdesk"}</h4>
                     <p className="font-semibold text-slate-900 hover:text-primary cursor-pointer">
                       <a href="tel:0824-2439114">0824-2439114</a>
                     </p>
@@ -104,7 +102,7 @@ export const Contact: React.FC = () => {
                 <div className="flex items-start space-x-3.5">
                   <Mail className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{t('electronic_mail')}</h4>
+                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{"Electronic Mail"}</h4>
                     <p className="font-semibold text-slate-900 hover:text-primary cursor-pointer break-all">
                       <a href="mailto:odiyoorsricooperative@gmail.com">odiyoorsricooperative@gmail.com</a>
                     </p>
@@ -114,9 +112,9 @@ export const Contact: React.FC = () => {
                 <div className="flex items-start space-x-3.5">
                   <Clock className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{t('operational_hours')}</h4>
+                    <h4 className="font-bold text-slate-800 text-sm mb-0.5">{"Operational Hours"}</h4>
                     <p className="leading-relaxed text-xs">
-                      {t('hours_val')}
+                      {"Monday - Saturday: 09:30 AM - 04:30 PM (Closed on Sundays, 2nd & 4th Saturdays)"}
                     </p>
                   </div>
                 </div>
@@ -138,27 +136,27 @@ export const Contact: React.FC = () => {
 
           {/* Contact Input Form Right Column */}
           <div className="lg:col-span-7 bg-slate-50 border border-slate-150 p-8 md:p-10 rounded-3xl shadow-sm">
-            <h3 className="text-xl font-bold text-slate-900 mb-6">{t('send_inquiry')}</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-6">{"Send an Inquiry"}</h3>
 
             {submitted ? (
               <div className="bg-emerald-50 border border-emerald-250 p-6 rounded-2xl text-center space-y-3 animate-scale-up">
                 <CheckCircle className="h-10 w-10 text-emerald-500 mx-auto" />
-                <h4 className="text-lg font-bold text-slate-950">{t('inquiry_dispatched')}</h4>
+                <h4 className="text-lg font-bold text-slate-950">{"Inquiry Dispatched!"}</h4>
                 <p className="text-xs text-slate-650 max-w-sm mx-auto leading-relaxed">
-                  {t('inquiry_success_desc')}
+                  {"Thank you for contacting Odiyooru Souharda Cooperative Society Ltd. A relationship executive will contact you on your registered mobile number shortly."}
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
                   className="mt-2 text-xs font-bold text-primary hover:underline"
                 >
-                  {t('submit_another')}
+                  {"Submit another message"}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleFormSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-500">{t('your_name')}</label>
+                    <label className="text-xs font-semibold text-slate-500">{"Your Full Name"}</label>
                     <input
                       type="text"
                       name="name"
@@ -170,7 +168,7 @@ export const Contact: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-500">{t('mobile_number')}</label>
+                    <label className="text-xs font-semibold text-slate-500">{"Mobile Number"}</label>
                     <input
                       type="tel"
                       name="mobile"
@@ -184,7 +182,7 @@ export const Contact: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500">{t('email_address')}</label>
+                  <label className="text-xs font-semibold text-slate-500">{"Email Address"}</label>
                   <input
                     type="email"
                     name="email"
@@ -197,12 +195,12 @@ export const Contact: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500">{t('msg_details')}</label>
+                  <label className="text-xs font-semibold text-slate-500">{"Message / Inquiry Details"}</label>
                   <textarea
                     name="message"
                     required
                     rows={5}
-                    placeholder={t('msg_placeholder')}
+                    placeholder={"Describe your inquiry (e.g. interest rates details, gold loan valuation)..."}
                     className="w-full px-4.5 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none"
                     value={formData.message}
                     onChange={handleInputChange}
@@ -214,7 +212,7 @@ export const Contact: React.FC = () => {
                   className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-md hover:shadow-primary/20 transition-all flex items-center justify-center space-x-2"
                 >
                   <Send className="h-4.5 w-4.5" />
-                  <span>{t('transmit_msg')}</span>
+                  <span>{"Transmit Inquiry Message"}</span>
                 </button>
               </form>
             )}

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Users, Sprout, Briefcase, HeartHandshake } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 
 interface ImpactItem {
   id: string;
@@ -12,40 +11,39 @@ interface ImpactItem {
 }
 
 export const CommunityImpact: React.FC = () => {
-  const { t } = useLanguage();
 
   const impacts: ImpactItem[] = [
     {
       id: 'impact-shg',
       icon: <Users className="h-6 w-6" />,
-      title: t('impact_shg_title'),
-      desc: t('impact_shg_desc'),
+      title: "Women Self-Help Groups",
+      desc: "Empowering rural women with micro-credit lines, skills training, and collective financial independence programs.",
       stats: '1,200+',
-      statsLabel: t('impact_shg_stats')
+      statsLabel: "Active Groups"
     },
     {
       id: 'impact-agri',
       icon: <Sprout className="h-6 w-6" />,
-      title: t('impact_agri_title'),
-      desc: t('impact_agri_desc'),
+      title: "Agricultural Subsidies",
+      desc: "Providing low-interest crop loans, tractor financing, and seasonal cash advances for local farming families.",
       stats: '₹45 Cr',
-      statsLabel: t('impact_agri_stats')
+      statsLabel: "Funds Disbursed"
     },
     {
       id: 'impact-micro',
       icon: <Briefcase className="h-6 w-6" />,
-      title: t('impact_micro_title'),
-      desc: t('impact_micro_desc'),
+      title: "Micro-Enterprise Growth",
+      desc: "Supporting street vendors and small shop owners with daily collection accounts and collateral-free starter loans.",
       stats: '8,500+',
-      statsLabel: t('impact_micro_stats')
+      statsLabel: "Businesses Funded"
     },
     {
       id: 'impact-welfare',
       icon: <HeartHandshake className="h-6 w-6" />,
-      title: t('impact_welfare_title'),
-      desc: t('impact_welfare_desc'),
+      title: "Financial Literacy Camps",
+      desc: "Conducting regular awareness workshops on savings, digital banking safety, and cooperative governance rights.",
       stats: '50+',
-      statsLabel: t('impact_welfare_stats')
+      statsLabel: "Annual Camps"
     }
   ];
 
@@ -61,12 +59,12 @@ export const CommunityImpact: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-bold text-emerald-600 uppercase tracking-widest block mb-2">{t('impact_badge')}</span>
+          <span className="text-sm font-bold text-emerald-600 uppercase tracking-widest block mb-2">{"Social Responsibility"}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
-            {t('impact_main_title')}
+            {"Cooperative Community Impact"}
           </h2>
           <p className="text-slate-600">
-            {t('impact_main_desc')}
+            {"We dedicate a portion of our profits and extensive resources to drive financial inclusion, micro-enterprise growth, and rural development across the communities we serve."}
           </p>
         </div>
 
@@ -88,7 +86,7 @@ export const CommunityImpact: React.FC = () => {
 
               <div className="border-t border-slate-100 pt-5 mt-auto">
                 <div className="flex flex-col">
-                  <span className="text-2xl font-black text-emerald-600">{impact.stats}</span>
+                  <span className="text-xl font-black text-emerald-600">{impact.stats}</span>
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">{impact.statsLabel}</span>
                 </div>
               </div>

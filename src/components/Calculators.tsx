@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Percent, ArrowUpRight, CheckCircle } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 export const Calculators: React.FC = () => {
-  const { t } = useLanguage();
   const { systemSettings } = useAuth();
   const [activeCalc, setActiveCalc] = useState<'emi' | 'fd' | 'rd' | 'eligibility'>('emi');
 
@@ -132,12 +130,12 @@ export const Calculators: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{t('financial_tools')}</span>
+          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{"Financial Tools"}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
-            {t('interactive_calcs')}
+            {"Interactive Financial Calculators"}
           </h2>
           <p className="text-slate-600">
-            {t('calcs_desc')}
+            {"Map out your financial goals and estimate loan EMIs or investment maturity payouts with clear interest formulas."}
           </p>
 
           {/* Calculator Selector Tabs */}
@@ -146,25 +144,25 @@ export const Calculators: React.FC = () => {
               onClick={() => setActiveCalc('emi')}
               className={`py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeCalc === 'emi' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
             >
-              {t('loan_emi_tab')}
+              {"Loan EMI"}
             </button>
             <button
               onClick={() => setActiveCalc('fd')}
               className={`py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeCalc === 'fd' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
             >
-              {t('fd_tab')}
+              {"Fixed Deposit (FD)"}
             </button>
             <button
               onClick={() => setActiveCalc('rd')}
               className={`py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeCalc === 'rd' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
             >
-              {t('rd_tab')}
+              {"Recurring Deposit (RD)"}
             </button>
             <button
               onClick={() => setActiveCalc('eligibility')}
               className={`py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeCalc === 'eligibility' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
             >
-              {t('elig_tab')}
+              {"Loan Eligibility"}
             </button>
           </div>
         </div>
@@ -182,7 +180,7 @@ export const Calculators: React.FC = () => {
               <div className="lg:col-span-7 space-y-6">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('loan_principal')}</label>
+                    <label className="text-slate-500">{"Loan Principal"}</label>
                     <span className="text-primary font-bold text-lg">₹{emiPrincipal.toLocaleString('en-IN')}</span>
                   </div>
                   <input
@@ -202,7 +200,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('interest_rate')}</label>
+                    <label className="text-slate-500">{"Interest Rate (% p.a.)"}</label>
                     <span className="text-primary font-bold text-lg">{emiRate}%</span>
                   </div>
                   <input
@@ -222,7 +220,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('tenure_months')}</label>
+                    <label className="text-slate-500">{"Tenure (Months)"}</label>
                     <span className="text-primary font-bold text-lg">{emiTenure}</span>
                   </div>
                   <input
@@ -245,21 +243,21 @@ export const Calculators: React.FC = () => {
               <div className="lg:col-span-5 bg-white border border-slate-150 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
                 <div className="space-y-4">
                   <div className="text-center pb-4 border-b border-slate-100">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('est_monthly_emi')}</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{"Estimated Monthly EMI"}</span>
                     <span className="text-3xl font-extrabold text-primary">₹{emiRes.emi.toLocaleString('en-IN')}</span>
                   </div>
 
                   <div className="space-y-3 pt-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('principal_amt')}</span>
+                      <span className="text-slate-500">{"Principal Amount:"}</span>
                       <span className="font-semibold text-slate-800">₹{emiPrincipal.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('total_interest')}</span>
+                      <span className="text-slate-500">{"Total Interest Payable:"}</span>
                       <span className="font-semibold text-primary">₹{emiRes.interest.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between border-t border-slate-100 pt-3">
-                      <span className="text-slate-700 font-bold">{t('total_payable')}</span>
+                      <span className="text-slate-700 font-bold">{"Total Amount Payable:"}</span>
                       <span className="font-bold text-slate-900">₹{emiRes.total.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
@@ -267,7 +265,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="mt-6 pt-4 border-t border-slate-100 flex items-center space-x-2 text-[11px] text-slate-400 leading-normal">
                   <Percent className="h-4 w-4 text-emerald-500 shrink-0" />
-                  <span>{t('emi_pie_info')}</span>
+                  <span>{"Interest constitutes a portion of the total loan repayment amount."}</span>
                 </div>
               </div>
 
@@ -284,7 +282,7 @@ export const Calculators: React.FC = () => {
               <div className="lg:col-span-7 space-y-6">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('deposit_amt')}</label>
+                    <label className="text-slate-500">{"Deposit Amount"}</label>
                     <span className="text-primary font-bold text-lg">₹{fdPrincipal.toLocaleString('en-IN')}</span>
                   </div>
                   <input
@@ -304,7 +302,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('interest_rate')}</label>
+                    <label className="text-slate-500">{"Interest Rate (% p.a.)"}</label>
                     <span className="text-primary font-bold text-lg">{fdRate}%</span>
                   </div>
                   <input
@@ -324,7 +322,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('tenure_years')}</label>
+                    <label className="text-slate-500">{"Tenure (Years)"}</label>
                     <span className="text-primary font-bold text-lg">{fdYears}</span>
                   </div>
                   <input
@@ -347,21 +345,21 @@ export const Calculators: React.FC = () => {
               <div className="lg:col-span-5 bg-white border border-slate-150 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
                 <div className="space-y-4">
                   <div className="text-center pb-4 border-b border-slate-100">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('maturity_wealth')}</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{"Maturity Wealth Value"}</span>
                     <span className="text-3xl font-extrabold text-accent">₹{fdRes.total.toLocaleString('en-IN')}</span>
                   </div>
 
                   <div className="space-y-3 pt-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('invested_capital')}</span>
+                      <span className="text-slate-500">{"Invested Capital:"}</span>
                       <span className="font-semibold text-slate-800">₹{fdPrincipal.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('compound_acquired')}</span>
+                      <span className="text-slate-500">{"Compound Interest Acquired:"}</span>
                       <span className="font-semibold text-accent">₹{fdRes.interest.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between border-t border-slate-100 pt-3">
-                      <span className="text-slate-700 font-bold">{t('total_wealth')}</span>
+                      <span className="text-slate-700 font-bold">{"Total Wealth Accumulation:"}</span>
                       <span className="font-bold text-slate-900">₹{fdRes.total.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
@@ -369,7 +367,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="mt-6 pt-4 border-t border-slate-100 flex items-center space-x-2 text-[11px] text-slate-400 leading-normal bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100">
                   <ArrowUpRight className="h-4 w-4 text-accent shrink-0" />
-                  <span className="text-slate-650">{t('fd_rate_info')}</span>
+                  <span className="text-slate-650">{"Calculated with quarterly compounding, delivering better returns than simple monthly interest schemes."}</span>
                 </div>
               </div>
 
@@ -386,7 +384,7 @@ export const Calculators: React.FC = () => {
               <div className="lg:col-span-7 space-y-6">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('monthly_contrib')}</label>
+                    <label className="text-slate-500">{"Monthly Contribution"}</label>
                     <span className="text-primary font-bold text-lg">₹{rdMonthly.toLocaleString('en-IN')}</span>
                   </div>
                   <input
@@ -406,7 +404,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('interest_rate')}</label>
+                    <label className="text-slate-500">{"Interest Rate (% p.a.)"}</label>
                     <span className="text-primary font-bold text-lg">{rdRate}%</span>
                   </div>
                   <input
@@ -426,7 +424,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('duration_years')}</label>
+                    <label className="text-slate-500">{"Duration (Years)"}</label>
                     <span className="text-primary font-bold text-lg">{rdYears}</span>
                   </div>
                   <input
@@ -449,21 +447,21 @@ export const Calculators: React.FC = () => {
               <div className="lg:col-span-5 bg-white border border-slate-150 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
                 <div className="space-y-4">
                   <div className="text-center pb-4 border-b border-slate-100">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('est_wealth_maturity')}</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{"Estimated Wealth Maturity"}</span>
                     <span className="text-3xl font-extrabold text-accent">₹{rdRes.total.toLocaleString('en-IN')}</span>
                   </div>
 
                   <div className="space-y-3 pt-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('total_outlay')}</span>
+                      <span className="text-slate-500">{"Total Outlay Deposited:"}</span>
                       <span className="font-semibold text-slate-800">₹{rdRes.deposited.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('interest_earned')}</span>
+                      <span className="text-slate-500">{"Interest Returns Earned:"}</span>
                       <span className="font-semibold text-accent">₹{rdRes.interest.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between border-t border-slate-100 pt-3">
-                      <span className="text-slate-700 font-bold">{t('maturity_value')}</span>
+                      <span className="text-slate-700 font-bold">{"Maturity Collection Value:"}</span>
                       <span className="font-bold text-slate-900">₹{rdRes.total.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
@@ -471,7 +469,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="mt-6 pt-4 border-t border-slate-100 flex items-center space-x-2 text-[11px] text-slate-400 leading-normal">
                   <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
-                  <span>{t('rd_auto_info')}</span>
+                  <span>{"Auto-deduct instructions can be simulated inside your dashboard profile."}</span>
                 </div>
               </div>
 
@@ -488,7 +486,7 @@ export const Calculators: React.FC = () => {
               <div className="lg:col-span-7 space-y-6">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('net_salary')}</label>
+                    <label className="text-slate-500">{"Net Monthly Salary"}</label>
                     <span className="text-primary font-bold text-lg">₹{salary.toLocaleString('en-IN')}</span>
                   </div>
                   <input
@@ -508,7 +506,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('existing_emi')}</label>
+                    <label className="text-slate-500">{"Existing Monthly EMI Outlays"}</label>
                     <span className="text-primary font-bold text-lg">₹{obligations.toLocaleString('en-IN')}</span>
                   </div>
                   <input
@@ -528,7 +526,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{t('desired_tenure')}</label>
+                    <label className="text-slate-500">{"Loan Tenure Desired (Months)"}</label>
                     <span className="text-primary font-bold text-lg">{eligTenure}</span>
                   </div>
                   <input
@@ -551,25 +549,25 @@ export const Calculators: React.FC = () => {
               <div className="lg:col-span-5 bg-white border border-slate-150 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
                 <div className="space-y-4">
                   <div className="text-center pb-4 border-b border-slate-100">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('est_eligible_loan')}</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{"Estimated Eligible Loan Sum"}</span>
                     <span className="text-3xl font-extrabold text-primary">₹{eligRes.loanAmount.toLocaleString('en-IN')}</span>
                   </div>
 
                   <div className="space-y-3 pt-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('max_allowed_emi')}</span>
+                      <span className="text-slate-500">{"Maximum Allowed EMI cap:"}</span>
                       <span className="font-semibold text-slate-800">₹{eligRes.emi.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">{t('debt_to_income')}</span>
+                      <span className="text-slate-500">{"Debt-to-Income Ratio:"}</span>
                       <span className={`font-semibold ${obligations / salary > 0.4 ? 'text-amber-500' : 'text-emerald-500'}`}>
                         {Math.round((obligations / salary) * 100 || 0)}%
                       </span>
                     </div>
                     <div className="flex justify-between border-t border-slate-100 pt-3">
-                      <span className="text-slate-700 font-bold">{t('loan_status')}</span>
+                      <span className="text-slate-700 font-bold">{"Status:"}</span>
                       <span className={`font-bold ${eligRes.loanAmount > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {eligRes.loanAmount > 0 ? t('loan_eligible') : t('loan_leveraged')}
+                        {eligRes.loanAmount > 0 ? "Eligible to Apply" : "Leveraged Debt Cap Reached"}
                       </span>
                     </div>
                   </div>
@@ -577,7 +575,7 @@ export const Calculators: React.FC = () => {
 
                 <div className="mt-6 pt-4 border-t border-slate-100 flex items-center space-x-2 text-[11px] text-slate-400 leading-normal">
                   <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-                  <span>{t('loan_verify_info')}</span>
+                  <span>{"Subject to documentation audits, property appraisals, or gold assay valuations at branch counters."}</span>
                 </div>
               </div>
 

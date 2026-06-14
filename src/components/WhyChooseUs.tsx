@@ -1,40 +1,38 @@
 import React from 'react';
 import { ShieldCheck, Users, Landmark, Zap, Gift, Headphones } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 
 export const WhyChooseUs: React.FC = () => {
-  const { t } = useLanguage();
 
   const benefits = [
     {
       icon: ShieldCheck,
-      title: t('rbi_title'),
-      desc: t('rbi_desc')
+      title: "RBI Compliant Practices",
+      desc: "Operated in strict compliance with Cooperative Credit guidelines and audited regularly by state authorities."
     },
     {
       icon: Users,
-      title: t('coop_title'),
-      desc: t('coop_desc')
+      title: "Trusted Cooperative Ethos",
+      desc: "Owned by members, for members. We prioritize community wealth creation over commercial banking profits."
     },
     {
       icon: Landmark,
-      title: t('pan_title'),
-      desc: t('pan_desc')
+      title: "PAN India Operations",
+      desc: "Expanding network of branches and doorstep collections agents supporting rural and urban micro-entrepreneurs."
     },
     {
       icon: Zap,
-      title: t('swift_title'),
-      desc: t('swift_desc')
+      title: "Swift Loan Disbursements",
+      desc: "Gold loans processed in 30 minutes. Transparent valuation checklists with lowest processing fees."
     },
     {
       icon: Gift,
-      title: t('best_title'),
-      desc: t('best_desc')
+      title: "Industry-Best Deposit Rates",
+      desc: "best_desc"
     },
     {
       icon: Headphones,
-      title: t('support_title'),
-      desc: t('support_desc')
+      title: "Dedicated Local Support",
+      desc: "Get assistance from friendly bank tellers and localized customer relationship executives at every branch."
     }
   ];
 
@@ -44,12 +42,12 @@ export const WhyChooseUs: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{t('core_pillars')}</span>
+          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{"Core Pillars"}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
-            {t('why_title')}
+            {"Securing Your Financial Legacy With Trust"}
           </h2>
           <p className="text-slate-600">
-            {t('why_desc')}
+            {"For over two decades, thousands of families have relied on our credit society to grow their financial capital."}
           </p>
         </div>
 

@@ -1,10 +1,8 @@
 import React from 'react';
 import { Calendar, Megaphone, Users, Landmark } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 export const News: React.FC = () => {
-  const { t } = useLanguage();
   const { systemSettings } = useAuth();
 
   const liveAnnouncements = systemSettings?.announcements || [];
@@ -22,29 +20,29 @@ export const News: React.FC = () => {
     : [
         {
           id: 1,
-          tag: t('news1_tag'),
+          tag: "Interest Rates",
           icon: Megaphone,
           date: 'May 28, 2026',
-          title: t('news1_title'),
-          desc: t('news1_desc'),
+          title: "Cooperative Fixed Deposit Rates Increased to 8.50%",
+          desc: "Our governing board has authorized an upward adjustment in FD yield returns to protect capital value for member families.",
           color: 'orange'
         },
         {
           id: 2,
-          tag: t('news2_tag'),
+          tag: "Awareness",
           icon: Users,
           date: 'May 15, 2026',
-          title: t('news2_title'),
-          desc: t('news2_desc'),
+          title: "Financial Literacy Program Conducted in Rural Hubs",
+          desc: "Held simulated training workshops supporting over 300+ women micro-entrepreneurs on savings structures and credit pathways.",
           color: 'blue'
         },
         {
           id: 3,
-          tag: t('news3_tag'),
+          tag: "Expansion",
           icon: Landmark,
           date: 'May 02, 2026',
-          title: t('news3_title'),
-          desc: t('news3_desc'),
+          title: "New Digital Doorstep Banking Service Sanctioned",
+          desc: "Launched mobile collection systems allowing members to deposit savings and pay EMIs directly through certified agents.",
           color: 'orange'
         }
       ];
@@ -55,12 +53,12 @@ export const News: React.FC = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{t('society_journal')}</span>
+          <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">{"Society Journal"}</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
-            {t('latest_news')}
+            {"Latest News & Society Announcements"}
           </h2>
           <p className="text-slate-600">
-            {t('news_desc')}
+            {"Stay informed about our dividend declarations, financial awareness drives, and system upgrades."}
           </p>
         </div>
 

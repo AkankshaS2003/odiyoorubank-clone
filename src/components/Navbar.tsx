@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, Menu, X, User, LogOut, ChevronDown, CheckCircle2, Landmark, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import type { Language } from '../context/LanguageContext';
 
 interface NavbarProps {
   currentTab: string;
@@ -11,13 +9,11 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => {
   const { user, isAuthenticated, logout, systemSettings } = useAuth();
-  const { language, setLanguage, t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
-
+  
   // Dropdown states for submenus
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
@@ -43,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
     updateDateTime();
     const timer = setInterval(updateDateTime, 1000);
     return () => clearInterval(timer);
-  }, [language]);
+  }, []);
 
   const handleNavClick = (tabName: string) => {
     setCurrentTab(tabName);
@@ -52,11 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    setIsLangDropdownOpen(false);
-  };
-
+  
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'Welcome Bonus Credited', desc: '₹10,000 disburser balance credited to your savings.', time: 'Just now', unread: true },
     { id: 2, title: 'e-KYC Submission Approved', desc: 'Aadhaar & PAN simulated logs verified successfully.', time: '1 hour ago', unread: true },
@@ -124,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 onClick={() => handleNavClick('home')}
                 className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'home' ? 'text-white' : 'text-white/90'}`}
               >
-                {t('home')}
+                {"Home"}
               </button>
 
               {/* About Us */}
@@ -132,7 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 onClick={() => handleNavClick('about')}
                 className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'about' ? 'text-white' : 'text-white/90'}`}
               >
-                {t('about')}
+                {"About Us"}
               </button>
 
               {/* Gallery (Media) */}
@@ -140,7 +132,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 onClick={() => handleNavClick('media')}
                 className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'media' ? 'text-white' : 'text-white/90'}`}
               >
-                {t('media')}
+                {"Media"}
               </button>
 
               {/* Contact Us */}
@@ -148,7 +140,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 onClick={() => handleNavClick('contact')}
                 className={`text-sm font-bold uppercase tracking-wider transition-colors hover:text-white ${currentTab === 'contact' ? 'text-white' : 'text-white/90'}`}
               >
-                {t('Contact')}
+                {"Contact"}
               </button>
 
               {/* Others Dropdown */}
@@ -164,25 +156,25 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                     onClick={() => handleNavClick('management')}
                     className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
                   >
-                    {t('management')}
+                    {"Management"}
                   </button>
                   <button
                     onClick={() => handleNavClick('products')}
                     className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
                   >
-                    {t('products')}
+                    {"Products"}
                   </button>
                   <button
                     onClick={() => handleNavClick('loan-eligibility')}
                     className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
                   >
-                    {t('loan_eligibility')}
+                    {"Eligibility Checker"}
                   </button>
                   <button
                     onClick={() => handleNavClick('membership')}
                     className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
                   >
-                    {t('membership')}
+                    {"Membership"}
                   </button>
                   <button
                     onClick={() => handleNavClick('branches')}
@@ -198,31 +190,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
 
             {/* Quick Actions Interaction Area */}
             <div className="flex items-center space-x-3.5">
-
-              {/* Language Switcher */}
-              <div className="relative group hidden sm:block">
-                <button
-                  className="flex items-center space-x-1 p-2 rounded-xl text-white hover:bg-white/10 transition-colors focus:outline-none font-bold text-xs uppercase"
-                >
-                  <Globe className="h-4 w-4" />
-                  <span>{language === 'en' ? 'EN' : 'KN'}</span>
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-                <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-xl shadow-xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50 overflow-hidden py-1">
-                  <button
-                    onClick={() => handleLanguageChange('en')}
-                    className={`w-full text-left px-4 py-2 text-xs font-bold hover:bg-slate-100 transition-colors ${language === 'en' ? 'text-[#ED7F1E] bg-[#ED7F1E]/5' : 'text-slate-700'}`}
-                  >
-                    English
-                  </button>
-                  <button
-                    onClick={() => handleLanguageChange('kn')}
-                    className={`w-full text-left px-4 py-2 text-xs font-bold hover:bg-slate-100 transition-colors ${language === 'kn' ? 'text-[#ED7F1E] bg-[#ED7F1E]/5' : 'text-slate-700'}`}
-                  >
-                    ಕನ್ನಡ
-                  </button>
-                </div>
-              </div>
 
               {/* Notifications */}
               <div className="relative">
@@ -283,7 +250,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                           className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center"
                         >
                           <LogOut className="h-4 w-4 mr-2" />
-                          {t('logout') || 'Logout'}
+                          {""}
                         </button>
                       </div>
                     </div>
@@ -293,7 +260,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                     onClick={() => handleNavClick('login')}
                     className="px-4 py-2 rounded-xl bg-[#0A315C] hover:bg-[#051C36] text-white font-bold text-xs shadow-md transition-all cursor-pointer"
                   >
-                    {t('login')}
+                    {"Login"}
                   </button>
                 )}
               </div>
@@ -326,15 +293,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
 
 
               <div className="flex flex-col space-y-4 text-xs font-bold text-slate-700">
-                <button onClick={() => handleNavClick('home')} className="text-left py-2 hover:text-primary">{t('home')}</button>
-                <button onClick={() => handleNavClick('about')} className="text-left py-2 hover:text-primary">{t('about')}</button>
-                <button onClick={() => handleNavClick('management')} className="text-left py-2 hover:text-primary">{t('management')}</button>
-                <button onClick={() => handleNavClick('products')} className="text-left py-2 hover:text-primary">{t('products')}</button>
-                <button onClick={() => handleNavClick('media')} className="text-left py-2 hover:text-primary">{t('media')}</button>
-                <button onClick={() => handleNavClick('loan-eligibility')} className="text-left py-2 hover:text-primary">{t('loan_eligibility')}</button>
-                <button onClick={() => handleNavClick('membership')} className="text-left py-2 hover:text-primary">{t('membership')}</button>
+                <button onClick={() => handleNavClick('home')} className="text-left py-2 hover:text-primary">{"Home"}</button>
+                <button onClick={() => handleNavClick('about')} className="text-left py-2 hover:text-primary">{"About Us"}</button>
+                <button onClick={() => handleNavClick('management')} className="text-left py-2 hover:text-primary">{"Management"}</button>
+                <button onClick={() => handleNavClick('products')} className="text-left py-2 hover:text-primary">{"Products"}</button>
+                <button onClick={() => handleNavClick('media')} className="text-left py-2 hover:text-primary">{"Media"}</button>
+                <button onClick={() => handleNavClick('loan-eligibility')} className="text-left py-2 hover:text-primary">{"Eligibility Checker"}</button>
+                <button onClick={() => handleNavClick('membership')} className="text-left py-2 hover:text-primary">{"Membership"}</button>
 
-                <button onClick={() => handleNavClick('contact')} className="text-left py-2 hover:text-primary">{t('contact')}</button>
+                <button onClick={() => handleNavClick('contact')} className="text-left py-2 hover:text-primary">{"Contact Us"}</button>
                 {(user?.role === 'admin' || user?.role === 'manager' || user?.role === 'employee') && (
                   <button 
                     onClick={() => handleNavClick('admin')} 
@@ -345,29 +312,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 )}
               </div>
 
-              {/* Mobile Language Switcher */}
-              <div className="mt-4 pt-4 border-t border-slate-100">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500">Language / ಭಾಷೆ</span>
-                  <div className="flex bg-slate-100 rounded-lg p-1">
-                    <button
-                      onClick={() => handleLanguageChange('en')}
-                      className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-[#ED7F1E] shadow-sm' : 'text-slate-500'}`}
-                    >
-                      English
-                    </button>
-                    <button
-                      onClick={() => handleLanguageChange('kn')}
-                      className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-colors ${language === 'kn' ? 'bg-white text-[#ED7F1E] shadow-sm' : 'text-slate-500'}`}
-                    >
-                      ಕನ್ನಡ
-                    </button>
-                  </div>
-                </div>
               </div>
-            </div>
-
-            <div className="pt-6 border-t border-slate-100 flex flex-col space-y-3">
+              <div className="pt-6 border-t border-slate-100 flex flex-col space-y-3">
               {isAuthenticated && user ? (
                 <>
                   {!(user.role === 'admin' || user.role === 'manager' || user.role === 'employee') && (
@@ -375,7 +321,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                       onClick={() => handleNavClick('dashboard')}
                       className="w-full py-3 bg-slate-100 font-bold text-slate-700 rounded-xl text-xs hover:bg-slate-200"
                     >
-                      {t('dashboard')}
+                      {"Dashboard"}
                     </button>
                   )}
                   <button
@@ -385,7 +331,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                     }}
                     className="w-full py-3 border border-red-200 text-red-650 rounded-xl text-xs hover:bg-red-50 font-bold"
                   >
-                    {t('logout')}
+                    {"Logout"}
                   </button>
                 </>
               ) : (
@@ -393,7 +339,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                   onClick={() => handleNavClick('login')}
                   className="w-full py-3 border border-slate-250 text-slate-700 rounded-xl text-xs font-bold"
                 >
-                  {t('login')}
+                  {"Login"}
                 </button>
               )}
             </div>

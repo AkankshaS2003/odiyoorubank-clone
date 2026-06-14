@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Landmark, User, ShieldAlert, BookOpen, Maximize, Minimize, Mic, MicOff } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+import { MessageSquare, X, Send, Landmark, User, ShieldAlert, BookOpen, Maximize, Minimize, Mic, MicOff, Headset } from 'lucide-react';
 import api from '../services/api';
 
 interface ChatMessage {
@@ -16,7 +15,6 @@ interface ChatMessage {
 }
 
 export const AIChatAssistant: React.FC = () => {
-  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -90,7 +88,7 @@ export const AIChatAssistant: React.FC = () => {
         setMessages([
           {
             sender: 'assistant',
-            text: t('welcome_msg') || 'Welcome to Odiyooru Cooperative Bank. How can I help you today?',
+            text: 'Welcome to Odiyooru Cooperative Bank. How can I help you today?',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
         ]);
@@ -101,7 +99,7 @@ export const AIChatAssistant: React.FC = () => {
       setMessages([
         {
           sender: 'assistant',
-          text: t('welcome_msg') || 'Welcome to Odiyooru Cooperative Bank. How can I help you today?',
+          text: 'Welcome to Odiyooru Cooperative Bank. How can I help you today?',
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -150,17 +148,17 @@ export const AIChatAssistant: React.FC = () => {
       
       // Fallback local keyword answer generation in case backend server is down or error triggers
       setTimeout(() => {
-        let reply = t('chat_resp_default') || 'Sorry, I could not find that information in the bank records.';
+        let reply = 'Sorry, I could not find that information in the bank records.';
         const prompt = currentText.toLowerCase();
 
         if (prompt.includes('fd') || prompt.includes('fixed') || prompt.includes('deposit') || prompt.includes('rate')) {
-          reply = t('chat_resp_fd') || 'Fixed deposit rates start from 4.5% up to 9.00% for society shareholders.';
+          reply = 'Fixed deposit rates start from 4.5% up to 9.00% for society shareholders.';
         } else if (prompt.includes('gold') || prompt.includes('loan') || prompt.includes('home') || prompt.includes('interest')) {
-          reply = t('chat_resp_gold') || 'Cooperative loans include Home Loans starting at 8.5% p.a. and Vehicle Loans at 9.5% p.a.';
+          reply = 'Cooperative loans include Home Loans starting at 8.5% p.a. and Vehicle Loans at 9.5% p.a.';
         } else if (prompt.includes('time') || prompt.includes('hour') || prompt.includes('open') || prompt.includes('saturday')) {
-          reply = t('chat_resp_hours') || 'Bank Timings: Monday-Friday 9:30 AM to 4:30 PM, Saturday 9:30 AM to 1:30 PM.';
+          reply = 'Bank Timings: Monday-Friday 9:30 AM to 4:30 PM, Saturday 9:30 AM to 1:30 PM.';
         } else if (prompt.includes('hello') || prompt.includes('hi') || prompt.includes('hey')) {
-          reply = t('chat_resp_hello') || 'Hello! How can I assist you with bank details today?';
+          reply = 'Hello! How can I assist you with bank details today?';
         }
 
         const assistantMsg: ChatMessage = {
@@ -188,7 +186,7 @@ export const AIChatAssistant: React.FC = () => {
           className="h-14 w-14 rounded-full bg-[#0A315C] hover:bg-[#051C36] text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all animate-float cursor-pointer border border-[#0A315C]/20"
           aria-label="Open AI Assistant"
         >
-          <MessageSquare className="h-6 w-6 text-[#ED7F1E]" />
+          <Headset className="h-6 w-6 text-[#ED7F1E]" />
         </button>
       )}
 
@@ -200,13 +198,13 @@ export const AIChatAssistant: React.FC = () => {
           <div className="bg-[#0A315C] p-4 text-white flex justify-between items-center shrink-0">
             <div className="flex items-center space-x-2.5">
               <div className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
-                <Landmark className="h-5 w-5 text-[#ED7F1E]" />
+                <Headset className="h-5 w-5 text-[#ED7F1E]" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm">{t('chat_title') || 'Digital Assistant'}</h4>
+                <h4 className="font-extrabold text-sm">Digital Assistant</h4>
                 <span className="text-[10px] text-emerald-400 font-bold block flex items-center space-x-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping inline-block mr-1"></span>
-                  <span>{t('chat_status') || 'Online • Verified Bank Records'}</span>
+                  <span>Online � Verified Bank Records</span>
                 </span>
               </div>
             </div>
@@ -236,7 +234,7 @@ export const AIChatAssistant: React.FC = () => {
               >
                 {/* Avatar Icon */}
                 <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold shadow-sm ${msg.sender === 'user' ? 'bg-[#ED7F1E]' : 'bg-[#0A315C] border border-[#0A315C]/10'}`}>
-                  {msg.sender === 'user' ? <User className="h-3.5 w-3.5" /> : <Landmark className="h-3.5 w-3.5 text-[#ED7F1E]" />}
+                  {msg.sender === 'user' ? <User className="h-3.5 w-3.5" /> : <Headset className="h-3.5 w-3.5 text-[#ED7F1E]" />}
                 </div>
 
                 {/* Message Bubble */}
@@ -287,7 +285,7 @@ export const AIChatAssistant: React.FC = () => {
             {isTyping && (
               <div className="flex items-start space-x-2.5 max-w-[85%]">
                 <div className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 bg-[#0A315C] border border-[#0A315C]/10 text-white text-[10px] font-bold shadow-sm">
-                  <Landmark className="h-3.5 w-3.5 text-[#ED7F1E]" />
+                  <Headset className="h-3.5 w-3.5 text-[#ED7F1E]" />
                 </div>
                 <div className="space-y-0.5">
                   <div className="p-3 bg-white border border-slate-150 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-1.5 py-4">
@@ -305,8 +303,8 @@ export const AIChatAssistant: React.FC = () => {
           {/* Quick FAQ Suggestion Bubbles */}
           <div className="px-4 py-2 bg-slate-100 border-t border-slate-150 flex space-x-1.5 overflow-x-auto scrollbar-none text-[10px] font-bold text-slate-600 shrink-0 select-none">
             {[
-              { label: t('chat_suggest_fd') || 'FD Rates', text: 'What is the interest rate for FD deposits?' },
-              { label: t('chat_suggest_gold') || 'Home Loan', text: 'What are the required documents and interest rate for a home loan?' },
+              { label: 'FD Rates', text: 'What is the interest rate for FD deposits?' },
+              { label: 'Home Loan', text: 'What are the required documents and interest rate for a home loan?' },
               { label: 'Timings', text: 'What are the bank timings and operational hours?' },
               { label: 'Vehicle Loan', text: 'What documents are required for a vehicle loan?' }
             ].map((tag, i) => (
@@ -342,7 +340,7 @@ export const AIChatAssistant: React.FC = () => {
             </button>
             <input
               type="text"
-              placeholder={t('chat_placeholder') || 'Ask me about timings, loans, deposits...'}
+              placeholder='Ask me about timings, loans, deposits...'
               className="flex-1 px-3.5 py-2.5 text-xs border border-slate-250 rounded-xl focus:ring-1 focus:ring-[#0A315C] focus:border-[#0A315C] focus:outline-none placeholder-slate-400 text-slate-800 font-semibold"
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}

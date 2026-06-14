@@ -17,11 +17,9 @@ import { FloatingScrollButton } from './components/FloatingScrollButton';
 import { AdminPanel } from './pages/AdminPanel';
 import { BranchesPage } from './pages/BranchesPage';
 
-import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const { t } = useLanguage();
   const [history, setHistory] = useState<string[]>(['home']);
   const currentTab = history[history.length - 1] || 'home';
 
@@ -126,9 +124,9 @@ const AppContent: React.FC = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <LanguageProvider>
+      
         <AppContent />
-      </LanguageProvider>
+      
     </AuthProvider>
   );
 }

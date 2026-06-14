@@ -44,6 +44,7 @@ export interface User {
   loans?: Loan[];
   savingsBalance?: number;
   role?: 'customer' | 'employee' | 'manager' | 'admin';
+  membershipStatus?: string;
 }
 
 export interface SystemSettings {
@@ -57,6 +58,7 @@ export interface SystemSettings {
   aboutText: string;
   contactPhone: string;
   contactEmail: string;
+  announcements?: any[];
 }
 
 interface AuthContextType {

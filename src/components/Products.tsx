@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { PiggyBank, Briefcase, Sparkles, TrendingUp, HelpCircle, CheckCircle, AlertCircle, X, ShieldAlert, Landmark, FileCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
 
 export interface ProductItem {
   id: string;
@@ -15,7 +14,6 @@ export interface ProductItem {
 
 export const Products: React.FC = () => {
   const { user, isAuthenticated, openNewDeposit, applyForLoan, systemSettings } = useAuth();
-  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'deposit' | 'loan'>('deposit');
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
   
@@ -28,51 +26,51 @@ export const Products: React.FC = () => {
   const depositProducts: ProductItem[] = [
     {
       id: 'prod-savings',
-      name: t('savings_name'),
+      name: "Savings Deposit",
       category: 'deposit',
-      description: t('savings_desc'),
+      description: "Flexible savings account with competitive interest rates and no hidden maintenance charges.",
       interestRate: `${systemSettings?.savingsRate || 4.50}% p.a.`,
       badge: 'Most Popular',
       benefits: ['Zero balance facility for members', 'Free monthly physical statements', 'Simulated online fund transfers']
     },
     {
       id: 'prod-fixed',
-      name: t('fd_name'),
+      name: "Fixed Deposit (FD)",
       category: 'deposit',
-      description: t('fd_desc'),
+      description: "Invest your surplus capital in high-return secure fixed deposit plans and secure your family future.",
       interestRate: `${systemSettings?.fdRate || 8.50}% p.a.`,
       badge: 'Highest Return',
       benefits: [`Senior Citizen rate: ${(systemSettings?.fdRate || 8.50) + 0.5}%`, 'Loan options up to 90% of FD value', 'Persistent compounding']
     },
     {
       id: 'prod-recurring',
-      name: t('rd_name'),
+      name: "Recurring Deposit (RD)",
       category: 'deposit',
-      description: t('rd_desc'),
+      description: "Develop a regular saving habit by investing a fixed amount every month with higher cooperative interest.",
       interestRate: `Up to ${systemSettings?.rdRate || 7.75}% p.a.`,
       benefits: ['Flexible monthly contributions', 'Compounded quarterly interest', 'Auto-debit from savings']
     },
     {
       id: 'prod-daily',
-      name: t('daily_deposit_name'),
+      name: "Daily Deposit",
       category: 'deposit',
-      description: t('daily_deposit_desc'),
+      description: "Ideal scheme for micro-merchants and small businesses. Daily collections collected directly from your storefront.",
       interestRate: '3.00% to 3.50% p.a.',
       benefits: ['Daily threshold as low as ₹50', 'Doorstep collector agent facility', 'No penalty on early withdrawal']
     },
     {
       id: 'prod-mis',
-      name: t('mis_name'),
+      name: "Monthly Income Scheme",
       category: 'deposit',
-      description: t('mis_desc'),
+      description: "Deposit a lump sum and receive fixed monthly interest payouts straight to your savings account.",
       interestRate: '8.00% p.a.',
       benefits: ['Guaranteed steady monthly cash flows', '5 Years lock-in tenure', 'Automatic monthly disburser transfers']
     },
     {
       id: 'prod-share',
-      name: t('share_capital_name'),
+      name: "Share Capital",
       category: 'deposit',
-      description: t('share_capital_desc'),
+      description: "Invest in the capital shares of our society, earn annual dividends, and gain legal voting rights.",
       interestRate: 'Variable Dividend',
       badge: 'Legal Stakeholder',
       benefits: ['Legal co-ownership and voting power', 'Pro-rata annual dividend payouts', 'Priority queue at branch locations']
@@ -82,45 +80,69 @@ export const Products: React.FC = () => {
   const loanProducts: ProductItem[] = [
     {
       id: 'prod-gold',
-      name: t('gold_name'),
+      name: "Gold Loan",
       category: 'loan',
-      description: t('gold_desc'),
+      description: "Leverage your gold assets for immediate funding with lowest processing fees and minimal documentation.",
       interestRate: `${systemSettings?.goldLoanRate || 8.50}% p.a.`,
       badge: 'Instant Processing',
       benefits: ['Disbursed within 30 minutes', 'LTV up to 75% of gold value', 'Secure government-grade safe vault keeping']
     },
     {
       id: 'prod-vehicle',
-      name: t('vehicle_name'),
+      name: "Vehicle Loan",
       category: 'loan',
-      description: t('vehicle_desc'),
+      description: "Drive your dream car or two-wheeler home with cheap monthly EMIs and flexible payoff schedules.",
       interestRate: '10.00% - 14.50% p.a.',
       benefits: ['Up to 85% on-road funding', 'Up to 7 years repayment tenure', 'Quick loan sanction']
     },
     {
       id: 'prod-personal',
-      name: t('personal_name'),
+      name: "Personal Loan",
       category: 'loan',
-      description: t('personal_desc'),
+      description: "Simulate personal financial security for weddings, travel, medical needs, or retail consolidation.",
       interestRate: '11.50% p.a.',
       badge: 'Unsecured Credit',
       benefits: ['No collateral requirements', 'Flexible loan limit up to ₹5 Lakhs', 'Simplified paperless eligibility check']
     },
     {
       id: 'prod-education',
-      name: t('education_name'),
+      name: "Educational Loan",
       category: 'loan',
-      description: t('education_desc'),
+      description: "Invest in your future with our competitive education loans",
       interestRate: '7.90% p.a.',
       benefits: ['Moratorium period during studies', 'Tax rebates under Section 80E', 'Direct tuition fee disbursements']
     },
     {
       id: 'prod-housing',
-      name: t('housing_name'),
+      name: "Housing Loan",
       category: 'loan',
-      description: t('housing_desc'),
+      description: "Build or purchase your dream house with affordable cooperative society home loan schemes.",
       interestRate: '8.25% p.a.',
       benefits: ['Subsidized rates for cooperative members', 'Long terms up to 20 years', 'Zero prepayment charges']
+    },
+    {
+      id: 'prod-old-vehicle',
+      name: "Member's Old Vehicle Loans",
+      category: 'loan',
+      description: "Finance your used vehicle purchase with specialized cooperative rates exclusively for our members.",
+      interestRate: '12.50% p.a.',
+      benefits: ['Up to 70% valuation funding', 'Quick processing time', 'Flexible EMIs']
+    },
+    {
+      id: 'prod-surity',
+      name: "Member's Surity Loans",
+      category: 'loan',
+      description: "Get immediate financial assistance backed by personal surety from fellow cooperative members.",
+      interestRate: '11.00% p.a.',
+      benefits: ['Based on mutual trust', 'Minimal documentation', 'Fast disbursal']
+    },
+    {
+      id: 'prod-mortgage',
+      name: "Member's Mortgage Loans",
+      category: 'loan',
+      description: "Unlock the value of your property with our long-term mortgage loans tailored for members.",
+      interestRate: '9.50% p.a.',
+      benefits: ['High loan-to-value ratio', 'Extended repayment periods', 'Transparent processing']
     }
   ];
 
@@ -182,10 +204,10 @@ export const Products: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-sm font-bold text-primary uppercase tracking-widest block mb-2">Our Offerings</span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
-            {t('prod_title')}
+            {"Premium Financial Products Crafted For You"}
           </h2>
           <p className="text-slate-650 leading-relaxed">
-            {t('prod_desc')}
+            {"Secure high returns on your hard-earned savings, or unlock flexible cooperative credit with lower rates."}
           </p>
 
           {/* Toggle Tabs */}
