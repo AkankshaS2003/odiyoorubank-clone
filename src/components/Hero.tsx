@@ -13,7 +13,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
 
   const slides = [
     { url: '/hero-img-1.jpg', alt: 'Agriculture and Progress' },
-    { url: '/hero-img-2.jpg', alt: 'Family and Pride' }
+    { url: '/hero-img-2.jpg', alt: 'Family and Pride' },
+    { url: '/hero-img-3.png', alt: 'Community Trust' }
   ];
 
   useEffect(() => {
@@ -51,7 +52,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
 
       {/* 3. Text Overlay Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-20 text-white w-full flex flex-col justify-start select-none pt-32 md:pt-48">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-20 text-white w-full flex flex-col justify-start select-none pt-12 md:pt-16">
         <div className="max-w-2xl space-y-5">
           
           <div className="inline-flex items-center space-x-1.5 text-white text-[10px] font-black uppercase tracking-widest leading-none mb-2">
@@ -59,7 +60,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
             <span>{"Cooperative Trust & Progress"}</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-[1.1] text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight leading-[1.1] text-white">
             {systemSettings?.heroTitle || 'Odiyooru Souharda'}
             <span className="text-[#ED7F1E] block mt-1">
               {systemSettings?.heroDesc || 'Cooperative Society Ltd'}

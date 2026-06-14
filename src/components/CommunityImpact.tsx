@@ -18,7 +18,7 @@ export const CommunityImpact: React.FC = () => {
       icon: <Users className="h-6 w-6" />,
       title: "Women Self-Help Groups",
       desc: "Empowering rural women with micro-credit lines, skills training, and collective financial independence programs.",
-      stats: '1,200+',
+      stats: '1,000+',
       statsLabel: "Active Groups"
     },
     {
@@ -26,7 +26,7 @@ export const CommunityImpact: React.FC = () => {
       icon: <Sprout className="h-6 w-6" />,
       title: "Agricultural Subsidies",
       desc: "Providing low-interest crop loans, tractor financing, and seasonal cash advances for local farming families.",
-      stats: '₹45 Cr',
+      stats: '₹24 Cr',
       statsLabel: "Funds Disbursed"
     },
     {
@@ -34,7 +34,7 @@ export const CommunityImpact: React.FC = () => {
       icon: <Briefcase className="h-6 w-6" />,
       title: "Micro-Enterprise Growth",
       desc: "Supporting street vendors and small shop owners with daily collection accounts and collateral-free starter loans.",
-      stats: '8,500+',
+      stats: '4,500+',
       statsLabel: "Businesses Funded"
     },
     {
@@ -42,7 +42,7 @@ export const CommunityImpact: React.FC = () => {
       icon: <HeartHandshake className="h-6 w-6" />,
       title: "Financial Literacy Camps",
       desc: "Conducting regular awareness workshops on savings, digital banking safety, and cooperative governance rights.",
-      stats: '50+',
+      stats: '20+',
       statsLabel: "Annual Camps"
     }
   ];

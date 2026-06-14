@@ -702,7 +702,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Deposits</span>
-                      <span className="text-2xl font-extrabold text-slate-900 mt-0.5 block">₹{(stats.totalDeposits || 50000).toLocaleString('en-IN')}</span>
+                      <span className="text-2xl font-extrabold text-slate-900 mt-0.5 block">₹{(stats.totalDeposits || 0).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
 
@@ -805,6 +805,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
                         <th className="p-4 rounded-l-xl">User & Contact</th>
                         <th className="p-4">Demographics</th>
+                        <th className="p-4">Customer ID</th>
                         <th className="p-4">Address</th>
                         <th className="p-4">Status</th>
                         <th className="p-4 text-center rounded-r-xl">Action</th>
@@ -834,6 +835,9 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                             <td className="p-4 text-xs">
                               <p className="font-semibold text-slate-800">DOB: {m.dob}</p>
                               <p className="text-slate-500">Blood: <span className="font-bold text-rose-500">{m.bloodGroup}</span></p>
+                            </td>
+                            <td className="p-4 text-xs font-medium text-slate-600">
+                              {m.memberId || '-'}
                             </td>
                             <td className="p-4 text-xs font-medium text-slate-600 max-w-[200px] truncate">
                               {m.address}
@@ -868,7 +872,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-xs text-slate-400 font-semibold">{m.memberId || '-'}</span>
+                                <span className="text-xs text-slate-400 font-semibold">Processed</span>
                               )}
                             </td>
                           </tr>
@@ -888,7 +892,6 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
                   <div>
                     <h2 className="text-lg font-black text-slate-900 uppercase">Customers Account Directory</h2>
-                    <p className="text-xs text-slate-400 font-bold mt-1">Suspend or activate member log-ins.</p>
                   </div>
                   <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -945,15 +948,6 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                 }`}
                               >
                                 {customer.status === 'Suspended' ? 'Unblock Member' : 'Suspend Member'}
-                              </button>
-
-                              <button
-                                onClick={() => handleUserDelete(customer._id)}
-                                disabled={actionLoading || !isSuperAdmin}
-                                className="p-1.5 bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-655 border border-slate-150 rounded-lg hover:border-red-200 transition-colors disabled:opacity-50 inline-flex items-center cursor-pointer"
-                                title={isSuperAdmin ? 'Delete Account' : 'Requires Super Admin privileges'}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </td>
                           </tr>

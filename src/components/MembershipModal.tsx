@@ -14,6 +14,8 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const [address, setAddress] = useState(user?.address || '');
   const [dob, setDob] = useState(user?.dob || '');
   const [bloodGroup, setBloodGroup] = useState(user?.bloodGroup || '');
+  const [customerId, setCustomerId] = useState('');
+  const [fullName, setFullName] = useState(user?.fullName || '');
   const [isSubmitted, setIsSubmitted] = useState(user?.membershipStatus === 'pending');
 
   React.useEffect(() => {
@@ -83,7 +85,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Name (Read-only) */}
+                  {/* Name */}
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Full Name</label>
                     <div className="relative">
@@ -92,12 +94,13 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                       </div>
                       <input
                         type="text"
-                        value={user.fullName}
-                        readOnly
-                        className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl font-medium focus:outline-none cursor-not-allowed"
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Enter your full name"
+                        className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                       />
                     </div>
-                    <p className="text-[10px] text-slate-400 font-medium ml-1">Name is fetched from your verified profile.</p>
                   </div>
 
                   {/* DOB */}
@@ -126,6 +129,18 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                         <option key={bg} value={bg}>{bg}</option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Customer ID */}
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Customer ID</label>
+                    <input
+                      type="text"
+                      value={customerId}
+                      onChange={(e) => setCustomerId(e.target.value)}
+                      placeholder="Enter your Customer ID"
+                      className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                    />
                   </div>
 
                   {/* Address */}
