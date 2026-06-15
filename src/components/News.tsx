@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export const News: React.FC = () => {
   const { systemSettings } = useAuth();
 
-  const liveAnnouncements = systemSettings?.announcements || [];
+  const liveAnnouncements = systemSettings?.announcements?.filter((ann: any) => ann.isPublished !== false) || [];
 
   const newsItems = liveAnnouncements.length > 0 
     ? liveAnnouncements.map((ann: any, index: number) => ({

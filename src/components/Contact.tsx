@@ -18,13 +18,15 @@ export const Contact: React.FC = () => {
       setFormData(prev => ({
         ...prev,
         name: user.fullName || '',
-        email: user.email || ''
+        email: user.email || '',
+        mobile: user.phone || ''
       }));
     } else {
       setFormData(prev => ({
         ...prev,
         name: '',
-        email: ''
+        email: '',
+        mobile: ''
       }));
     }
   }, [user]);
@@ -161,8 +163,9 @@ export const Contact: React.FC = () => {
                       type="text"
                       name="name"
                       required
-                      placeholder="e.g. Rajesh Sharma"
-                      className="w-full px-4.5 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none"
+                      placeholder=" "
+                      disabled={!!user}
+                      className="w-full px-4.5 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                       value={formData.name}
                       onChange={handleInputChange}
                     />
@@ -173,8 +176,9 @@ export const Contact: React.FC = () => {
                       type="tel"
                       name="mobile"
                       required
-                      placeholder="e.g. 98765 43210"
-                      className="w-full px-4.5 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none"
+                      placeholder=""
+                      disabled={!!user}
+                      className="w-full px-4.5 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                       value={formData.mobile}
                       onChange={handleInputChange}
                     />
@@ -187,8 +191,9 @@ export const Contact: React.FC = () => {
                     type="email"
                     name="email"
                     required
-                    placeholder="e.g. rajesh@email.com"
-                    className="w-full px-4.5 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none"
+                    placeholder=" "
+                    disabled={!!user}
+                    className="w-full px-4.5 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                     value={formData.email}
                     onChange={handleInputChange}
                   />

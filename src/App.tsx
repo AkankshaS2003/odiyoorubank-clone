@@ -106,7 +106,7 @@ const AppContent: React.FC = () => {
 
       {/* 3. Simulated smart NLP floating assistant bubble */}
       <div className="print:hidden">
-        {isAuthenticated && <AIChatAssistant />}
+        <AIChatAssistant />
       </div>
 
       {/* 4. Footer exact match with Reference Image 2 */}

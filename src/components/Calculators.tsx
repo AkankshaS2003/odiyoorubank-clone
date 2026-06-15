@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const Calculators: React.FC = () => {
   const { systemSettings } = useAuth();
-  const [activeCalc, setActiveCalc] = useState<'emi' | 'fd' | 'rd' | 'eligibility'>('emi');
+  const [activeCalc, setActiveCalc] = useState<'emi' | 'fd' | 'rd'>('emi');
 
   // EMI State
   const [emiPrincipal, setEmiPrincipal] = useState<number>(500000);
@@ -21,18 +21,14 @@ export const Calculators: React.FC = () => {
   const [rdRate, setRdRate] = useState<number>(7.75);
   const [rdYears, setRdYears] = useState<number>(3);
 
-  // Eligibility State
-  const [salary, setSalary] = useState<number>(60000);
-  const [obligations, setObligations] = useState<number>(10000);
-  const [eligTenure, setEligTenure] = useState<number>(240); // Months
-  const [eligRate, setEligRate] = useState<number>(8.50);
+
 
   useEffect(() => {
     if (systemSettings) {
       setEmiRate(systemSettings.goldLoanRate || 8.5);
       setFdRate(systemSettings.fdRate || 8.5);
       setRdRate(systemSettings.rdRate || 7.75);
-      setEligRate(systemSettings.goldLoanRate || 8.5);
+
     }
   }, [systemSettings]);
 
@@ -98,31 +94,12 @@ export const Calculators: React.FC = () => {
     };
   };
 
-  // --- Eligibility Calculation Logic ---
-  const calculateEligibility = () => {
-    const maxFOIR = 0.50; 
-    const disposableIncome = salary - obligations;
-    const maxAllowedEmi = Math.max(0, salary * maxFOIR - obligations);
-    
-    const r = eligRate / 12 / 100;
-    const n = eligTenure;
 
-    if (maxAllowedEmi <= 0) return { loanAmount: 0, emi: 0 };
-
-    const maxLoanAmount = Math.round(
-      (maxAllowedEmi * (Math.pow(1 + r, n) - 1)) / (r * Math.pow(1 + r, n))
-    );
-
-    return {
-      loanAmount: maxLoanAmount,
-      emi: Math.round(maxAllowedEmi)
-    };
-  };
 
   const emiRes = calculateEmi();
   const fdRes = calculateFd();
   const rdRes = calculateRd();
-  const eligRes = calculateEligibility();
+
 
   return (
     <section className="pt-4 pb-20 bg-white relative">
@@ -139,7 +116,7 @@ export const Calculators: React.FC = () => {
           </p>
 
           {/* Calculator Selector Tabs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-100 p-1.5 rounded-2xl mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl mt-8">
             <button
               onClick={() => setActiveCalc('emi')}
               className={`py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeCalc === 'emi' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
@@ -158,12 +135,7 @@ export const Calculators: React.FC = () => {
             >
               {"Recurring Deposit (RD)"}
             </button>
-            <button
-              onClick={() => setActiveCalc('eligibility')}
-              className={`py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeCalc === 'eligibility' ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
-            >
-              {"Loan Eligibility"}
-            </button>
+
           </div>
         </div>
 
@@ -476,111 +448,7 @@ export const Calculators: React.FC = () => {
             </div>
           )}
 
-          {/* ==================================================== */}
-          {/* 4. LOAN ELIGIBILITY CALCULATOR */}
-          {/* ==================================================== */}
-          {activeCalc === 'eligibility' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              
-              {/* Sliders Left */}
-              <div className="lg:col-span-7 space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{"Net Monthly Salary"}</label>
-                    <span className="text-primary font-bold text-lg">₹{salary.toLocaleString('en-IN')}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={10000}
-                    max={300000}
-                    step={2000}
-                    value={salary}
-                    onChange={(e) => setSalary(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                  <div className="flex justify-between text-[10px] text-slate-400 font-bold">
-                    <span>₹10,000</span>
-                    <span>₹3 Lakhs</span>
-                  </div>
-                </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{"Existing Monthly EMI Outlays"}</label>
-                    <span className="text-primary font-bold text-lg">₹{obligations.toLocaleString('en-IN')}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={150000}
-                    step={1000}
-                    value={obligations}
-                    onChange={(e) => setObligations(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                  <div className="flex justify-between text-[10px] text-slate-400 font-bold">
-                    <span>₹0 (None)</span>
-                    <span>₹1.5 Lakhs</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-sm font-semibold">
-                    <label className="text-slate-500">{"Loan Tenure Desired (Months)"}</label>
-                    <span className="text-primary font-bold text-lg">{eligTenure}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={12}
-                    max={360}
-                    step={12}
-                    value={eligTenure}
-                    onChange={(e) => setEligTenure(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                  <div className="flex justify-between text-[10px] text-slate-400 font-bold">
-                    <span>12 Months</span>
-                    <span>360 Months</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Calculations Right */}
-              <div className="lg:col-span-5 bg-white border border-slate-150 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
-                <div className="space-y-4">
-                  <div className="text-center pb-4 border-b border-slate-100">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{"Estimated Eligible Loan Sum"}</span>
-                    <span className="text-3xl font-extrabold text-primary">₹{eligRes.loanAmount.toLocaleString('en-IN')}</span>
-                  </div>
-
-                  <div className="space-y-3 pt-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">{"Maximum Allowed EMI cap:"}</span>
-                      <span className="font-semibold text-slate-800">₹{eligRes.emi.toLocaleString('en-IN')}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">{"Debt-to-Income Ratio:"}</span>
-                      <span className={`font-semibold ${obligations / salary > 0.4 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                        {Math.round((obligations / salary) * 100 || 0)}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-t border-slate-100 pt-3">
-                      <span className="text-slate-700 font-bold">{"Status:"}</span>
-                      <span className={`font-bold ${eligRes.loanAmount > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {eligRes.loanAmount > 0 ? "Eligible to Apply" : "Leveraged Debt Cap Reached"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center space-x-2 text-[11px] text-slate-400 leading-normal">
-                  <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-                  <span>{"Subject to documentation audits, property appraisals, or gold assay valuations at branch counters."}</span>
-                </div>
-              </div>
-
-            </div>
-          )}
 
         </div>
 

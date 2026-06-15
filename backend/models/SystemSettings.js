@@ -20,7 +20,8 @@ const SystemSettingsSchema = new mongoose.Schema({
   announcements: [{
     title: String,
     desc: String,
-    publishedAt: { type: Date, default: Date.now }
+    publishedAt: { type: Date, default: Date.now },
+    isPublished: { type: Boolean, default: true }
   }]
 }, { timestamps: true });
 

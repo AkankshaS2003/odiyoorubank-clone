@@ -84,7 +84,6 @@ export const Products: React.FC = () => {
       category: 'loan',
       description: "Leverage your gold assets for immediate funding with lowest processing fees and minimal documentation.",
       interestRate: `${systemSettings?.goldLoanRate || 8.50}% p.a.`,
-      badge: 'Instant Processing',
       benefits: ['Disbursed within 30 minutes', 'LTV up to 75% of gold value', 'Secure government-grade safe vault keeping']
     },
     {
@@ -101,7 +100,6 @@ export const Products: React.FC = () => {
       category: 'loan',
       description: "Simulate personal financial security for weddings, travel, medical needs, or retail consolidation.",
       interestRate: '11.50% p.a.',
-      badge: 'Unsecured Credit',
       benefits: ['No collateral requirements', 'Flexible loan limit up to ₹5 Lakhs', 'Simplified paperless eligibility check']
     },
     {

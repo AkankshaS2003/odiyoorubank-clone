@@ -95,9 +95,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [memberships, setMemberships] = useState<any[]>([]);
 
   // Announcements States
-  const announcements = systemSettings?.announcements || [
-    { title: 'State Best Souharda Award Recipient', desc: 'Celebrations across all branches in honor of cooperative recognitions.' },
-    { title: 'Cooperative FD Interest rate Hike', desc: 'Interest rates hiked up to 8.50% p.a. for shareholders and seniors.' }
+  const announcements = systemSettings?.announcements?.length > 0 ? systemSettings.announcements : [
+    { title: 'Cooperative Fixed Deposit Rates Increased to 8.50%', desc: 'Our governing board has authorized an upward adjustment in FD yield returns to protect capital value for member families.', isPublished: true },
+    { title: 'Financial Literacy Program Conducted in Rural Hubs', desc: 'Held simulated training workshops supporting over 300+ women micro-entrepreneurs on savings structures and credit pathways.', isPublished: true },
+    { title: 'New Digital Doorstep Banking Service Sanctioned', desc: 'Launched mobile collection systems allowing members to deposit savings and pay EMIs directly through certified agents.', isPublished: true }
   ];
   const [isPublishingNotice, setIsPublishingNotice] = useState(false);
   const [newNoticeTitle, setNewNoticeTitle] = useState('');
@@ -1304,13 +1305,41 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 </div>
 
                 <div className="space-y-3">
-                  {announcements.map((ann, idx) => (
-                    <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-bold text-slate-800">{ann.title}</span>
-                        <span className="text-[9px] font-bold text-white bg-emerald-500 px-2 py-0.5 rounded-full uppercase">Published</span>
+                  {announcements.map((ann: any, idx: number) => (
+                    <div key={idx} className={`p-4 border rounded-xl text-xs flex justify-between items-center transition-all ${ann.isPublished !== false ? 'bg-slate-50 border-slate-200' : 'bg-slate-100 border-slate-200 opacity-60'}`}>
+                      <div className="flex-1 pr-4">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-slate-800">{ann.title}</span>
+                          <span className={`text-[9px] font-bold text-white px-2 py-0.5 rounded-full uppercase ${ann.isPublished !== false ? 'bg-emerald-500' : 'bg-slate-400'}`}>
+                            {ann.isPublished !== false ? 'Published' : 'Unpublished'}
+                          </span>
+                        </div>
+                        <p className="text-slate-500 leading-normal">{ann.desc}</p>
                       </div>
-                      <p className="text-slate-500 leading-normal">{ann.desc}</p>
+                      <div className="flex flex-col space-y-3 items-end shrink-0 justify-center min-w-[80px]">
+                        <button
+                          disabled={actionLoading}
+                          onClick={async () => {
+                            const updatedAnnouncements = [...announcements];
+                            updatedAnnouncements[idx] = { ...ann, isPublished: ann.isPublished === false ? true : false };
+                            await updateSystemSettings({ announcements: updatedAnnouncements });
+                          }}
+                          className={`text-[11px] font-bold uppercase transition-colors hover:underline ${ann.isPublished !== false ? 'text-slate-500 hover:text-slate-700' : 'text-emerald-600 hover:text-emerald-700'}`}
+                        >
+                          {ann.isPublished !== false ? 'Unpublish' : 'Publish'}
+                        </button>
+                        <button
+                          disabled={actionLoading}
+                          onClick={async () => {
+                            if (!window.confirm('Are you sure you want to remove this announcement?')) return;
+                            const updatedAnnouncements = announcements.filter((_: any, i: number) => i !== idx);
+                            await updateSystemSettings({ announcements: updatedAnnouncements });
+                          }}
+                          className="text-[11px] font-bold uppercase text-red-500 hover:text-red-700 hover:underline transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
