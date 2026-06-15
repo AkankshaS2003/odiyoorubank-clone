@@ -204,7 +204,7 @@ export const AIChatAssistant: React.FC = () => {
                 <h4 className="font-extrabold text-sm">Digital Assistant</h4>
                 <span className="text-[10px] text-emerald-400 font-bold block flex items-center space-x-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping inline-block mr-1"></span>
-                  <span>Online � Verified Bank Records</span>
+                  <span>Online  Help Desk</span>
                 </span>
               </div>
             </div>

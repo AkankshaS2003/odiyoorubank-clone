@@ -222,21 +222,26 @@ const uploadDocument = async (req, res, next) => {
     // 3. Delete existing chunks for this source (Update/Overwrite logic)
     await KnowledgeBase.deleteMany({ source: filename });
 
-    // 4. Generate embeddings and store chunks
+    // 4. Generate embeddings and store chunks in parallel batches
     const indexedChunksCount = chunks.length;
-    for (let i = 0; i < chunks.length; i++) {
-      const chunkTextContent = chunks[i];
-      // Generate embedding vector
-      const embedding = await getEmbedding(chunkTextContent);
+    const BATCH_SIZE = 5; // Process 5 chunks concurrently to avoid rate limits
+
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+      const batch = chunks.slice(i, i + BATCH_SIZE);
       
-      // Store in MongoDB
-      await KnowledgeBase.create({
-        title: documentTitle,
-        category: documentCategory,
-        content: chunkTextContent,
-        source: filename,
-        embedding
-      });
+      await Promise.all(batch.map(async (chunkTextContent) => {
+        // Generate embedding vector
+        const embedding = await getEmbedding(chunkTextContent);
+        
+        // Store in MongoDB
+        await KnowledgeBase.create({
+          title: documentTitle,
+          category: documentCategory,
+          content: chunkTextContent,
+          source: filename,
+          embedding
+        });
+      }));
     }
 
     res.status(200).json({

@@ -27,7 +27,7 @@ content = content.replace(/reply = "";/g, (match, offset) => {
 
 // 3. Title and Status
 content = content.replace(/<h4 className="font-extrabold text-sm">\{""\}<\/h4>/, '<h4 className="font-extrabold text-sm">Digital Assistant</h4>');
-content = content.replace(/<span>\{""\}<\/span>/, '<span>Online • Verified Bank Records</span>');
+content = content.replace(/<span>\{""\}<\/span>/, '<span>Online  Help Desk</span>');
 
 // 4. Icons
 content = content.replace(/<MessageSquare className="h-6 w-6 text-\[#ED7F1E\]" \/>/g, '<Headset className="h-6 w-6 text-[#ED7F1E]" />');
