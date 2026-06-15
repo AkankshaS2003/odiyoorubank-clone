@@ -49,8 +49,9 @@ const retrieveDocuments = async (queryEmbedding, limit = 5, queryText = "") => {
         .lean();
     }
 
-    // Create regex matching keywords (case-insensitive)
-    const searchRegex = new RegExp(keywords.join('|'), 'i');
+    // Create regex matching keywords (case-insensitive) with escaped characters to prevent SyntaxError
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const searchRegex = new RegExp(keywords.map(escapeRegex).join('|'), 'i');
     
     const fallbackResults = await KnowledgeBase.find({
       $or: [

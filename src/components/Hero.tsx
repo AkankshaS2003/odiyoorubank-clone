@@ -12,9 +12,10 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
   const [slideIndex, setSlideIndex] = useState(0);
 
   const slides = [
-    { url: '/hero-img-1.jpg', alt: 'Agriculture and Progress' },
+    { url: '/hero-img-1.png', alt: 'Agriculture and Progress' },
     { url: '/hero-img-2.jpg', alt: 'Family and Pride' },
-    { url: '/hero-img-3.png', alt: 'Community Trust' }
+    { url: '/hero-img-3.png', alt: 'Community Village' },
+    { url: '/hero-img-4.png', alt: 'Tractor and Agricultural Farming' }
   ];
 
   useEffect(() => {

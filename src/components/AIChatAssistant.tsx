@@ -1,5 +1,39 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Landmark, User, ShieldAlert, BookOpen, Maximize, Minimize, Mic, MicOff, Headset } from 'lucide-react';
+import { MessageSquare, X, Send, Landmark, User, ShieldAlert, BookOpen, Maximize, Minimize, Headset } from 'lucide-react';
+
+const TelecallerIcon = ({ className = "h-6 w-6" }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 100 100" 
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Shirt */}
+    <path d="M10 95 C 10 70, 35 60, 50 60 C 65 60, 90 70, 90 95 Z" fill="#9CB5D7" stroke="#353b3e" strokeWidth="4" />
+    
+    {/* Collar */}
+    <polygon points="38,62 50,80 62,62 50,55" fill="#f4f6f8" stroke="#353b3e" strokeWidth="4" strokeLinejoin="round" />
+    <line x1="50" y1="80" x2="50" y2="95" stroke="#353b3e" strokeWidth="4" />
+
+    {/* Head */}
+    <path d="M32 45 C 32 60, 40 70, 50 70 C 60 70, 68 60, 68 45 C 68 30, 60 20, 50 20 C 40 20, 32 30, 32 45 Z" fill="#fce0d4" stroke="#353b3e" strokeWidth="4" />
+
+    {/* Hair Base */}
+    <path d="M28 35 C 28 10, 72 10, 72 35 C 72 20, 55 18, 50 25 C 45 18, 28 20, 28 35 Z" fill="#e29b55" stroke="#353b3e" strokeWidth="4" strokeLinejoin="round" />
+    
+    {/* Headset Band */}
+    <path d="M26 35 C 26 5, 74 5, 74 35" fill="none" stroke="#353b3e" strokeWidth="6" strokeLinecap="round" />
+
+    {/* Ear Pads */}
+    <rect x="22" y="32" width="10" height="20" rx="4" fill="#353b3e" />
+    <rect x="68" y="32" width="10" height="20" rx="4" fill="#353b3e" />
+
+    {/* Mic Boom */}
+    <path d="M72 45 C 72 65, 55 65, 45 58" fill="none" stroke="#353b3e" strokeWidth="4" strokeLinecap="round" />
+    
+    {/* Mic Tip */}
+    <rect x="41" y="55" width="8" height="6" rx="3" fill="#353b3e" />
+  </svg>
+);
 import api from '../services/api';
 
 interface ChatMessage {
@@ -21,32 +55,6 @@ export const AIChatAssistant: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-
-  const startListening = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Your browser does not support speech recognition.");
-      return;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setMessageText((prev) => prev + (prev ? " " : "") + transcript);
-    };
-    recognition.onerror = (event: any) => {
-      console.error("Speech recognition error", event.error);
-      setIsListening(false);
-    };
-    recognition.onend = () => setIsListening(false);
-
-    recognition.start();
-  };
 
   // Simple Markdown formatter for the bot's text
   const formatMarkdown = (text: string) => {
@@ -55,47 +63,9 @@ export const AIChatAssistant: React.FC = () => {
     return formatted;
   };
 
-  // Initialize and load chat history upon component mount
+  // Initialize chat with welcome greeting
   useEffect(() => {
-    if (isOpen) {
-      loadHistory();
-    }
-  }, [isOpen]);
-
-  const loadHistory = async () => {
-    setErrorMsg(null);
-    try {
-      const res = await api.get('/chat/history');
-      if (res.data.success && res.data.data.length > 0) {
-        const historyList = [...res.data.data].reverse();
-        const mappedMessages: ChatMessage[] = [];
-        
-        historyList.forEach((item: any) => {
-          mappedMessages.push({
-            sender: 'user',
-            text: item.question,
-            time: new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
-          mappedMessages.push({
-            sender: 'assistant',
-            text: item.answer,
-            time: new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
-        });
-        setMessages(mappedMessages);
-      } else {
-        // Welcome greeting fallback if history is empty
-        setMessages([
-          {
-            sender: 'assistant',
-            text: 'Welcome to Odiyooru Cooperative Bank. How can I help you today?',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }
-        ]);
-      }
-    } catch (err: any) {
-      console.error('Failed to load chat history', err);
-      // Fallback greeting if history request fails (e.g. before token setup)
+    if (isOpen && messages.length === 0) {
       setMessages([
         {
           sender: 'assistant',
@@ -104,7 +74,7 @@ export const AIChatAssistant: React.FC = () => {
         }
       ]);
     }
-  };
+  }, [isOpen]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -186,7 +156,7 @@ export const AIChatAssistant: React.FC = () => {
           className="h-14 w-14 rounded-full bg-[#0A315C] hover:bg-[#051C36] text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all animate-float cursor-pointer border border-[#0A315C]/20"
           aria-label="Open AI Assistant"
         >
-          <Headset className="h-6 w-6 text-[#ED7F1E]" />
+          <TelecallerIcon className="h-6 w-6 text-[#ED7F1E]" />
         </button>
       )}
 
@@ -198,7 +168,7 @@ export const AIChatAssistant: React.FC = () => {
           <div className="bg-[#0A315C] p-4 text-white flex justify-between items-center shrink-0">
             <div className="flex items-center space-x-2.5">
               <div className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
-                <Headset className="h-5 w-5 text-[#ED7F1E]" />
+                <TelecallerIcon className="h-5 w-5 text-[#ED7F1E]" />
               </div>
               <div>
                 <h4 className="font-extrabold text-sm">Digital Assistant</h4>
@@ -234,7 +204,7 @@ export const AIChatAssistant: React.FC = () => {
               >
                 {/* Avatar Icon */}
                 <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold shadow-sm ${msg.sender === 'user' ? 'bg-[#ED7F1E]' : 'bg-[#0A315C] border border-[#0A315C]/10'}`}>
-                  {msg.sender === 'user' ? <User className="h-3.5 w-3.5" /> : <Headset className="h-3.5 w-3.5 text-[#ED7F1E]" />}
+                  {msg.sender === 'user' ? <User className="h-3.5 w-3.5" /> : <TelecallerIcon className="h-3.5 w-3.5 text-[#ED7F1E]" />}
                 </div>
 
                 {/* Message Bubble */}
@@ -285,7 +255,7 @@ export const AIChatAssistant: React.FC = () => {
             {isTyping && (
               <div className="flex items-start space-x-2.5 max-w-[85%]">
                 <div className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 bg-[#0A315C] border border-[#0A315C]/10 text-white text-[10px] font-bold shadow-sm">
-                  <Headset className="h-3.5 w-3.5 text-[#ED7F1E]" />
+                  <TelecallerIcon className="h-3.5 w-3.5 text-[#ED7F1E]" />
                 </div>
                 <div className="space-y-0.5">
                   <div className="p-3 bg-white border border-slate-150 rounded-2xl rounded-tl-none shadow-sm flex items-center space-x-1.5 py-4">
@@ -330,14 +300,6 @@ export const AIChatAssistant: React.FC = () => {
 
           {/* Chat Form Input */}
           <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-150 bg-white flex items-center space-x-2 shrink-0">
-            <button
-              type="button"
-              onClick={startListening}
-              className={`p-3 rounded-xl transition-colors flex items-center justify-center cursor-pointer ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
-              title="Voice Input"
-            >
-              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-            </button>
             <input
               type="text"
               placeholder='Ask me about timings, loans, deposits...'

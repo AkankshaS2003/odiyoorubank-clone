@@ -310,14 +310,19 @@ const getDocuments = async (req, res, next) => {
 const deleteDocument = async (req, res, next) => {
   try {
     const documentId = req.params.id;
+    const mongoose = require('mongoose');
 
     // First try to find a chunk by ID to get the source filename
     let sourceFilename = '';
-    const chunk = await KnowledgeBase.findById(documentId);
     
-    if (chunk) {
-      sourceFilename = chunk.source;
-    } else {
+    if (mongoose.Types.ObjectId.isValid(documentId)) {
+      const chunk = await KnowledgeBase.findById(documentId);
+      if (chunk) {
+        sourceFilename = chunk.source;
+      }
+    }
+    
+    if (!sourceFilename) {
       // If not found by ID, check if the ID parameter is actually the source filename
       const match = await KnowledgeBase.findOne({ source: documentId });
       if (match) {
@@ -326,7 +331,8 @@ const deleteDocument = async (req, res, next) => {
     }
 
     if (!sourceFilename) {
-      return res.status(404).json({ success: false, error: 'Document not found' });
+      // Fallback: just try to delete by the documentId assuming it's the filename
+      sourceFilename = documentId;
     }
 
     // Delete all chunks associated with this file source

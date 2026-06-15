@@ -23,12 +23,7 @@ const handleChat = async (req, res, next) => {
     // 3. Generate finalized answer using Gemini 2.5 Flash
     const answer = await generateResponse(question, retrievedDocs);
 
-    // 4. Save conversation log in MongoDB
-    await ChatHistory.create({
-      userId: req.user._id,
-      question,
-      answer
-    });
+    // Chat histories are no longer kept as per user request
 
     // 5. Build source citations array (filter duplicate sources for cleaner citation UX)
     const sources = retrievedDocs.map(doc => ({
