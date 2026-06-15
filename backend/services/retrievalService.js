@@ -59,14 +59,33 @@ const retrieveDocuments = async (queryEmbedding, limit = 5, queryText = "") => {
         { title: { $regex: searchRegex } }
       ]
     })
-    .limit(limit)
     .select('title category content source')
     .lean();
 
-    return fallbackResults.map(doc => ({
-      ...doc,
-      score: 1.0 // Dummy score for interface consistency
-    }));
+    // Score by keyword occurrence count
+    const scoredResults = fallbackResults.map(doc => {
+      let score = 0;
+      const text = (doc.title + " " + doc.content).toLowerCase();
+      keywords.forEach(kw => {
+        const kwLower = kw.toLowerCase();
+        let pos = 0;
+        while (true) {
+          pos = text.indexOf(kwLower, pos);
+          if (pos >= 0) {
+            score += 1;
+            pos += kwLower.length;
+          } else {
+            break;
+          }
+        }
+      });
+      return { ...doc, score };
+    });
+
+    // Sort descending by score
+    scoredResults.sort((a, b) => b.score - a.score);
+
+    return scoredResults.slice(0, limit);
   }
 };
 
