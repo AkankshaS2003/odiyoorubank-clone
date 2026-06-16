@@ -13,7 +13,6 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const { user, becomeMember } = useAuth();
   const [address, setAddress] = useState(user?.address || '');
   const [dob, setDob] = useState(user?.dob || '');
-  const [bloodGroup, setBloodGroup] = useState(user?.bloodGroup || '');
   const [customerId, setCustomerId] = useState('');
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [isSubmitted, setIsSubmitted] = useState(user?.membershipStatus === 'pending');
@@ -28,8 +27,8 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (address && dob && bloodGroup) {
-      becomeMember(address, dob, bloodGroup);
+    if (address && dob) {
+      becomeMember(address, dob);
       setIsSubmitted(true);
     }
   };
@@ -115,21 +114,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                     />
                   </div>
 
-                  {/* Blood Group */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Blood Group</label>
-                    <select
-                      required
-                      value={bloodGroup}
-                      onChange={(e) => setBloodGroup(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none"
-                    >
-                      <option value="" disabled>Select Group</option>
-                      {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(bg => (
-                        <option key={bg} value={bg}>{bg}</option>
-                      ))}
-                    </select>
-                  </div>
+
 
                   {/* Customer ID */}
                   <div className="space-y-2 md:col-span-2">

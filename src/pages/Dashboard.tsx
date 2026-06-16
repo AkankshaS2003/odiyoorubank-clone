@@ -48,7 +48,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
   return (
     <section className="min-h-screen pb-16 bg-slate-50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Member Greeting Details Panel */}
         <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center space-x-4">
@@ -58,7 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
             <div>
               <span className="text-[10px] font-bold text-primary uppercase tracking-widest block">{"Active Customer Portal"}</span>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900">{user.fullName}</h2>
-              
+
               <div className="flex flex-wrap gap-2 mt-1.5 text-[11px] text-slate-500 font-semibold">
                 <span>{"Customer ID:"} {user.memberId || 'ODI-M-84931'}</span>
               </div>
@@ -100,7 +100,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
               {"Membership Approved!"}
             </h4>
             <p className="text-sm text-slate-500 mb-6 text-center">Your application has been successful and your ID card has been generated.</p>
-            <button 
+            <button
               onClick={() => setShowCard(true)}
               className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md transition-colors"
             >
@@ -136,7 +136,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
                 <p className="text-sm text-slate-500 mt-1">Generated on {new Date(savedReport.date).toLocaleDateString()}</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setShowSavedReport(true)}
               className="px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-md transition-colors whitespace-nowrap"
             >
@@ -147,14 +147,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
 
         {/* Dashboard Profile Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          
+
           {/* Account Information */}
           <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
             <h4 className="font-extrabold text-lg text-slate-900 mb-6 flex items-center space-x-2">
               <UserCheck className="h-5 w-5 text-primary" />
               <span>{"Account Details"}</span>
             </h4>
-            
+
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                 <span className="text-sm font-semibold text-slate-500">{"Customer ID"}</span>
@@ -182,7 +182,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
             <p className="text-base text-slate-300 mb-8 leading-relaxed">
               {"Our support team is available 24/7 to help you with your account inquiries, branch details, and general services."}
             </p>
-            <button 
+            <button
               onClick={() => setCurrentTab('contact')}
               className="w-max px-8 py-3 bg-white text-slate-900 rounded-xl font-bold text-sm shadow-md transition-colors hover:bg-slate-100"
             >
@@ -205,9 +205,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
               </button>
             </div>
             <div className="p-6 overflow-y-auto">
-              <EligibilityDashboard 
-                formData={savedReport.formData} 
-                resultData={savedReport.resultData} 
+              <EligibilityDashboard
+                formData={savedReport.formData}
+                resultData={savedReport.resultData}
                 onReset={() => {
                   localStorage.removeItem('odiyooru_saved_eligibility_report');
                   setSavedReport(null);

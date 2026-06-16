@@ -43,7 +43,7 @@ const UserSchema = new mongoose.Schema({
   },
   address: String,
   dob: String,
-  bloodGroup: String,
+
   memberId: String,
   savingsBalance: { type: Number, default: 0 },
   membershipStatus: {

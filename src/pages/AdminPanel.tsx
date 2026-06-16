@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   LayoutDashboard,
   ShieldCheck,
   Users,
@@ -31,20 +31,20 @@ import {
   FileCode,
   DollarSign
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  Legend, 
-  PieChart, 
-  Pie, 
-  Cell 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -60,7 +60,7 @@ interface DocumentGroup {
 
 export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({ setCurrentTab }) => {
   const { user: currentUser, logout, systemSettings, updateSystemSettings } = useAuth();
-  
+
   // Tab State: matching all 14 specified modules
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
@@ -413,7 +413,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     setActionLoading(true);
     setError(null);
     setSuccess(null);
-    
+
     // Convert rate values to numbers before storing
     const payload = {
       ...cmsState,
@@ -489,7 +489,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     setSelectedDoc(doc);
     setLoadingChunks(true);
     setDocChunks([]);
-    
+
     try {
       const res = await api.get('/admin/documents?detail=true');
       if (res.data.success) {
@@ -570,7 +570,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const customerUsers = users.filter(u => u.role === 'customer');
   const staffUsers = users.filter(u => u.role !== 'customer');
 
-  const filteredCustomers = customerUsers.filter(c => 
+  const filteredCustomers = customerUsers.filter(c =>
     c.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.phone.includes(searchTerm)
@@ -583,10 +583,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
-      
+
       {/* 1. SIDEBAR NAVIGATION */}
       <aside className="w-full lg:w-64 bg-[#0A315C] text-white flex flex-col shrink-0 border-r border-[#ED7F1E]/20 select-none">
-        
+
         {/* Profile Card Summary */}
         <div className="p-6 border-b border-white/10 bg-[#051C36]">
           <div className="flex items-center space-x-3">
@@ -616,11 +616,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   setError(null);
                   setSuccess(null);
                 }}
-                className={`w-full flex items-center space-x-3 px-6 py-3 text-xs font-bold transition-all text-left uppercase tracking-wider ${
-                  isActive 
-                    ? 'bg-[#ED7F1E] text-white border-l-4 border-white' 
+                className={`w-full flex items-center space-x-3 px-6 py-3 text-xs font-bold transition-all text-left uppercase tracking-wider ${isActive
+                    ? 'bg-[#ED7F1E] text-white border-l-4 border-white'
                     : 'text-white/80 hover:bg-white/5 hover:text-white'
-                }`}
+                  }`}
               >
                 <Icon className="h-4.5 w-4.5 shrink-0" />
                 <span>{item.label}</span>
@@ -646,7 +645,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
       {/* 2. MAIN WORKSPACE CONTAINER */}
       <main className="flex-grow p-6 lg:p-8 overflow-x-hidden">
-        
+
         {/* Dynamic Alerts Banner */}
         {error && (
           <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl flex items-start space-x-3 text-xs animate-slide-down shadow-sm">
@@ -678,7 +677,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
               <div className="space-y-8">
                 {/* Statistics Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  
+
                   <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm flex items-center space-x-4">
                     <div className="p-3 bg-blue-50 text-[#0A315C] rounded-2xl">
                       <Users className="h-6 w-6" />
@@ -700,7 +699,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   </div>
 
                   <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm flex items-center space-x-4">
-                    
+
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Deposits</span>
                       <span className="text-2xl font-extrabold text-slate-900 mt-0.5 block">₹{(stats.totalDeposits || 0).toLocaleString('en-IN')}</span>
@@ -721,7 +720,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
                 {/* Recharts Graphical Visualizations */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  
+
                   {/* Chart 1: Customer registrations */}
                   <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm">
                     <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-6">Customer Registrations Growth</h3>
@@ -730,8 +729,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                         <AreaChart data={registrationData}>
                           <defs>
                             <linearGradient id="colorMembers" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#0A315C" stopOpacity={0.2}/>
-                              <stop offset="95%" stopColor="#0A315C" stopOpacity={0}/>
+                              <stop offset="5%" stopColor="#0A315C" stopOpacity={0.2} />
+                              <stop offset="95%" stopColor="#0A315C" stopOpacity={0} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -744,12 +743,12 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     </div>
                   </div>
 
-                  
+
 
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  
+
 
                   {/* Contact Inquiry Summary Logs */}
                   <div className="bg-white border border-slate-150 p-6 rounded-3xl shadow-sm lg:col-span-2">
@@ -759,7 +758,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                         {messages.length} total
                       </span>
                     </h3>
-                    
+
                     {messages.length === 0 ? (
                       <div className="text-center py-10 text-xs text-slate-400 font-semibold italic">
                         No recent visitor messages received.
@@ -771,7 +770,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                             <div>
                               <p className="font-bold text-slate-800">{msg.name} ({msg.email})</p>
                               <p className="text-slate-500 mt-1 italic">"{msg.message}"</p>
-                              <a 
+                              <a
                                 href={`mailto:${msg.email}?subject=${encodeURIComponent('Reply to your inquiry at Odiyooru Bank')}&body=${encodeURIComponent(`Hi ${msg.name},\n\nRegarding your message:\n"${msg.message}"\n\n`)}`}
                                 className="mt-2 text-[10px] text-primary font-bold hover:underline inline-block"
                               >
@@ -835,7 +834,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                             </td>
                             <td className="p-4 text-xs">
                               <p className="font-semibold text-slate-800">DOB: {m.dob}</p>
-                              <p className="text-slate-500">Blood: <span className="font-bold text-rose-500">{m.bloodGroup}</span></p>
+
                             </td>
                             <td className="p-4 text-xs font-medium text-slate-600">
                               {m.memberId || '-'}
@@ -844,11 +843,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               {m.address}
                             </td>
                             <td className="p-4">
-                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                m.membershipStatus === 'approved' ? 'bg-emerald-100 text-emerald-700' :
-                                m.membershipStatus === 'rejected' ? 'bg-rose-100 text-rose-700' :
-                                'bg-blue-100 text-blue-700'
-                              }`}>
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${m.membershipStatus === 'approved' ? 'bg-emerald-100 text-emerald-700' :
+                                  m.membershipStatus === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                                    'bg-blue-100 text-blue-700'
+                                }`}>
                                 {m.membershipStatus}
                               </span>
                             </td>
@@ -930,11 +928,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                             <td className="py-4">{customer.email}</td>
                             <td className="py-4 font-mono text-slate-500">{customer.phone}</td>
                             <td className="py-4">
-                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                                customer.status === 'Suspended' 
-                                  ? 'bg-rose-50 text-rose-600 border border-rose-100 animate-pulse' 
+                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${customer.status === 'Suspended'
+                                  ? 'bg-rose-50 text-rose-600 border border-rose-100 animate-pulse'
                                   : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                              }`}>
+                                }`}>
                                 {customer.status || 'Active'}
                               </span>
                             </td>
@@ -942,11 +939,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               <button
                                 onClick={() => handleUserStatusChange(customer._id, customer.status)}
                                 disabled={actionLoading}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border cursor-pointer ${
-                                  customer.status === 'Suspended'
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border cursor-pointer ${customer.status === 'Suspended'
                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                                     : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
-                                }`}
+                                  }`}
                               >
                                 {customer.status === 'Suspended' ? 'Unblock Member' : 'Suspend Member'}
                               </button>
@@ -1001,11 +997,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                             <td className="py-4 text-center font-mono text-slate-500">{loan.tenure} M</td>
                             <td className="py-4 text-right font-mono text-slate-655">₹{(loan.income || 0).toLocaleString('en-IN')}</td>
                             <td className="py-4 text-center">
-                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                                loan.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                                loan.status === 'Rejected' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
-                                'bg-amber-50 text-amber-600 border border-amber-100 animate-pulse'
-                              }`}>
+                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${loan.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                  loan.status === 'Rejected' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                                    'bg-amber-50 text-amber-600 border border-amber-100 animate-pulse'
+                                }`}>
                                 {loan.status || 'Pending'}
                               </span>
                             </td>
@@ -1225,7 +1220,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   <h2 className="text-lg font-black text-slate-900 uppercase">Branch Network CMS locator</h2>
                   <p className="text-xs text-slate-400 font-bold mt-1">Publish operational branch coordinates and service desk timings.</p>
                 </div>
-                
+
                 <div className="space-y-4">
                   {adminBranches.length === 0 ? (
                     <div className="text-center py-6 text-xs text-slate-400 font-semibold italic">No branches registered.</div>
@@ -1346,14 +1341,14 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
                 {isPublishingNotice ? (
                   <div className="mt-6 p-4 border border-slate-200 rounded-xl bg-slate-50 space-y-3">
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="Announcement Title"
                       value={newNoticeTitle}
                       onChange={(e) => setNewNoticeTitle(e.target.value)}
                       className="w-full text-xs font-bold px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-primary"
                     />
-                    <textarea 
+                    <textarea
                       placeholder="Announcement Description (Visible to public)"
                       rows={3}
                       value={newNoticeDesc}
@@ -1361,7 +1356,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       className="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-primary resize-none"
                     />
                     <div className="flex justify-end space-x-2">
-                      <button 
+                      <button
                         onClick={() => {
                           setIsPublishingNotice(false);
                           setNewNoticeTitle('');
@@ -1371,7 +1366,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       >
                         Cancel
                       </button>
-                      <button 
+                      <button
                         onClick={async () => {
                           if (newNoticeTitle && newNoticeDesc) {
                             const updatedAnnouncements = [...announcements, { title: newNoticeTitle, desc: newNoticeDesc }];
@@ -1453,14 +1448,14 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
                 {/* Split Section: Index File Left, Indexed Files Table Right */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  
+
                   {/* Document Upload Card (Left 4 columns) */}
                   <div className="lg:col-span-4 bg-white border border-slate-150 p-6 rounded-3xl shadow-sm h-fit">
                     <h3 className="text-xs font-extrabold text-slate-900 uppercase mb-4 flex items-center space-x-2">
                       <Database className="h-4.5 w-4.5 text-[#ED7F1E]" />
                       <span>Index Document</span>
                     </h3>
-                    
+
                     <form onSubmit={handleUploadSubmit} className="space-y-4">
                       <div className="space-y-1">
                         <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Document Custom Title</label>
@@ -1696,11 +1691,11 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
             {/* ========================================== */}
             {activeTab === 'employees' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
+
                 {/* Left Pane: Staff List */}
                 <div className="lg:col-span-7 bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
                   <h2 className="text-lg font-black text-slate-900 uppercase pb-4 border-b border-slate-100 mb-4">Cooperative Staff Directory</h2>
-                  
+
                   <div className="space-y-4">
                     {staffUsers.map((item) => (
                       <div key={item._id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex justify-between items-center text-xs">
@@ -1893,14 +1888,14 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
       {selectedDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 border border-slate-150 shadow-2xl animate-scale-up relative flex flex-col max-h-[85vh]">
-            
-            <button 
-              onClick={() => setSelectedDoc(null)} 
+
+            <button
+              onClick={() => setSelectedDoc(null)}
               className="absolute top-5 right-5 text-slate-455 hover:text-slate-655 p-1 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
-            
+
             <div className="border-b border-slate-100 pb-4 mb-4">
               <span className="text-[9px] font-black text-[#ED7F1E] uppercase tracking-wider bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full">{selectedDoc.category}</span>
               <h3 className="text-base font-extrabold text-slate-900 mt-1">{selectedDoc.title}</h3>
@@ -1937,8 +1932,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
       {isBranchModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 border border-slate-150 shadow-2xl animate-scale-up relative">
-            <button 
-              onClick={() => setIsBranchModalOpen(false)} 
+            <button
+              onClick={() => setIsBranchModalOpen(false)}
               className="absolute top-5 right-5 text-slate-455 hover:text-slate-655 p-1 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
@@ -1961,9 +1956,9 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
               }
             }}>
               <div className="space-y-3">
-                <input required type="text" placeholder="Branch Name" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.name} onChange={e => setBranchForm({...branchForm, name: e.target.value})} />
-                <input required type="text" placeholder="Branch Address" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.address} onChange={e => setBranchForm({...branchForm, address: e.target.value})} />
-                <input required type="text" placeholder="Phone Number" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.phone} onChange={e => setBranchForm({...branchForm, phone: e.target.value})} />
+                <input required type="text" placeholder="Branch Name" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.name} onChange={e => setBranchForm({ ...branchForm, name: e.target.value })} />
+                <input required type="text" placeholder="Branch Address" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.address} onChange={e => setBranchForm({ ...branchForm, address: e.target.value })} />
+                <input required type="text" placeholder="Phone Number" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs" value={branchForm.phone} onChange={e => setBranchForm({ ...branchForm, phone: e.target.value })} />
               </div>
               <button disabled={actionLoading} type="submit" className="mt-4 px-6 py-2.5 bg-[#0A315C] hover:bg-[#051C36] text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2 w-full">
                 {actionLoading ? 'Saving...' : 'Register Branch'}

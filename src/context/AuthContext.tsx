@@ -76,7 +76,7 @@ interface AuthContextType {
   payEmi: (loanId: string) => boolean;
   uploadKyc: (documentType: string, filePlaceholder: string) => boolean;
   addSavingsMoney: (amount: number) => void;
-  becomeMember: (address: string, dob: string, bloodGroup: string) => Promise<boolean>;
+  becomeMember: (address: string, dob: string) => Promise<boolean>;
   systemSettings: SystemSettings;
   updateSystemSettings: (newSettings: Partial<SystemSettings>) => Promise<boolean>;
 }
@@ -265,10 +265,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const becomeMember = async (address: string, dob: string, bloodGroup: string): Promise<boolean> => {
+  const becomeMember = async (address: string, dob: string): Promise<boolean> => {
     if (!user) return false;
     try {
-      const res = await api.post('/account/membership/apply', { address, dob, bloodGroup });
+      const res = await api.post('/account/membership/apply', { address, dob });
       if (res.data.success) {
         saveUser(res.data.data);
         return true;

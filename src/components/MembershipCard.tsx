@@ -97,11 +97,7 @@ export const MembershipCard: React.FC = () => {
             
             <div className="p-5 flex flex-col h-full justify-between">
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] text-slate-500 uppercase font-bold">Blood Group</p>
-                    <p className="text-sm font-bold text-rose-600">{user.bloodGroup || 'N/A'}</p>
-                  </div>
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <p className="text-[10px] text-slate-500 uppercase font-bold">Date of Birth</p>
                     <p className="text-sm font-bold text-slate-700">{user.dob || 'N/A'}</p>
@@ -196,11 +192,7 @@ export const MembershipCard: React.FC = () => {
             
             <div className="p-5 flex flex-col h-full justify-between">
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] text-slate-500 uppercase font-bold">Blood Group</p>
-                    <p className="text-sm font-bold text-rose-600">{user.bloodGroup || 'N/A'}</p>
-                  </div>
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <p className="text-[10px] text-slate-500 uppercase font-bold">Date of Birth</p>
                     <p className="text-sm font-bold text-slate-700">{user.dob || 'N/A'}</p>

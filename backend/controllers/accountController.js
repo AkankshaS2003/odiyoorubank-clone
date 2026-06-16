@@ -59,12 +59,11 @@ const getAccountDetails = async (req, res, next) => {
 // @access  Private
 const applyMembership = async (req, res, next) => {
   try {
-    const { address, dob, bloodGroup } = req.body;
+    const { address, dob } = req.body;
 
     const user = await req.user.constructor.findByIdAndUpdate(req.user._id, {
       address,
       dob,
-      bloodGroup,
       membershipStatus: 'pending'
     }, { new: true });
 
