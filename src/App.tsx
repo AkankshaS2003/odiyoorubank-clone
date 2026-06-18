@@ -16,8 +16,8 @@ import { LoanEligibilityPage } from './pages/LoanEligibilityPage';
 import { FloatingScrollButton } from './components/FloatingScrollButton';
 import { AdminPanel } from './pages/AdminPanel';
 import { BranchesPage } from './pages/BranchesPage';
-
-
+import Breadcrumbs from './components/Breadcrumbs';
+import { AccountApplication } from './pages/AccountApplication';
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const [history, setHistory] = useState<string[]>(['home']);
@@ -43,7 +43,7 @@ const AppContent: React.FC = () => {
     let tabToRender = currentTab;
     let showLoginModal = false;
 
-    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility') && !isAuthenticated) {
+    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account') && !isAuthenticated) {
       showLoginModal = true;
       tabToRender = 'home';
     } else if (tabToRender === 'login') {
@@ -79,7 +79,11 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />;
           }
           return <AdminPanel setCurrentTab={setCurrentTab} />;
-
+        case 'apply-account':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />; // Modal logic will catch this before
+          }
+          return <AccountApplication setCurrentTab={setCurrentTab} />;
         default:
           return <Home setCurrentTab={setCurrentTab} />;
       }
@@ -101,6 +105,7 @@ const AppContent: React.FC = () => {
 
       {/* 2. Primary Page Body content */}
       <main className="flex-grow">
+        <Breadcrumbs currentTab={currentTab} setCurrentTab={setCurrentTab} />
         {renderActiveTab()}
       </main>
 

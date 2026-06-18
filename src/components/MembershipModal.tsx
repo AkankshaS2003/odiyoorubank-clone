@@ -15,6 +15,12 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const [dob, setDob] = useState(user?.dob || '');
   const [customerId, setCustomerId] = useState('');
   const [fullName, setFullName] = useState(user?.fullName || '');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+  const [hasPrefilledAddress, setHasPrefilledAddress] = useState(false);
+  const [hasPrefilledDob, setHasPrefilledDob] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(user?.membershipStatus === 'pending');
 
   React.useEffect(() => {
@@ -25,9 +31,41 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
 
   if (!isOpen || !user) return null;
 
+  const handleVerify = async () => {
+    if (!customerId) return;
+    setVerifyLoading(true);
+    setVerifyError('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/account/verify-customer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ customerId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAddress(data.data.address || '');
+        setHasPrefilledAddress(!!data.data.address);
+        setDob(data.data.dob || '');
+        setHasPrefilledDob(!!data.data.dob);
+        setAccountNumber(data.data.accountNumber || '');
+        setIsVerified(true);
+      } else {
+        setVerifyError(data.error || 'Failed to verify Customer ID');
+      }
+    } catch (err) {
+      setVerifyError('Network error while verifying Customer ID');
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (address && dob) {
+    if (isVerified && address && dob) {
       becomeMember(address, dob);
       setIsSubmitted(true);
     }
@@ -102,44 +140,71 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                     </div>
                   </div>
 
-                  {/* DOB */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Birth</label>
-                    <input
-                      type="date"
-                      required
-                      value={dob}
-                      onChange={(e) => setDob(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                    />
-                  </div>
-
-
-
                   {/* Customer ID */}
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Customer ID</label>
-                    <input
-                      type="text"
-                      value={customerId}
-                      onChange={(e) => setCustomerId(e.target.value)}
-                      placeholder="Enter your Customer ID"
-                      className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                    />
+                    <div className="flex gap-4">
+                      <input
+                        type="text"
+                        required
+                        value={customerId}
+                        onChange={(e) => {
+                          setCustomerId(e.target.value);
+                          setIsVerified(false);
+                        }}
+                        placeholder="Enter your Customer ID (e.g. CUST123456)"
+                        className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                      />
+                      <button 
+                        type="button" 
+                        onClick={handleVerify}
+                        disabled={!customerId || verifyLoading}
+                        className="px-6 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition-colors disabled:opacity-50"
+                      >
+                        {verifyLoading ? 'Verifying...' : 'Verify'}
+                      </button>
+                    </div>
+                    {verifyError && <p className="text-red-500 text-sm mt-1">{verifyError}</p>}
                   </div>
 
-                  {/* Address */}
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Communication Address</label>
-                    <textarea
-                      required
-                      rows={3}
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Enter your full residential address"
-                      className="w-full px-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"
-                    ></textarea>
-                  </div>
+                  {isVerified && (
+                    <>
+                      {/* Account Number */}
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Account Number</label>
+                        <input
+                          type="text"
+                          readOnly
+                          value={accountNumber}
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl font-medium outline-none cursor-not-allowed"
+                        />
+                      </div>
+
+                      {/* DOB */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Birth</label>
+                        <input
+                          type="date"
+                          readOnly={hasPrefilledDob}
+                          value={dob}
+                          onChange={(e) => !hasPrefilledDob && setDob(e.target.value)}
+                          className={`w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl font-medium outline-none ${hasPrefilledDob ? 'cursor-not-allowed' : 'bg-white'}`}
+                        />
+                      </div>
+
+                      {/* Address */}
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Communication Address</label>
+                        <textarea
+                          readOnly={hasPrefilledAddress}
+                          rows={3}
+                          value={address}
+                          onChange={(e) => !hasPrefilledAddress && setAddress(e.target.value)}
+                          className={`w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl font-medium outline-none resize-none ${hasPrefilledAddress ? 'cursor-not-allowed' : 'bg-white'}`}
+                        ></textarea>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="bg-blue-50 text-blue-800 p-4 rounded-xl flex items-start gap-3 border border-blue-100">
@@ -152,7 +217,8 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
 
                 <button
                   type="submit"
-                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-lg transition-colors"
+                  disabled={!isVerified}
+                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Apply for Membership Card
                 </button>

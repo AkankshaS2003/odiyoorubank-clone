@@ -71,13 +71,21 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
           <div className="flex flex-wrap gap-4 pt-4">
             <button 
               onClick={() => {
-                const el = document.getElementById('products-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                setCurrentTab('apply-account');
               }}
               className="px-6 py-3.5 bg-[#ED7F1E] hover:bg-[#d66a10] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center space-x-2 cursor-pointer group"
             >
-              <span>{"Explore Products"}</span>
+              <span>{"Open Bank Account"}</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button 
+              onClick={() => {
+                const el = document.getElementById('products-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-6 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center space-x-2 cursor-pointer group"
+            >
+              <span>{"Explore Products"}</span>
             </button>
           </div>
         </div>

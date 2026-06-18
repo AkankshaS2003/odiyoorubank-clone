@@ -3,6 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import { UserCheck, ShieldAlert, Award, CheckSquare, X } from 'lucide-react';
 import { MembershipCard } from '../components/MembershipCard';
 import { EligibilityDashboard } from '../components/LoanEligibility/EligibilityDashboard';
+import { IdCard } from '../components/IdCard';
+import { PaymentModal } from '../components/PaymentModal';
+import { AddFundsModal } from '../components/AddFundsModal';
 
 interface DashboardProps {
   setCurrentTab: (tab: string) => void;
@@ -13,6 +16,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
   const [showCard, setShowCard] = useState(false);
   const [savedReport, setSavedReport] = useState<any>(null);
   const [showSavedReport, setShowSavedReport] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showAddFundsModal, setShowAddFundsModal] = useState(false);
+
+  const fetchUserStats = async () => {
+    // A function to re-fetch user profile could be here,
+    // assuming Context's update function isn't readily available for the specific user
+    // For now we assume a refresh or context update will handle the new states
+  };
 
   useEffect(() => {
     const reportStr = localStorage.getItem('odiyooru_saved_eligibility_report');
@@ -60,7 +71,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
               <h2 className="text-xl sm:text-2xl font-black text-slate-900">{user.fullName}</h2>
 
               <div className="flex flex-wrap gap-2 mt-1.5 text-[11px] text-slate-500 font-semibold">
-                <span>{"Customer ID:"} {user.memberId || 'ODI-M-84931'}</span>
+                <span>{"Customer ID:"} {user.customerId || 'Not Assigned'}</span>
               </div>
             </div>
           </div>
@@ -80,6 +91,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
             </button>
           </div>
         </div>
+
+        {/* Initial Deposit Check */}
+        {user.isKycVerified && !user.minimumBalancePaid && (
+          <div className="bg-amber-50 border border-amber-200 p-6 md:p-8 rounded-3xl shadow-sm mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+              <h3 className="text-lg font-bold text-amber-900 mb-1">Action Required: Minimum Balance Deposit</h3>
+              <p className="text-sm text-amber-700">Your account application has been approved! To activate your account fully, please deposit the minimum balance of ₹500.</p>
+            </div>
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              className="px-6 py-3 bg-[#ED7F1E] hover:bg-[#d66a10] text-white rounded-xl font-bold shadow-md transition-colors shrink-0"
+            >
+              Pay Initial Deposit
+            </button>
+          </div>
+        )}
 
         {user.membershipStatus === 'pending' && (
           <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm mb-8 flex flex-col items-center">
@@ -120,7 +147,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
                 <p className="text-xs text-slate-500 mt-1">{"Official society shareholder ID. Keep this secure."}</p>
               </div>
             </div>
-            <MembershipCard />
+            <IdCard 
+              user={{ fullName: user.fullName, customerId: user.customerId || '', phone: user.phone, dob: user.dob }} 
+              membership={{ memberId: user.memberId || 'MEM-001', issuedDate: new Date().toISOString() }} 
+            />
           </div>
         )}
 
@@ -149,16 +179,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
 
           {/* Account Information */}
-          <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
-            <h4 className="font-extrabold text-lg text-slate-900 mb-6 flex items-center space-x-2">
-              <UserCheck className="h-5 w-5 text-primary" />
-              <span>{"Account Details"}</span>
-            </h4>
+          <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow relative">
+            <div className="flex justify-between items-start mb-6">
+              <h4 className="font-extrabold text-lg text-slate-900 flex items-center space-x-2">
+                <UserCheck className="h-5 w-5 text-primary" />
+                <span>{"Account Details"}</span>
+              </h4>
+              <button 
+                onClick={() => setShowAddFundsModal(true)}
+                className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-colors"
+              >
+                + Add Funds
+              </button>
+            </div>
 
             <div className="space-y-4">
+              {/* Balances */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Savings</span>
+                  <span className="text-lg font-black text-[#0A315C]">₹{(user.savingsBalance || 0).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Fixed Deposit</span>
+                  <span className="text-lg font-black text-[#0A315C]">₹{(user.fdBalance || 0).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Recurring Dep.</span>
+                  <span className="text-lg font-black text-[#0A315C]">₹{(user.rdBalance || 0).toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                 <span className="text-sm font-semibold text-slate-500">{"Customer ID"}</span>
-                <span className="text-sm font-bold text-slate-900">{user.memberId || 'ODI-M-84931'}</span>
+                <span className="text-sm font-bold text-slate-900">{user.customerId || 'Not Assigned'}</span>
               </div>
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                 <span className="text-sm font-semibold text-slate-500">{"Full Name"}</span>
@@ -169,6 +223,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
                 <span className="text-sm font-bold text-slate-900">{user.email}</span>
               </div>
 
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <span className="text-sm font-semibold text-slate-500">{"Account Number"}</span>
+                <span className="text-sm font-bold text-slate-900">{user.accountNumber || 'Pending'}</span>
+              </div>
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <span className="text-sm font-semibold text-slate-500">{"IFSC Code"}</span>
+                <span className="text-sm font-bold text-slate-900">{user.ifscCode || 'Pending'}</span>
+              </div>
               <div className="flex justify-between items-center pb-1">
                 <span className="text-sm font-semibold text-slate-500">{"Registered Branch"}</span>
                 <span className="text-sm font-bold text-slate-900 text-right">{"Odiyooru Main Branch"}</span>
@@ -217,6 +279,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {showPaymentModal && (
+        <PaymentModal 
+          amount={500} 
+          type="Initial Deposit" 
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={() => {
+            alert('Payment Successful! Your account is now active.');
+            // Ideal: trigger context reload
+            window.location.reload();
+          }}
+        />
+      )}
+
+      {showAddFundsModal && (
+        <AddFundsModal
+          onClose={() => setShowAddFundsModal(false)}
+          onSuccess={() => {
+            alert('Funds Added Successfully!');
+            window.location.reload();
+          }}
+        />
       )}
     </section>
   );

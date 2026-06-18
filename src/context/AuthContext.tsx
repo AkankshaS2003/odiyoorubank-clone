@@ -43,8 +43,15 @@ export interface User {
   deposits?: Deposit[];
   loans?: Loan[];
   savingsBalance?: number;
+  fdBalance?: number;
+  rdBalance?: number;
   role?: 'customer' | 'employee' | 'manager' | 'admin';
   membershipStatus?: string;
+  customerId?: string;
+  isKycVerified?: boolean;
+  minimumBalancePaid?: boolean;
+  accountNumber?: string;
+  ifscCode?: string;
 }
 
 export interface SystemSettings {
@@ -63,6 +70,7 @@ export interface SystemSettings {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   login: (identifier: string, pass: string) => Promise<string | null>;
   googleLogin: (token: string) => Promise<string | null>;
@@ -71,7 +79,7 @@ interface AuthContextType {
   registerUser: (data: Partial<User> & { password?: string }) => Promise<string | null>;
   logout: () => void;
   // Preserving mock banking functions so the UI doesn't crash
-  openNewDeposit: (type: Deposit['type'], amount: number, durationYears: number) => boolean;
+  openNewDeposit: (type: Deposit['type'], amount: number, durationYears: number) => Promise<boolean>;
   applyForLoan: (type: Loan['type'], amount: number, tenureMonths: number) => Promise<boolean>;
   payEmi: (loanId: string) => boolean;
   uploadKyc: (documentType: string, filePlaceholder: string) => boolean;
@@ -85,6 +93,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({
     fdRate: 8.50,
@@ -120,7 +129,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const res = await api.get('/auth/me');
           if (res.data.success) {
-            setUser({ ...res.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
+            setUser({ 
+              ...res.data.data, 
+              savingsBalance: res.data.data.savingsBalance || 0, 
+              deposits: res.data.data.deposits || [], 
+              loans: res.data.data.loans || [], 
+              kycStatus: res.data.data.isKycVerified ? 'Verified' : 'Pending',
+              accountNumber: res.data.data.accountNumber,
+              ifscCode: res.data.data.ifscCode
+            });
             setIsAuthenticated(true);
           }
         } catch (error) {
@@ -138,9 +155,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.post('/auth/login', { email: identifier, password: pass });
       if (res.data.success) {
         localStorage.setItem('token', res.data.data.token);
+        setToken(res.data.data.token);
         
         const profileRes = await api.get('/auth/me');
-        setUser({ ...profileRes.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
+        setUser({ 
+          ...profileRes.data.data, 
+          savingsBalance: profileRes.data.data.savingsBalance || 0, 
+          deposits: profileRes.data.data.deposits || [], 
+          loans: profileRes.data.data.loans || [], 
+          kycStatus: profileRes.data.data.isKycVerified ? 'Verified' : 'Pending' 
+        });
         setIsAuthenticated(true);
         return profileRes.data.data.role || 'customer';
       }
@@ -162,8 +186,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (res.data.success) {
         localStorage.setItem('token', res.data.data.token);
+        setToken(res.data.data.token);
         const profileRes = await api.get('/auth/me');
-        setUser({ ...profileRes.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
+        setUser({ 
+          ...profileRes.data.data, 
+          savingsBalance: profileRes.data.data.savingsBalance || 0, 
+          deposits: profileRes.data.data.deposits || [], 
+          loans: profileRes.data.data.loans || [], 
+          kycStatus: profileRes.data.data.isKycVerified ? 'Verified' : 'Pending' 
+        });
         setIsAuthenticated(true);
         return profileRes.data.data.role || 'customer';
       }
@@ -189,8 +220,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.put(`/auth/resetpassword/${token}`, { password });
       if (res.data.success) {
         localStorage.setItem('token', res.data.data.token);
+        setToken(res.data.data.token);
         const profileRes = await api.get('/auth/me');
-        setUser({ ...profileRes.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
+        setUser({ 
+          ...profileRes.data.data, 
+          savingsBalance: profileRes.data.data.savingsBalance || 0, 
+          deposits: profileRes.data.data.deposits || [], 
+          loans: profileRes.data.data.loans || [], 
+          kycStatus: profileRes.data.data.isKycVerified ? 'Verified' : 'Pending' 
+        });
         setIsAuthenticated(true);
         return profileRes.data.data.role || 'customer';
       }
@@ -211,11 +249,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (res.data.success) {
-        const token = res.data.data.token;
-        localStorage.setItem('token', token);
+        const newToken = res.data.data.token;
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
         
         const profileRes = await api.get('/auth/me');
-        setUser({ ...profileRes.data.data, savingsBalance: 5000, deposits: [], loans: [], kycStatus: 'Verified' });
+        setUser({ 
+          ...profileRes.data.data, 
+          savingsBalance: profileRes.data.data.savingsBalance || 0, 
+          deposits: profileRes.data.data.deposits || [], 
+          loans: profileRes.data.data.loans || [], 
+          kycStatus: profileRes.data.data.isKycVerified ? 'Verified' : 'Pending' 
+        });
         setIsAuthenticated(true);
         
         return profileRes.data.data.role || 'customer';
@@ -229,6 +274,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('token');
+    setToken(null);
     setUser(null);
     setIsAuthenticated(false);
   };
@@ -236,19 +282,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // MOCK BANKING FUNCTIONS PRESERVED FOR UI
   const saveUser = (updatedUser: User | null) => setUser(updatedUser);
 
-  const openNewDeposit = (type: Deposit['type'], amount: number, durationYears: number): boolean => {
+  const openNewDeposit = async (type: Deposit['type'], amount: number, durationYears: number): Promise<boolean> => {
     if (!user) return false;
     if ((user.savingsBalance || 0) < amount) return false; 
-    const rates = { Savings: 4.5, Fixed: 8.50, Recurring: 7.75, Daily: 6.50 };
-    const newDep: Deposit = {
-      id: `DEP-${Math.floor(100 + Math.random() * 900)}`,
-      type, amount, rate: rates[type],
-      date: new Date().toISOString().split('T')[0],
-      maturityDate: 'Ongoing',
-      status: 'Active', accruedInterest: 0
-    };
-    saveUser({ ...user, savingsBalance: (user.savingsBalance || 0) - amount, deposits: [...(user.deposits || []), newDep] });
-    return true;
+    
+    try {
+      const res = await api.post('/account/deposit', { type, amount, durationYears });
+      if (res.data.success) {
+        saveUser(res.data.data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to create deposit', error);
+      return false;
+    }
   };
 
   const applyForLoan = async (type: Loan['type'], amount: number, tenureMonths: number): Promise<boolean> => {
@@ -302,6 +350,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{
       user,
+      token,
       isAuthenticated,
       login,
       googleLogin,

@@ -18,11 +18,17 @@ const UserSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: [true, 'Please add a phone number']
+    required: [
+      function() { return this.provider !== 'google'; },
+      'Please add a phone number'
+    ]
   },
   password: {
     type: String,
-    required: [true, 'Please add a password'],
+    required: [
+      function() { return this.provider !== 'google'; },
+      'Please add a password'
+    ],
     minlength: 6,
     select: false
   },
@@ -44,8 +50,45 @@ const UserSchema = new mongoose.Schema({
   address: String,
   dob: String,
 
+  // New fields for real-world banking flow
+  customerId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  isKycVerified: {
+    type: Boolean,
+    default: false
+  },
+  panNumber: String,
+  aadharNumber: String,
+  aadharUrl: String,
+  
   memberId: String,
   savingsBalance: { type: Number, default: 0 },
+  fdBalance: { type: Number, default: 0 },
+  rdBalance: { type: Number, default: 0 },
+  deposits: [{
+    id: String,
+    type: { type: String, enum: ['Savings', 'Fixed', 'Recurring', 'Daily'] },
+    amount: Number,
+    rate: Number,
+    date: String,
+    maturityDate: String,
+    status: String,
+    accruedInterest: Number
+  }],
+  loans: [{
+    id: String,
+    type: String,
+    amount: Number,
+    outstanding: Number,
+    rate: Number,
+    tenureMonths: Number,
+    emi: Number,
+    nextPaymentDate: String,
+    paidEmis: Number
+  }],
   membershipStatus: {
     type: String,
     enum: ['none', 'pending', 'approved', 'rejected'],

@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Account = require('../models/Account');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
@@ -119,8 +120,14 @@ const loginUser = async (req, res, next) => {
 // @access  Private
 const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).lean();
+    const account = await Account.findOne({ userId: req.user.id }).lean();
     
+    if (account) {
+      user.accountNumber = account.accountNumber;
+      user.ifscCode = 'ODIY0001234';
+    }
+
     res.status(200).json({
       success: true,
       data: user,
@@ -227,9 +234,14 @@ const googleLogin = async (req, res, next) => {
     let user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'Account not found. Please register an account first before using Google Login.'
+      // Auto register the user via Google
+      const memberId = await getNextMemberId();
+      user = await User.create({
+        fullName: name || 'Google User',
+        email: cleanEmail,
+        provider: 'google',
+        memberId,
+        role: 'customer'
       });
     } else {
       // If user exists but was registered locally, we can optionally link them or just login

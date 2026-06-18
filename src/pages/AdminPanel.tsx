@@ -63,7 +63,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   // Tab State: matching all 14 specified modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
+    'dashboard' | 'applications' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -93,6 +93,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [messages, setMessages] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [memberships, setMemberships] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
 
   // Announcements States
   const announcements = systemSettings?.announcements?.length > 0 ? systemSettings.announcements : [
@@ -148,6 +149,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     loadCmsState();
     loadAuditLogs();
     fetchMemberships();
+    fetchApplications();
   }, []);
 
   const fetchMemberships = async () => {
@@ -158,6 +160,35 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
       }
     } catch (err) {
       console.error('Failed to fetch memberships', err);
+    }
+  };
+
+  const fetchApplications = async () => {
+    try {
+      const res = await api.get('/applications');
+      if (res.data.success) {
+        setApplications(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch applications', err);
+    }
+  };
+
+  const handleApplicationStatusChange = async (appId: string, status: string) => {
+    setActionLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await api.put(`/applications/${appId}/status`, { status });
+      if (res.data.success) {
+        setSuccess(`Account application ${status}`);
+        addAuditLog(`Updated account application status to ${status} for ID ${appId}`);
+        fetchApplications();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update application status');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -555,6 +586,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   // Sidebar list matching all 14 requested items
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'applications', label: 'Account Applications', icon: Briefcase },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'memberships', label: 'Memberships', icon: ShieldCheck },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
@@ -863,6 +895,104 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                   </button>
                                   <button
                                     onClick={() => handleMembershipStatusChange(m._id, 'rejected')}
+                                    disabled={actionLoading}
+                                    className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-colors border border-rose-200"
+                                    title="Reject"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-slate-400 font-semibold">Processed</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================== */}
+            {/* TAB: ACCOUNT APPLICATIONS */}
+            {/* ========================================== */}
+            {activeTab === 'applications' && (
+              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 uppercase">Account Applications</h2>
+                    <p className="text-xs text-slate-400 font-bold mt-1">Review, approve, or reject new bank account requests.</p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                        <th className="p-4 rounded-l-xl">Applicant</th>
+                        <th className="p-4">Account Type</th>
+                        <th className="p-4">Aadhar & PAN</th>
+                        <th className="p-4">Aadhar Document</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-center rounded-r-xl">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {applications.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
+                            No account applications found.
+                          </td>
+                        </tr>
+                      ) : (
+                        applications.map((app: any) => (
+                          <tr key={app._id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-bold">
+                                  {app.nameAsAadhar.charAt(0)}
+                                </div>
+                                <div>
+                                  <p className="font-bold text-slate-900">{app.nameAsAadhar}</p>
+                                  <p className="text-[10px] text-slate-500">{app.userId?.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 text-xs font-semibold text-slate-800">
+                              {app.accountType}
+                            </td>
+                            <td className="p-4 text-xs">
+                              <p className="font-semibold text-slate-800">Aadhar: {app.aadharNumber}</p>
+                              <p className="font-semibold text-slate-800">PAN: {app.panNumber}</p>
+                            </td>
+                            <td className="p-4 text-xs font-medium text-slate-600">
+                              <a href={app.aadharDocumentUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                                <Eye className="h-4 w-4" /> View Aadhar
+                              </a>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                                  app.status === 'Rejected' ? 'bg-rose-100 text-rose-700' :
+                                    'bg-blue-100 text-blue-700'
+                                }`}>
+                                {app.status}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              {app.status === 'Pending' ? (
+                                <div className="flex justify-center gap-2">
+                                  <button
+                                    onClick={() => handleApplicationStatusChange(app._id, 'Approved')}
+                                    disabled={actionLoading}
+                                    className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition-colors border border-emerald-200"
+                                    title="Approve"
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleApplicationStatusChange(app._id, 'Rejected')}
                                     disabled={actionLoading}
                                     className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-colors border border-rose-200"
                                     title="Reject"

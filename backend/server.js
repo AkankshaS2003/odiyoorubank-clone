@@ -28,6 +28,9 @@ app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/chat', require('./routes/ragRoutes'));
 app.use('/api/branches', require('./routes/branchRoutes'));
+app.use('/api/applications', require('./routes/applicationRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
+app.use('/api/memberships', require('./routes/membershipRoutes'));
 
 // Error handler middleware
 app.use(errorHandler);
