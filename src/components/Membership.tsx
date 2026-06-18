@@ -105,7 +105,7 @@ export const Membership: React.FC<MembershipProps> = ({ setCurrentTab }) => {
           </div>
         </div>
       </div>
-      <MembershipModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <MembershipModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} setCurrentTab={setCurrentTab} />
     </section>
   );
 };

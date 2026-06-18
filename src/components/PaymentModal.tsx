@@ -16,14 +16,21 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ amount, type, onClos
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [currentAmount, setCurrentAmount] = useState<number | ''>(amount);
 
   const handlePayment = async () => {
+    if (type === 'Initial Deposit' && (!currentAmount || currentAmount < 500)) {
+      setError('Minimum deposit amount is ₹500');
+      return;
+    }
+    const finalAmount = type === 'Initial Deposit' ? Number(currentAmount) : amount;
+
     setLoading(true);
     setError('');
     
     try {
       // Mock Create Order
-      const orderRes = await api.post('/payments/create-order', { amount, type }, {
+      const orderRes = await api.post('/payments/create-order', { amount: finalAmount, type }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -38,7 +45,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ amount, type, onClos
           const verifyRes = await api.post('/payments/verify', {
             razorpayOrderId: orderRes.data.data.id,
             razorpayPaymentId: 'pay_' + Math.random().toString(36).substring(7),
-            amount,
+            amount: finalAmount,
             type
           }, {
             headers: { Authorization: `Bearer ${token}` }
@@ -97,7 +104,19 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ amount, type, onClos
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-slate-200">
                 <span className="text-sm text-slate-500 font-medium">Total Amount</span>
-                <span className="text-2xl font-black text-[#ED7F1E]">₹{amount.toLocaleString('en-IN')}</span>
+                {type === 'Initial Deposit' ? (
+                  <div className="flex items-center text-2xl font-black text-[#ED7F1E]">
+                    ₹<input 
+                      type="number" 
+                      value={currentAmount} 
+                      onChange={(e) => setCurrentAmount(e.target.value ? Number(e.target.value) : '')}
+                      className="w-24 bg-transparent outline-none text-right ml-1 border-b border-[#ED7F1E] focus:border-[#ED7F1E]"
+                      min="500"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-2xl font-black text-[#ED7F1E]">₹{amount.toLocaleString('en-IN')}</span>
+                )}
               </div>
             </div>
 
@@ -119,7 +138,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ amount, type, onClos
                   <span>Processing...</span>
                 </>
               ) : (
-                <span>Pay ₹{amount} Now</span>
+                <span>Pay ₹{type === 'Initial Deposit' ? currentAmount : amount} Now</span>
               )}
             </button>
             <p className="text-center text-[10px] text-slate-400 mt-4 uppercase tracking-widest font-bold">

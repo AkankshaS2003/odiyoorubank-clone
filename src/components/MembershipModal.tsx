@@ -7,9 +7,10 @@ import { MembershipCard } from './MembershipCard';
 interface MembershipModalProps {
   isOpen: boolean;
   onClose: () => void;
+  setCurrentTab?: (tab: string) => void;
 }
 
-export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClose }) => {
+export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClose, setCurrentTab }) => {
   const { user, becomeMember } = useAuth();
   const [address, setAddress] = useState(user?.address || '');
   const [dob, setDob] = useState(user?.dob || '');
@@ -109,7 +110,28 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
           </div>
 
           <div className="p-6 md:p-8">
-            {isSubmitted ? (
+            {user.membershipStatus === 'approved' ? (
+              <div className="flex flex-col items-center py-4">
+                <div className="w-full max-w-md mb-8 text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full mb-4">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Your application is approved</h3>
+                  <p className="text-sm text-slate-500 mb-6">You are now an official shareholder. You can access your digital membership card from your dashboard.</p>
+                  <button
+                    onClick={() => {
+                      if (setCurrentTab) {
+                        setCurrentTab('dashboard');
+                      }
+                      onClose();
+                    }}
+                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg transition-colors"
+                  >
+                    Visit Dashboard
+                  </button>
+                </div>
+              </div>
+            ) : isSubmitted ? (
               <div className="flex flex-col items-center py-4">
                 <div className="w-full max-w-md mb-8 text-center">
                   <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-full mb-4">
@@ -122,24 +144,6 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Name */}
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Full Name</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <UserIcon className="h-5 w-5 text-slate-400" />
-                      </div>
-                      <input
-                        type="text"
-                        required
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Enter your full name"
-                        className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 text-slate-900 rounded-xl font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-
                   {/* Customer ID */}
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Customer ID</label>
@@ -169,6 +173,25 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
 
                   {isVerified && (
                     <>
+                      {/* Name */}
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Full Name</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <UserIcon className="h-5 w-5 text-slate-400" />
+                          </div>
+                          <input
+                            type="text"
+                            required
+                            readOnly
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="Enter your full name"
+                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl font-medium outline-none cursor-not-allowed"
+                          />
+                        </div>
+                      </div>
+
                       {/* Account Number */}
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Account Number</label>
