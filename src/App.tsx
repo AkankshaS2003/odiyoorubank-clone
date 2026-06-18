@@ -18,6 +18,8 @@ import { AdminPanel } from './pages/AdminPanel';
 import { BranchesPage } from './pages/BranchesPage';
 import Breadcrumbs from './components/Breadcrumbs';
 import { AccountApplication } from './pages/AccountApplication';
+import { DepositApplication } from './pages/DepositApplication';
+
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const [history, setHistory] = useState<string[]>(['home']);
@@ -43,7 +45,7 @@ const AppContent: React.FC = () => {
     let tabToRender = currentTab;
     let showLoginModal = false;
 
-    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account') && !isAuthenticated) {
+    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'apply-deposit') && !isAuthenticated) {
       showLoginModal = true;
       tabToRender = 'home';
     } else if (tabToRender === 'login') {
@@ -58,7 +60,7 @@ const AppContent: React.FC = () => {
         case 'dashboard':
           return <Dashboard setCurrentTab={setCurrentTab} />;
         case 'products':
-          return <ProductsPage />;
+          return <ProductsPage setCurrentTab={setCurrentTab} />;
         case 'membership':
           return <MembershipPage setCurrentTab={setCurrentTab} />;
         case 'contact':
@@ -84,6 +86,11 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />; // Modal logic will catch this before
           }
           return <AccountApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-deposit':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <DepositApplication setCurrentTab={setCurrentTab} />;
         default:
           return <Home setCurrentTab={setCurrentTab} />;
       }

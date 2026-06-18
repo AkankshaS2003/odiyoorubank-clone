@@ -12,7 +12,7 @@ export interface ProductItem {
   benefits: string[];
 }
 
-export const Products: React.FC = () => {
+export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ setCurrentTab }) => {
   const { user, isAuthenticated, openNewDeposit, applyForLoan, systemSettings } = useAuth();
   const [activeTab, setActiveTab] = useState<'deposit' | 'loan'>('deposit');
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
@@ -49,31 +49,6 @@ export const Products: React.FC = () => {
       description: "Develop a regular saving habit by investing a fixed amount every month with higher cooperative interest.",
       interestRate: `Up to ${systemSettings?.rdRate || 7.75}% p.a.`,
       benefits: ['Flexible monthly contributions', 'Compounded quarterly interest', 'Auto-debit from savings']
-    },
-    {
-      id: 'prod-daily',
-      name: "Daily Deposit",
-      category: 'deposit',
-      description: "Ideal scheme for micro-merchants and small businesses. Daily collections collected directly from your storefront.",
-      interestRate: '3.00% to 3.50% p.a.',
-      benefits: ['Daily threshold as low as ₹50', 'Doorstep collector agent facility', 'No penalty on early withdrawal']
-    },
-    {
-      id: 'prod-mis',
-      name: "Monthly Income Scheme",
-      category: 'deposit',
-      description: "Deposit a lump sum and receive fixed monthly interest payouts straight to your savings account.",
-      interestRate: '8.00% p.a.',
-      benefits: ['Guaranteed steady monthly cash flows', '5 Years lock-in tenure', 'Automatic monthly disburser transfers']
-    },
-    {
-      id: 'prod-share',
-      name: "Share Capital",
-      category: 'deposit',
-      description: "Invest in the capital shares of our society, earn annual dividends, and gain legal voting rights.",
-      interestRate: 'Variable Dividend',
-      badge: 'Legal Stakeholder',
-      benefits: ['Legal co-ownership and voting power', 'Pro-rata annual dividend payouts', 'Priority queue at branch locations']
     }
   ];
 
@@ -147,6 +122,10 @@ export const Products: React.FC = () => {
   const activeProducts = activeTab === 'deposit' ? depositProducts : loanProducts;
 
   const handleApplyClick = (product: ProductItem) => {
+    if (setCurrentTab && (product.id === 'prod-fixed' || product.id === 'prod-recurring')) {
+      setCurrentTab('apply-deposit');
+      return;
+    }
     setSelectedProduct(product);
     setApplyAmount(product.category === 'deposit' ? 25000 : 100000);
     setApplyDuration(product.category === 'deposit' ? 3 : 24); // years for deposits, months for loans
@@ -401,6 +380,18 @@ export const Products: React.FC = () => {
                   <Landmark className="h-5 w-5" />
                   <span>Confirm Account Opening</span>
                 </button>
+
+                {selectedProduct.category === 'deposit' && setCurrentTab && (
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentTab('apply-deposit')}
+                      className="text-xs font-bold text-primary hover:text-primary-dark underline"
+                    >
+                      Or fill out the Detailed Physical Deposit Application Form
+                    </button>
+                  </div>
+                )}
               </form>
             )}
 
