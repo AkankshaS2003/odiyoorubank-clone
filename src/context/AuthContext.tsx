@@ -87,6 +87,10 @@ interface AuthContextType {
   becomeMember: (address: string, dob: string) => Promise<boolean>;
   systemSettings: SystemSettings;
   updateSystemSettings: (newSettings: Partial<SystemSettings>) => Promise<boolean>;
+  submitServiceApplication: (applicationType: string, formData: any, images: any) => Promise<boolean>;
+  getUserServiceApplications: () => Promise<any[]>;
+  getAllServiceApplications: () => Promise<any[]>;
+  updateServiceApplicationStatus: (id: string, status: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -347,6 +351,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const submitServiceApplication = async (applicationType: string, formData: any, images: any): Promise<boolean> => {
+    try {
+      const res = await api.post('/service-applications', { applicationType, formData, images });
+      return res.data.success;
+    } catch (error) {
+      console.error('Failed to submit application', error);
+      return false;
+    }
+  };
+
+  const getUserServiceApplications = async (): Promise<any[]> => {
+    try {
+      const res = await api.get('/service-applications/my');
+      return res.data.success ? res.data.data : [];
+    } catch (error) {
+      console.error('Failed to get user applications', error);
+      return [];
+    }
+  };
+
+  const getAllServiceApplications = async (): Promise<any[]> => {
+    try {
+      const res = await api.get('/service-applications');
+      return res.data.success ? res.data.data : [];
+    } catch (error) {
+      console.error('Failed to get all applications', error);
+      return [];
+    }
+  };
+
+  const updateServiceApplicationStatus = async (id: string, status: string): Promise<boolean> => {
+    try {
+      const res = await api.put(`/service-applications/${id}/status`, { status });
+      return res.data.success;
+    } catch (error) {
+      console.error('Failed to update application status', error);
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -365,7 +409,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addSavingsMoney,
       becomeMember,
       systemSettings,
-      updateSystemSettings
+      updateSystemSettings,
+      submitServiceApplication,
+      getUserServiceApplications,
+      getAllServiceApplications,
+      updateServiceApplicationStatus
     }}>
       {children}
     </AuthContext.Provider>

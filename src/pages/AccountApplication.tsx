@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, AlertCircle, Upload, Save, FileDown, Send, ChevronRight, ChevronLeft, UserCircle2 } from 'lucide-react';
+import { Upload, ChevronRight, ChevronLeft, Save, FileDown, CheckCircle, Send, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { PaymentGatewayModal } from '../components/PaymentGatewayModal';
 
 interface AccountApplicationProps {
   setCurrentTab: (tab: string) => void;
@@ -50,6 +51,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
+  const [showPaymentGateway, setShowPaymentGateway] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const defaultFormData = {
@@ -94,6 +96,8 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     introducerAccountNumber: '',
     introducerBranch: '',
     introducerContactNumber: '',
+    
+    initialDepositAmount: '500'
   };
 
   const [formData, setFormData] = useState(defaultFormData);
@@ -202,15 +206,11 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       if (!formData.guardianAddress) newErrors.guardianAddress = 'Required';
     }
 
-    if (!formData.witnessName) newErrors.witnessName = 'Required';
-    if (!formData.witnessAddress) newErrors.witnessAddress = 'Required';
-    if (!uploads.witnessSignature) newErrors.witnessSignature = 'Signature required';
+    // Removed witness and introducer validations
 
-    if (!formData.introducerName) newErrors.introducerName = 'Required';
-    if (!formData.introducerAccountNumber) newErrors.introducerAccountNumber = 'Required';
-    if (!formData.introducerBranch) newErrors.introducerBranch = 'Required';
-    if (!formData.introducerContactNumber) newErrors.introducerContactNumber = 'Required';
-    if (!uploads.introducerSignature) newErrors.introducerSignature = 'Signature required';
+    if (!formData.initialDepositAmount || Number(formData.initialDepositAmount) < 500) {
+      newErrors.initialDepositAmount = 'Minimum ₹500 is required';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -235,20 +235,24 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 3) {
-      localStorage.removeItem('odiyooru_account_draft');
-      setSuccess(true);
+      setShowPaymentGateway(true);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    localStorage.removeItem('odiyooru_account_draft');
+    setSuccess(true);
   };
 
   if (success) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center px-4">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-3xl shadow-xl p-8 max-w-lg w-full text-center border border-gray-100">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-3xl shadow-xl p-8 max-w-lg w-full text-center border border-gray-300">
           <div className="w-20 h-20 bg-[#EAF6FF] rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-10 h-10 text-[#0F4C81]" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h2>
-          <p className="text-gray-500 mb-8 text-sm">Your Account Opening Form has been successfully securely transmitted to ODIYOORU CREDIT CO-OPERATIVE SOCIETY LTD. You will receive an SMS confirmation shortly.</p>
+          <p className="text-gray-500 mb-8 text-sm">Your Account Opening Form has been successfully securely transmitted to ODIYOORU SOUHARDA COOPERATIVE SOCIETY LTD You will receive an SMS confirmation shortly.</p>
           <button onClick={() => setCurrentTab('dashboard')} className="px-8 py-3 bg-[#0F4C81] hover:bg-blue-900 text-white font-bold rounded-xl shadow-lg transition-colors">
             Return to Dashboard
           </button>
@@ -259,12 +263,12 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
 
   return (
     <div className="bg-slate-50 min-h-screen py-8 print:py-0 print:bg-white">
+      {showPaymentGateway && <PaymentGatewayModal onClose={() => setShowPaymentGateway(false)} onConfirm={handlePaymentSuccess} amount={Number(formData.initialDepositAmount)} />}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Progress Bar (Hidden on Print) */}
         <div className="mb-8 print:hidden">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-black text-[#0F4C81]">Account Opening Form</h1>
+          <div className="flex justify-end items-center mb-4">
             <div className="flex gap-3">
               <button onClick={handleSaveDraft} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm">
                 <Save className="w-4 h-4" /> Save Draft
@@ -287,25 +291,33 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
           </div>
           <div className="flex justify-between mt-2 text-xs font-bold text-gray-500 px-1">
             <span className={step >= 1 ? 'text-[#0F4C81]' : ''}>Applicant Info</span>
-            <span className={step >= 2 ? 'text-[#0F4C81]' : ''}>Nomination</span>
-            <span className={step >= 3 ? 'text-[#0F4C81]' : ''}>Signatures</span>
+            <span className={step >= 2 ? 'text-[#0F4C81]' : ''}>Nomination & Deposit</span>
+            <span className={step >= 3 ? 'text-[#0F4C81]' : ''}>Confirm & Pay</span>
           </div>
         </div>
 
         {/* Form Container */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-[#0F4C81]/5 border border-gray-100 overflow-hidden print:shadow-none print:border-none print:rounded-none">
+        <div className="bg-white rounded-3xl shadow-xl shadow-[#0F4C81]/5 border border-gray-300 overflow-hidden print:shadow-none print:border-none print:rounded-none">
           
-          {/* Bank Header - Visible on all pages during print, or just top of form */}
-          <div className="bg-[#0F4C81] p-6 text-white text-center print:bg-white print:text-[#0F4C81] print:border-b-2 print:border-[#0F4C81]">
+          <div className="bg-[#ED7F1E] p-6 text-white text-center print:bg-white print:text-[#ED7F1E] print:border-b-2 print:border-[#ED7F1E]">
             <div className="flex items-center justify-between max-w-4xl mx-auto">
-              <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center print:bg-gray-100">
-                <span className="font-bold text-xs tracking-widest opacity-80 print:text-[#0F4C81]">LOGO</span>
-              </div>
-              <div className="text-center flex-grow px-4">
-                <h1 className="text-2xl font-black tracking-wide">ODIYOORU CREDIT CO-OPERATIVE SOCIETY LTD.</h1>
-                <p className="text-[#EAF6FF] text-sm font-medium tracking-widest mt-1 print:text-gray-500">TRUSTED BANKING FOR EVERY FAMILY</p>
-              </div>
-              <div className="text-right text-xs font-medium space-y-1 opacity-90 print:text-gray-800">
+              <div className="w-40 shrink-0 hidden md:block"></div>
+              <div className="flex-grow px-4 text-white print:text-[#ED7F1E]">
+              <div className="flex items-center justify-center space-x-3 md:space-x-4 mx-auto">
+                <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain shrink-0" />
+                <div className="leading-tight text-left">
+                  <span className="text-xl md:text-2xl font-black tracking-tight uppercase block leading-none font-heading">
+                    Odiyooru Souharda
+                  </span>
+                  <span className="text-sm md:text-base font-bold uppercase tracking-widest leading-none block mt-1">
+                    Cooperative Society Ltd
+                  </span>
+                  <span className="text-[10px] md:text-xs font-bold block mt-1 font-mono leading-none">
+                    DRP:S.9:88:RGN:520:2010-11
+                  </span>
+                </div>
+              </div></div>
+              <div className="text-right text-xs font-medium space-y-1 w-40 shrink-0 opacity-90 print:text-gray-800">
                 <div className="flex items-center gap-2 justify-end"><span className="opacity-70">Branch:</span> <input type="text" name="branch" value={formData.branch} onChange={handleChange} className="bg-transparent border-b border-white/30 outline-none w-24 text-right print:border-gray-300 print:text-gray-900" placeholder="Branch Name"/></div>
                 <div>Customer ID: <span className="font-mono bg-white/10 px-2 py-0.5 rounded print:bg-gray-100">{user?.customerId || 'UNASSIGNED'}</span></div>
                 <div>Account No: <span className="font-mono bg-white/10 px-2 py-0.5 rounded print:bg-gray-100">__ __ __ __ __</span></div>
@@ -360,7 +372,6 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                   </div>
                 </div>
 
-                {/* Photo & Sig */}
                 <div className="w-full md:w-48 shrink-0 flex flex-col gap-4 print:hidden">
                   <div className="h-48 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative">
                     <div className="absolute inset-0 flex items-center justify-center p-4">
@@ -373,14 +384,12 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                     </div>
                   </div>
                 </div>
-                {/* Print layout boxes for photo/sig */}
                 <div className="hidden print:flex flex-col gap-4 w-32 shrink-0">
                   <div className="h-40 border-2 border-gray-400 flex items-center justify-center text-xs text-gray-400 text-center p-2">Affix Recent Passport Size Photo</div>
                   <div className="h-24 border-2 border-gray-400 flex items-center justify-center text-xs text-gray-400 text-center p-2">Specimen Signature</div>
                 </div>
               </div>
 
-              {/* Joint Applicant Toggle */}
               <div className="mt-8 bg-[#EAF6FF]/50 p-4 rounded-xl border border-[#EAF6FF] print:bg-transparent print:border-gray-200">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" name="hasJointApplicant" checked={formData.hasJointApplicant} onChange={handleChange} className="w-5 h-5 text-[#0F4C81] rounded focus:ring-[#0F4C81]" />
@@ -479,41 +488,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                {/* Witness Details */}
-                <div>
-                  <h3 className="text-sm font-black text-[#0F4C81] uppercase tracking-wider mb-4">Witness Details</h3>
-                  <div className="space-y-4">
-                    <InputField label="Witness Name" name="witnessName"  formData={formData} handleChange={handleChange} error={errors['witnessName']} />
-                    <div>
-                      <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Witness Address</label>
-                      <textarea name="witnessAddress" value={formData.witnessAddress} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white resize-none"></textarea>
-                    </div>
-                    <div className="h-24 rounded-2xl bg-gray-50 border border-gray-200 print:hidden relative"><div className="absolute inset-0 flex items-center justify-center p-4"><FileUploadBox label="Witness Signature" field="witnessSignature"  uploads={uploads} handleFileUpload={handleFileUpload} error={errors['witnessSignature']} /></div></div>
-                    <div className="hidden print:block h-20 border-b-2 border-dashed border-gray-400 mt-8 relative"><span className="absolute bottom-1 left-0 text-xs text-gray-500">Witness Signature</span></div>
-                  </div>
-                </div>
-
-                {/* Introducer Section */}
-                <div>
-                  <h3 className="text-sm font-black text-[#0F4C81] uppercase tracking-wider mb-4">Introduction Section</h3>
-                  <div className="space-y-4 bg-gray-50 p-4 rounded-2xl border border-gray-100 print:bg-transparent print:p-0 print:border-none">
-                    <InputField label="Introducer Name" name="introducerName"  formData={formData} handleChange={handleChange} error={errors['introducerName']} />
-                    <InputField label="Account Number" name="introducerAccountNumber"  formData={formData} handleChange={handleChange} error={errors['introducerAccountNumber']} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <InputField label="Branch" name="introducerBranch"  formData={formData} handleChange={handleChange} error={errors['introducerBranch']} />
-                      <InputField label="Contact Number" name="introducerContactNumber"  formData={formData} handleChange={handleChange} error={errors['introducerContactNumber']} />
-                    </div>
-                    <div className="h-24 rounded-2xl bg-white border border-gray-200 print:hidden relative"><div className="absolute inset-0 flex items-center justify-center p-4"><FileUploadBox label="Introducer Signature" field="introducerSignature"  uploads={uploads} handleFileUpload={handleFileUpload} error={errors['introducerSignature']} /></div></div>
-                    <div className="hidden print:block h-20 border-b-2 border-dashed border-gray-400 mt-8 relative"><span className="absolute bottom-1 left-0 text-xs text-gray-500">Introducer Signature</span></div>
-                  </div>
-                </div>
+                {/* Removed Witness and Introducer Sections */}
               </div>
 
               {/* Declaration Section */}
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 print:bg-transparent print:p-0 print:border-none print:mt-8">
                 <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-3">Declaration</h3>
                 <p className="text-xs text-gray-600 leading-relaxed mb-8 text-justify">
-                  I/We declare that the information provided is true and correct. I/We agree to abide by the rules and regulations of ODIYOORU CREDIT CO-OPERATIVE SOCIETY LTD. governing the account. I/We authorize the society to verify the details and open the account in my/our name(s).
+                  I/We declare that the information provided is true and correct. I/We agree to abide by the rules and regulations of ODIYOORU SOUHARDA COOPERATIVE SOCIETY LTD governing the account. I/We authorize the society to verify the details and open the account in my/our name(s).
                 </p>
                 <div className="flex justify-between items-end gap-8 pt-8">
                   <div className="flex-1 border-t-2 border-gray-400 pt-2 text-center text-xs font-bold text-gray-500">Applicant Signature</div>
@@ -545,7 +527,8 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                     <span className="font-bold text-[8px] tracking-widest opacity-80 print:text-[#0F4C81]">LOGO</span>
                   </div>
                   <div className="flex-grow">
-                    <h2 className="text-lg font-black tracking-widest uppercase">ODIYOORU CREDIT CO-OPERATIVE SOCIETY LTD.</h2>
+                    <h2 className="text-lg font-black tracking-widest uppercase leading-tight text-center">ODIYOORU SOUHARDA<br/>COOPERATIVE SOCIETY LTD</h2>
+                    <p className="text-xs font-bold text-gray-500 mt-1 text-center">DRP:S.9:88:RGN:520:2010-11</p>
                     <p className="text-xs tracking-widest mt-0.5">SPECIMEN SIGNATURE CARD</p>
                   </div>
                 </div>
@@ -608,7 +591,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
             </div>
 
             {/* Navigation Buttons (Hidden on print) */}
-            <div className="mt-10 flex justify-between items-center border-t border-gray-100 pt-6 print:hidden">
+            <div className="mt-10 flex justify-between items-center border-t border-gray-300 pt-6 print:hidden">
               {step > 1 ? (
                 <button type="button" onClick={prevStep} className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors shadow-sm">
                   <ChevronLeft className="w-5 h-5" /> Previous
@@ -629,6 +612,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
           </form>
         </div>
       </div>
+      
+      <PaymentGatewayModal 
+        isOpen={showPaymentGateway}
+        onClose={() => setShowPaymentGateway(false)}
+        amount={Number(formData.initialDepositAmount) || 500}
+        purpose="Initial Account Deposit"
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

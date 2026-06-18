@@ -93,22 +93,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       interestRate: '8.25% p.a.',
       benefits: ['Subsidized rates for cooperative members', 'Long terms up to 20 years', 'Zero prepayment charges']
     },
-    {
-      id: 'prod-old-vehicle',
-      name: "Member's Old Vehicle Loans",
-      category: 'loan',
-      description: "Finance your used vehicle purchase with specialized cooperative rates exclusively for our members.",
-      interestRate: '12.50% p.a.',
-      benefits: ['Up to 70% valuation funding', 'Quick processing time', 'Flexible EMIs']
-    },
-    {
-      id: 'prod-surity',
-      name: "Member's Surity Loans",
-      category: 'loan',
-      description: "Get immediate financial assistance backed by personal surety from fellow cooperative members.",
-      interestRate: '11.00% p.a.',
-      benefits: ['Based on mutual trust', 'Minimal documentation', 'Fast disbursal']
-    },
+
     {
       id: 'prod-mortgage',
       name: "Member's Mortgage Loans",
@@ -116,6 +101,14 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       description: "Unlock the value of your property with our long-term mortgage loans tailored for members.",
       interestRate: '9.50% p.a.',
       benefits: ['High loan-to-value ratio', 'Extended repayment periods', 'Transparent processing']
+    },
+    {
+      id: 'prod-agriculture',
+      name: "Agricultural Loan",
+      category: 'loan',
+      description: "Financial support for crop cultivation, farm development, and irrigation tailored for our farmer members.",
+      interestRate: '8.50% p.a.',
+      benefits: ['Flexible repayment linked to harvest', 'Subsidized interest for prompt payment', 'Minimal processing fee']
     }
   ];
 
@@ -124,6 +117,34 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
   const handleApplyClick = (product: ProductItem) => {
     if (setCurrentTab && (product.id === 'prod-fixed' || product.id === 'prod-recurring')) {
       setCurrentTab('apply-deposit');
+      return;
+    }
+    if (setCurrentTab && product.id === 'prod-gold') {
+      setCurrentTab('apply-gold-loan');
+      return;
+    }
+    if (setCurrentTab && product.id === 'prod-vehicle') {
+      setCurrentTab('apply-vehicle-loan');
+      return;
+    }
+    if (setCurrentTab && product.id === 'prod-education') {
+      setCurrentTab('apply-educational-loan');
+      return;
+    }
+    if (setCurrentTab && product.id === 'prod-personal') {
+      setCurrentTab('apply-personal-loan');
+      return;
+    }
+    if (setCurrentTab && product.id === 'prod-housing') {
+      setCurrentTab('apply-housing-loan');
+      return;
+    }
+    if (setCurrentTab && product.id === 'prod-mortgage') {
+      setCurrentTab('apply-mortgage-loan');
+      return;
+    }
+    if (setCurrentTab && product.id === 'prod-agriculture') {
+      setCurrentTab('apply-agricultural-loan');
       return;
     }
     setSelectedProduct(product);

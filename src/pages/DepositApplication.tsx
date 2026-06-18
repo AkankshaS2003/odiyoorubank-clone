@@ -15,7 +15,7 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-slate-800 bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent"
+      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent"
     />
   </div>
 );
@@ -33,10 +33,20 @@ const CheckboxField = ({ label, name, checked, onChange }: any) => (
   </label>
 );
 
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
+
 export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurrentTab }) => {
-  const { user, openNewDeposit } = useAuth();
+  const { user, openNewDeposit, submitServiceApplication } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     depositType: '', // FD, RD, Cash Certificate
@@ -123,17 +133,30 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
     }
     
     setIsSubmitting(true);
-    // Simulate network delay / backend submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    
+    let signatureBase64 = '';
+    if (signatureFile) {
+      try {
+        signatureBase64 = await fileToBase64(signatureFile);
+      } catch (err) {
+        console.error('Failed to convert signature', err);
+      }
+    }
+
+    const res = await submitServiceApplication(formData.depositType, formData, { signature: signatureBase64 });
+    setIsSubmitting(false);
+    
+    if (res) {
       setSuccess(true);
-    }, 1500);
+    } else {
+      alert("Failed to submit application. Please try again.");
+    }
   };
 
   if (success) {
     return (
       <div className="bg-slate-50 min-h-[80vh] flex items-center justify-center p-4">
-        <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-100 max-w-lg w-full text-center animate-scale-up">
+        <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-300 max-w-lg w-full text-center animate-scale-up">
           <div className="mx-auto h-20 w-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
             <FileCheck className="h-10 w-10" />
           </div>
@@ -174,24 +197,34 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
       <div className="max-w-[850px] mx-auto px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none">
         
         {/* Controls */}
-        <div className="flex justify-between items-center mb-6 print:hidden">
-          <h1 className="text-2xl font-black text-[#0F4C81]">Fixed/Recurring Deposit Application</h1>
+        <div className="flex justify-end items-center mb-6 print:hidden">
           <button onClick={handlePrint} className="flex items-center gap-2 px-5 py-2.5 bg-[#0F4C81] text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-colors shadow-lg shadow-[#0F4C81]/20">
             <Printer className="w-4 h-4" /> Print Form
           </button>
         </div>
 
         {/* Paper Document Container */}
-        <div className="bg-white p-8 md:p-12 shadow-2xl shadow-slate-200 border border-slate-100 print:shadow-none print:border-none print:p-2">
+        <div className="bg-white p-8 md:p-12 shadow-2xl shadow-slate-200 border border-slate-300 print:shadow-none print:border-none print:p-2">
           
           {/* HEADER SECTION */}
           <div className="flex items-start justify-between border-b-2 border-[#0F4C81] pb-4 mb-6">
-            <div className="text-center flex-grow px-4">
-              <h1 className="text-xl md:text-2xl font-black tracking-wider text-[#0F4C81] uppercase">ODIYOORU CREDIT CO-OPERATIVE SOCIETY LTD.</h1>
-              <p className="text-[#0F4C81]/80 text-[10px] font-bold tracking-widest mt-1">TRUSTED BANKING FOR EVERY FAMILY</p>
-              <h2 className="mt-3 inline-block bg-[#0F4C81] text-white px-4 py-1 rounded text-sm font-bold tracking-widest uppercase print:border print:border-[#0F4C81] print:text-[#0F4C81] print:bg-white">Application Form for Deposit</h2>
-            </div>
-            <div className="text-right text-[10px] font-bold space-y-2 w-40 shrink-0">
+            <div className="w-40 shrink-0 hidden md:block"></div>
+            <div className="flex-grow px-4 text-[#ED7F1E]">
+              <div className="flex items-center justify-center space-x-3 md:space-x-4 mx-auto">
+                <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain shrink-0" />
+                <div className="leading-tight text-left">
+                  <span className="text-xl md:text-2xl font-black tracking-tight uppercase block leading-none font-heading">
+                    Odiyooru Souharda
+                  </span>
+                  <span className="text-sm md:text-base font-bold uppercase tracking-widest leading-none block mt-1">
+                    Cooperative Society Ltd
+                  </span>
+                  <span className="text-[10px] md:text-xs font-bold block mt-1 font-mono leading-none">
+                    DRP:S.9:88:RGN:520:2010-11
+                  </span>
+                </div>
+              </div></div>
+              <div className="text-right text-[10px] font-bold space-y-2 w-40 shrink-0">
               <div className="flex justify-end items-center gap-2"><span>Branch:</span> <input type="text" value="Main Branch" readOnly className="w-24 border-b border-slate-400 outline-none print:border-slate-800 bg-transparent text-right text-slate-600"/></div>
               <div className="flex justify-end items-center gap-2"><span>A/C No:</span> <input type="text" value={user?.accountNumber || 'Not Assigned'} readOnly className="w-24 border-b border-slate-400 outline-none print:border-slate-800 bg-transparent text-right text-slate-600"/></div>
               <div className="flex justify-end items-center gap-2"><span>Cust ID:</span> <input type="text" value={user?.customerId || ''} readOnly className="w-24 border-b border-slate-400 outline-none print:border-slate-800 bg-transparent text-right text-slate-600"/></div>
@@ -340,7 +373,7 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
               <div className="flex justify-end gap-8 mt-6">
                 <div className="w-full max-w-[320px] text-left">
                   <label className="block text-[10px] font-bold text-[#0F4C81] mb-2 uppercase tracking-wider">Upload Digital Signature (Required)</label>
-                  <input type="file" accept="image/*" className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#EAF6FF] file:text-[#0F4C81] hover:file:bg-[#d6efff] transition-all cursor-pointer"/>
+                  <input type="file" accept="image/*" onChange={e => setSignatureFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#EAF6FF] file:text-[#0F4C81] hover:file:bg-[#d6efff] transition-all cursor-pointer"/>
                 </div>
               </div>
             </div>

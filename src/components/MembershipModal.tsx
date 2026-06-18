@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShieldCheck, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MembershipCard } from './MembershipCard';
+import { PaymentGatewayModal } from './PaymentGatewayModal';
 
 interface MembershipModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const [hasPrefilledAddress, setHasPrefilledAddress] = useState(false);
   const [hasPrefilledDob, setHasPrefilledDob] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(user?.membershipStatus === 'pending');
+  const [showPaymentGateway, setShowPaymentGateway] = useState(false);
 
   React.useEffect(() => {
     if (isOpen && user?.membershipStatus === 'pending') {
@@ -67,9 +69,13 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isVerified && address && dob) {
-      becomeMember(address, dob);
-      setIsSubmitted(true);
+      setShowPaymentGateway(true);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    becomeMember(address, dob);
+    setIsSubmitted(true);
   };
 
   return (
@@ -243,13 +249,21 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                   disabled={!isVerified}
                   className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Apply for Membership Card
+                  Pay ₹200 & Apply for Membership
                 </button>
               </form>
             )}
           </div>
         </motion.div>
       </motion.div>
+      
+      <PaymentGatewayModal 
+        isOpen={showPaymentGateway}
+        onClose={() => setShowPaymentGateway(false)}
+        amount={200}
+        purpose="Membership Application Fee"
+        onSuccess={handlePaymentSuccess}
+      />
     </AnimatePresence>
   );
 };

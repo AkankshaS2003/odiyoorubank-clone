@@ -63,7 +63,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   // Tab State: matching all 14 specified modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'applications' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
+    'dashboard' | 'applications' | 'service_applications' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -94,6 +94,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [memberships, setMemberships] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
+  const [serviceApplications, setServiceApplications] = useState<any[]>([]);
+  const [selectedServiceApp, setSelectedServiceApp] = useState<any>(null);
 
   // Announcements States
   const announcements = systemSettings?.announcements?.length > 0 ? systemSettings.announcements : [
@@ -150,7 +152,38 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     loadAuditLogs();
     fetchMemberships();
     fetchApplications();
+    fetchServiceApplications();
   }, []);
+
+  const fetchServiceApplications = async () => {
+    try {
+      const res = await api.get('/service-applications');
+      if (res.data.success) {
+        setServiceApplications(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch service applications', err);
+    }
+  };
+
+  const handleServiceApplicationStatusChange = async (appId: string, status: string) => {
+    setActionLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await api.put(`/service-applications/${appId}/status`, { status });
+      if (res.data.success) {
+        setSuccess(`Service application ${status}`);
+        addAuditLog(`Updated service application status to ${status} for ID ${appId}`);
+        fetchServiceApplications();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update service application status');
+    } finally {
+      setActionLoading(false);
+      setSelectedServiceApp(null);
+    }
+  };
 
   const fetchMemberships = async () => {
     try {
@@ -587,6 +620,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'applications', label: 'Account Applications', icon: Briefcase },
+    { id: 'service_applications', label: 'Loan & Deposit Apps', icon: FileText },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'memberships', label: 'Memberships', icon: ShieldCheck },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
@@ -896,10 +930,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                   <button
                                     onClick={() => handleMembershipStatusChange(m._id, 'rejected')}
                                     disabled={actionLoading}
-                                    className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-colors border border-rose-200"
-                                    title="Reject"
+                                    className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-colors border border-rose-200 font-bold text-xs"
+                                    title="Disapprove"
                                   >
-                                    <X className="h-4 w-4" />
+                                    Disapprove
                                   </button>
                                 </div>
                               ) : (
@@ -1003,6 +1037,74 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               ) : (
                                 <span className="text-xs text-slate-400 font-semibold">Processed</span>
                               )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================== */}
+            {/* TAB: SERVICE APPLICATIONS */}
+            {/* ========================================== */}
+            {activeTab === 'service_applications' && (
+              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 uppercase">Loan & Deposit Applications</h2>
+                    <p className="text-xs text-slate-400 font-bold mt-1">Review complex Gold Loan and FD/RD application forms.</p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                        <th className="p-4 rounded-l-xl">User</th>
+                        <th className="p-4">Type</th>
+                        <th className="p-4">Date Submitted</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-center rounded-r-xl">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {serviceApplications.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
+                            No service applications found.
+                          </td>
+                        </tr>
+                      ) : (
+                        serviceApplications.map((app: any) => (
+                          <tr key={app._id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-4">
+                              <p className="font-bold text-slate-900">{app.userId?.fullName || 'Unknown'}</p>
+                              <p className="text-[10px] text-slate-500">{app.userId?.email || ''}</p>
+                            </td>
+                            <td className="p-4 text-xs font-semibold text-slate-800">
+                              {app.applicationType}
+                            </td>
+                            <td className="p-4 text-xs text-slate-600">
+                              {new Date(app.submittedAt).toLocaleDateString()}
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                                  app.status === 'Rejected' ? 'bg-rose-100 text-rose-700' :
+                                    'bg-blue-100 text-blue-700'
+                                }`}>
+                                {app.status}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() => setSelectedServiceApp(app)}
+                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors"
+                              >
+                                View Details
+                              </button>
                             </td>
                           </tr>
                         ))
@@ -2094,6 +2196,85 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 {actionLoading ? 'Saving...' : 'Register Branch'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {selectedServiceApp && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 flex justify-center items-start">
+          <div className="bg-white w-full max-w-4xl mt-10 mb-10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50 shrink-0">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-wider">{selectedServiceApp.applicationType} Application</h3>
+                <p className="text-xs text-slate-500 font-bold mt-1">Submitted on {new Date(selectedServiceApp.submittedAt).toLocaleString()}</p>
+              </div>
+              <button onClick={() => setSelectedServiceApp(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-8 flex-grow">
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                <h4 className="font-bold text-blue-900 text-sm mb-3 border-b border-blue-200 pb-2">Form Data Fields</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(selectedServiceApp.formData).map(([key, value]: any) => (
+                    <div key={key} className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      <span className="text-sm font-semibold text-slate-800 break-words">
+                        {typeof value === 'object' ? JSON.stringify(value) : (value?.toString() || '-')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {selectedServiceApp.images && Object.keys(selectedServiceApp.images).length > 0 && (
+                <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                  <h4 className="font-bold text-slate-800 text-sm mb-4 border-b border-slate-200 pb-2">Attached Documents & Signatures</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {Object.entries(selectedServiceApp.images).map(([key, base64Url]: any) => (
+                      <div key={key} className="flex flex-col items-center p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                        <span className="text-xs uppercase font-bold text-slate-600 tracking-wider mb-3 w-full text-center border-b border-slate-100 pb-2">{key}</span>
+                        {base64Url.startsWith('data:image') ? (
+                          <img src={base64Url} alt={key} className="max-w-full h-auto max-h-48 object-contain rounded" />
+                        ) : base64Url.startsWith('data:application/pdf') ? (
+                          <a href={base64Url} download={`${key}.pdf`} className="text-blue-600 hover:underline font-bold text-sm flex items-center gap-2">
+                            <FileText className="w-5 h-5" /> Download PDF
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400">Unsupported format</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-4 shrink-0">
+              {selectedServiceApp.status === 'Pending' ? (
+                <>
+                  <button 
+                    onClick={() => handleServiceApplicationStatusChange(selectedServiceApp._id, 'Rejected')}
+                    disabled={actionLoading}
+                    className="px-6 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-xl transition-colors"
+                  >
+                    Reject Application
+                  </button>
+                  <button 
+                    onClick={() => handleServiceApplicationStatusChange(selectedServiceApp._id, 'Approved')}
+                    disabled={actionLoading}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-colors"
+                  >
+                    Approve Application
+                  </button>
+                </>
+              ) : (
+                <span className="text-sm font-bold text-slate-500">
+                  This application has already been {selectedServiceApp.status.toLowerCase()}.
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}

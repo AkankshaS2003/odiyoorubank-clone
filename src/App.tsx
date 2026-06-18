@@ -19,6 +19,14 @@ import { BranchesPage } from './pages/BranchesPage';
 import Breadcrumbs from './components/Breadcrumbs';
 import { AccountApplication } from './pages/AccountApplication';
 import { DepositApplication } from './pages/DepositApplication';
+import { GoldLoanApplication } from './pages/GoldLoanApplication';
+import { VehicleLoanApplication } from './pages/VehicleLoanApplication';
+import { EducationalLoanApplication } from './pages/EducationalLoanApplication';
+import { PersonalLoanApplication } from './pages/PersonalLoanApplication';
+import { HousingLoanApplication } from './pages/HousingLoanApplication';
+import { MortgageLoanApplication } from './pages/MortgageLoanApplication';
+import { AgriculturalLoanApplication } from './pages/AgriculturalLoanApplication';
+import { FDDetailsPage } from './pages/FDDetailsPage';
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -45,7 +53,7 @@ const AppContent: React.FC = () => {
     let tabToRender = currentTab;
     let showLoginModal = false;
 
-    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'apply-deposit') && !isAuthenticated) {
+    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'apply-deposit' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan') && !isAuthenticated) {
       showLoginModal = true;
       tabToRender = 'home';
     } else if (tabToRender === 'login') {
@@ -91,7 +99,47 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />;
           }
           return <DepositApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-gold-loan':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <GoldLoanApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-vehicle-loan':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <VehicleLoanApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-educational-loan':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <EducationalLoanApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-personal-loan':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <PersonalLoanApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-housing-loan':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <HousingLoanApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-mortgage-loan':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <MortgageLoanApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-agricultural-loan':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <AgriculturalLoanApplication setCurrentTab={setCurrentTab} />;
         default:
+          if (currentTab.startsWith('view-fd-details|')) {
+            if (!isAuthenticated) return <Home setCurrentTab={setCurrentTab} />;
+            const appId = currentTab.split('|')[1];
+            return <FDDetailsPage appId={appId} setCurrentTab={setCurrentTab} />;
+          }
           return <Home setCurrentTab={setCurrentTab} />;
       }
     };

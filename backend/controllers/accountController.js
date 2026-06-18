@@ -67,6 +67,13 @@ const applyMembership = async (req, res, next) => {
       membershipStatus: 'pending'
     }, { new: true });
 
+    const Membership = require('../models/Membership');
+    await Membership.findOneAndUpdate(
+      { userId: req.user._id },
+      { customerId: user.customerId || 'PENDING', status: 'Pending' },
+      { upsert: true, new: true }
+    );
+
     res.status(200).json({
       success: true,
       data: user

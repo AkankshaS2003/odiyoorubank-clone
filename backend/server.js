@@ -29,6 +29,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/chat', require('./routes/ragRoutes'));
 app.use('/api/branches', require('./routes/branchRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
+app.use('/api/service-applications', require('./routes/serviceApplicationRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/memberships', require('./routes/membershipRoutes'));
 

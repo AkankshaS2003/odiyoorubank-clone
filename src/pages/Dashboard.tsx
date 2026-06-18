@@ -12,12 +12,23 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, getUserServiceApplications } = useAuth();
   const [showCard, setShowCard] = useState(false);
   const [savedReport, setSavedReport] = useState<any>(null);
   const [showSavedReport, setShowSavedReport] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showAddFundsModal, setShowAddFundsModal] = useState(false);
+  const [serviceApps, setServiceApps] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchApps = async () => {
+      if (isAuthenticated && getUserServiceApplications) {
+        const apps = await getUserServiceApplications();
+        setServiceApps(apps);
+      }
+    };
+    fetchApps();
+  }, [isAuthenticated]);
 
   const fetchUserStats = async () => {
     // A function to re-fetch user profile could be here,
@@ -176,7 +187,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
         )}
 
         {/* Dashboard Profile Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 gap-8 mb-8">
 
           {/* Account Information */}
           <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow relative">
@@ -238,21 +249,56 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
             </div>
           </div>
 
-          {/* Quick Support / Contact */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 md:p-8 rounded-3xl shadow-lg text-white flex flex-col justify-center">
-            <h4 className="font-extrabold text-2xl mb-4">{"Need Assistance?"}</h4>
-            <p className="text-base text-slate-300 mb-8 leading-relaxed">
-              {"Our support team is available 24/7 to help you with your account inquiries, branch details, and general services."}
-            </p>
-            <button
-              onClick={() => setCurrentTab('contact')}
-              className="w-max px-8 py-3 bg-white text-slate-900 rounded-xl font-bold text-sm shadow-md transition-colors hover:bg-slate-100"
-            >
-              {"Contact Support"}
-            </button>
-          </div>
-
         </div>
+
+        {/* My Applications Section */}
+        {serviceApps.length > 0 && (
+          <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm mb-8">
+            <h4 className="font-extrabold text-lg text-slate-900 mb-6 flex items-center space-x-2">
+              <CheckSquare className="h-5 w-5 text-primary" />
+              <span>{"My Loan & Deposit Applications"}</span>
+            </h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+                    <th className="p-3 font-bold">Application Type</th>
+                    <th className="p-3 font-bold">Date Submitted</th>
+                    <th className="p-3 font-bold text-center">Status</th>
+                    <th className="p-3 font-bold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {serviceApps.map((app, index) => (
+                    <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="p-3 font-bold text-slate-800">{app.applicationType}</td>
+                      <td className="p-3 text-slate-600">{new Date(app.submittedAt).toLocaleDateString()}</td>
+                      <td className="p-3 text-center">
+                        <span className={`inline-block px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wide
+                          ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                            app.status === 'Rejected' ? 'bg-rose-100 text-rose-700' :
+                            'bg-amber-100 text-amber-700'}
+                        `}>
+                          {app.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right">
+                        {app.applicationType === 'Fixed Deposit' && app.status === 'Approved' && (
+                          <button 
+                            onClick={() => setCurrentTab(`view-fd-details|${app._id}`)}
+                            className="px-3 py-1.5 bg-[#0F4C81] text-white text-[10px] font-bold uppercase rounded hover:bg-blue-900 transition-colors"
+                          >
+                            View Certificate
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
       </div>
 
