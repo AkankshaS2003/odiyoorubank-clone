@@ -8,7 +8,6 @@ const ServiceApplicationSchema = new mongoose.Schema({
   },
   applicationType: {
     type: String,
-    enum: ['Fixed Deposit', 'Recurring Deposit', 'Gold Loan'],
     required: true
   },
   status: {

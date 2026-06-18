@@ -91,6 +91,8 @@ interface AuthContextType {
   getUserServiceApplications: () => Promise<any[]>;
   getAllServiceApplications: () => Promise<any[]>;
   updateServiceApplicationStatus: (id: string, status: string) => Promise<boolean>;
+  getCustomerByCustomerId: (customerId: string) => Promise<any>;
+  submitAccountApplication: (formData: any) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -391,6 +393,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const getCustomerByCustomerId = async (customerId: string): Promise<any> => {
+    try {
+      const res = await api.get(`/account/customer/${customerId}`);
+      return res.data.success ? res.data.data : null;
+    } catch (error) {
+      console.error('Failed to fetch customer by ID', error);
+      return null;
+    }
+  };
+
+  const submitAccountApplication = async (formData: any): Promise<boolean> => {
+    try {
+      const res = await api.post('/applications', formData);
+      return res.data.success;
+    } catch (error) {
+      console.error('Failed to submit account application', error);
+      return false;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -413,7 +435,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       submitServiceApplication,
       getUserServiceApplications,
       getAllServiceApplications,
-      updateServiceApplicationStatus
+      updateServiceApplicationStatus,
+      getCustomerByCustomerId,
+      submitAccountApplication
     }}>
       {children}
     </AuthContext.Provider>

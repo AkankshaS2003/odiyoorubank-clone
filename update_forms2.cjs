@@ -1,37 +1,58 @@
 const fs = require('fs');
 const path = require('path');
 
-const files = [
-  'VehicleLoanApplication.tsx',
-  'PersonalLoanApplication.tsx',
-  'MortgageLoanApplication.tsx',
-  'HousingLoanApplication.tsx',
-  'GoldLoanApplication.tsx',
-  'EducationalLoanApplication.tsx',
-  'DepositApplication.tsx'
-];
+const targetDir = path.join(__dirname, 'src', 'pages');
+const files = fs.readdirSync(targetDir).filter(file => file.endsWith('.tsx') && file.endsWith('Application.tsx') && file !== 'DepositApplication.tsx');
+
+const fetchFunctionStr = `
+  const fetchCustomerDetails = async (id: string) => {
+    if (!id) return;
+    const customer = await getCustomerByCustomerId(id);
+    if (customer) {
+      setFormData(prev => ({
+        ...prev,
+        memberNo: customer.memberId || prev.memberNo,
+        fullName: customer.fullName || prev.fullName,
+        permHouse: customer.address || prev.permHouse,
+        mobile: customer.phone || prev.mobile,
+        dob: customer.dob || prev.dob,
+        aadhaar: customer.aadharNumber || prev.aadhaar,
+        pan: customer.panNumber || prev.pan,
+        email: customer.email || prev.email,
+      }));
+    } else {
+      alert("Customer not found");
+    }
+  };
+`;
 
 files.forEach(file => {
-  const filePath = path.join('e:/odiyoorubank-clone/src/pages', file);
-  if (!fs.existsSync(filePath)) return;
-  
+  const filePath = path.join(targetDir, file);
   let content = fs.readFileSync(filePath, 'utf8');
-  
-  // 1. Revert background color
-  content = content.replace(
-    /className="bg-\\[#0F4C81\\] min-h-screen py-8 print:py-0 print:bg-white text-slate-800"/g,
-    'className="bg-slate-50 min-h-screen py-8 print:py-0 print:bg-white text-slate-800"'
-  );
-  
-  // 2. Change text-slate-800 to text-[#0F4C81] in InputField and SelectField
-  const inputClassSearch = `className=\`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-slate-800 bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent capitalize \${readOnly ? 'bg-slate-50' : ''}\``;
-  const inputClassReplace = `className=\`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent capitalize \${readOnly ? 'bg-slate-50' : ''}\``;
-  content = content.replace(inputClassSearch, inputClassReplace);
 
-  const selectClassSearch = `className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-slate-800 bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent"`;
-  const selectClassReplace = `className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent"`;
-  content = content.replace(selectClassSearch, selectClassReplace);
-  
-  fs.writeFileSync(filePath, content);
-  console.log('Updated ' + file);
+  // Skip if already processed the definition
+  if (content.includes('const fetchCustomerDetails')) {
+    console.log(`Skipped ${file} (already has fetchCustomerDetails definition)`);
+    return;
+  }
+
+  // Add getCustomerByCustomerId to useAuth destructuring if not there
+  if (!content.includes('getCustomerByCustomerId')) {
+    content = content.replace(/const { user, submitServiceApplication } = useAuth\(\);/, 'const { user, submitServiceApplication, getCustomerByCustomerId } = useAuth();');
+  } else {
+    // If it's already there or in another form
+    content = content.replace(/const { user, submitServiceApplication } = useAuth\(\);/, 'const { user, submitServiceApplication, getCustomerByCustomerId } = useAuth();');
+  }
+
+  // Insert fetchCustomerDetails after setSuccess state or generateAppNo
+  const insertIndex = content.indexOf('const [formData, setFormData]');
+  if (insertIndex !== -1) {
+    content = content.slice(0, insertIndex) + fetchFunctionStr + '\n  ' + content.slice(insertIndex);
+  }
+
+  // Make setFormData accept any type to avoid strict TS errors on prev state
+  content = content.replace('const [formData, setFormData] = useState({', 'const [formData, setFormData] = useState<any>({');
+
+  fs.writeFileSync(filePath, content, 'utf8');
+  console.log(`Updated ${file}`);
 });

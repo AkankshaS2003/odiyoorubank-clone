@@ -101,7 +101,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
         {/* Paper Document Container */}
         <div className="bg-white p-8 md:p-12 shadow-2xl shadow-slate-200 border border-slate-100 rounded-3xl print:rounded-none print:shadow-none print:border-none print:p-2">
           
-                              {/* HEADER SECTION */}
+                                                            {/* HEADER SECTION */}
           <div className="bg-[#ED7F1E] rounded-t-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 -mt-8 md:-mt-12 -mx-8 md:-mx-12 print:m-0 print:p-4 print:rounded-none gap-4 md:gap-0">
             <div className="flex-grow flex items-center justify-center md:justify-start space-x-4 md:space-x-6 mx-auto md:mx-0 w-full md:w-auto">
               <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain shrink-0" />
@@ -118,19 +118,34 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
               </div>
             </div>
             
-            <div className="text-right text-white text-[10px] md:text-xs font-bold space-y-3 w-full md:w-56 shrink-0 flex flex-col items-end mt-4 md:mt-0">
-              <div className="flex justify-end items-center gap-2 w-full">
-                <span className="opacity-90">Branch:</span> 
-                <div className="w-32 border-b border-white/40 text-center pb-0.5 opacity-80">Main Branch</div>
-              </div>
-              <div className="flex flex-col items-end gap-1 w-full">
-                <span className="opacity-90 pr-2">Customer ID:</span> 
-                <div className="w-32 bg-white/20 rounded px-2 py-1 text-center border border-white/10">{user?.customerId || ''}</div>
-              </div>
-              <div className="flex justify-end items-center gap-2 w-full">
-                <span className="opacity-90">Account No:</span> 
-                <div className="w-32 border-b border-white/40 text-center pb-0.5 tracking-widest">{user?.accountNumber || '— — — —'}</div>
-              </div>
+            <div className="text-white text-[10px] md:text-xs font-bold w-full md:w-auto shrink-0 mt-4 md:mt-0">
+              <table className="ml-auto">
+                <tbody>
+                  <tr>
+                    <td className="text-right pr-3 opacity-90 pb-2">Branch:</td>
+                    <td className="text-left pb-2">
+                      <input type="text" value="Main Branch" readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors opacity-90" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="text-right pr-3 opacity-90 pb-2">Customer ID:</td>
+                    <td className="text-left pb-2">
+                      <input 
+                        type="text" 
+                        value={fdData.formData?.app1MemberNo || 'CUST-XXXX'} 
+                        readOnly
+                        className="w-32 bg-white/20 rounded px-2 py-1 outline-none text-center text-white border border-white/10 placeholder-white/60 font-bold tracking-wide transition-colors focus:bg-white/30" 
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="text-right pr-3 opacity-90">Application No:</td>
+                    <td className="text-left">
+                      <input type="text" value={fdData.formData?.applicationNo || '— — — —'} readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors tracking-widest font-bold" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 

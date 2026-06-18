@@ -1002,7 +1002,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               <p className="font-semibold text-slate-800">PAN: {app.panNumber}</p>
                             </td>
                             <td className="p-4 text-xs font-medium text-slate-600">
-                              <a href={app.aadharDocumentUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                              <a href={app.aadharDocumentUrl?.includes('example.com') ? '/dummy-aadhar.png' : app.aadharDocumentUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
                                 <Eye className="h-4 w-4" /> View Aadhar
                               </a>
                             </td>
@@ -1099,12 +1099,34 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               </span>
                             </td>
                             <td className="p-4 text-center">
-                              <button
-                                onClick={() => setSelectedServiceApp(app)}
-                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors"
-                              >
-                                View Details
-                              </button>
+                              <div className="flex justify-center gap-2">
+                                <button
+                                  onClick={() => setSelectedServiceApp(app)}
+                                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors"
+                                >
+                                  View Details
+                                </button>
+                                {app.status === 'Pending' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleServiceApplicationStatusChange(app._id, 'Approved')}
+                                      disabled={actionLoading}
+                                      className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition-colors border border-emerald-200 flex items-center justify-center cursor-pointer"
+                                      title="Approve"
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleServiceApplicationStatusChange(app._id, 'Rejected')}
+                                      disabled={actionLoading}
+                                      className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-colors border border-rose-200 flex items-center justify-center cursor-pointer"
+                                      title="Reject"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -2235,14 +2257,14 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     {Object.entries(selectedServiceApp.images).map(([key, base64Url]: any) => (
                       <div key={key} className="flex flex-col items-center p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
                         <span className="text-xs uppercase font-bold text-slate-600 tracking-wider mb-3 w-full text-center border-b border-slate-100 pb-2">{key}</span>
-                        {base64Url.startsWith('data:image') ? (
+                        {base64Url && typeof base64Url === 'string' && base64Url.startsWith('data:image') ? (
                           <img src={base64Url} alt={key} className="max-w-full h-auto max-h-48 object-contain rounded" />
-                        ) : base64Url.startsWith('data:application/pdf') ? (
+                        ) : base64Url && typeof base64Url === 'string' && base64Url.startsWith('data:application/pdf') ? (
                           <a href={base64Url} download={`${key}.pdf`} className="text-blue-600 hover:underline font-bold text-sm flex items-center gap-2">
                             <FileText className="w-5 h-5" /> Download PDF
                           </a>
                         ) : (
-                          <span className="text-xs text-slate-400">Unsupported format</span>
+                          <span className="text-xs text-slate-400">No Document / Unsupported format</span>
                         )}
                       </div>
                     ))}

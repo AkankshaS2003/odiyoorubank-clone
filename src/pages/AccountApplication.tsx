@@ -47,7 +47,7 @@ const FileUploadBox = ({ label, field, accept = "image/*", uploads, handleFileUp
 );
 
 export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurrentTab }) => {
-  const { user } = useAuth();
+  const { user, submitAccountApplication } = useAuth();
   
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
@@ -100,13 +100,34 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     initialDepositAmount: '500'
   };
 
+  
+  const fetchCustomerDetails = async (id: string) => {
+    if (!id) return;
+    const customer = await getCustomerByCustomerId(id);
+    if (customer) {
+      setFormData(prev => ({
+        ...prev,
+        memberNo: customer.memberId || prev.memberNo,
+        fullName: customer.fullName || prev.fullName,
+        permHouse: customer.address || prev.permHouse,
+        mobile: customer.phone || prev.mobile,
+        dob: customer.dob || prev.dob,
+        aadhaar: customer.aadharNumber || prev.aadhaar,
+        pan: customer.panNumber || prev.pan,
+        email: customer.email || prev.email,
+      }));
+    } else {
+      alert("Customer not found");
+    }
+  };
+
   const [formData, setFormData] = useState(defaultFormData);
   
   const [uploads, setUploads] = useState<{ [key: string]: string | null }>({
     applicantPhoto: null,
-    applicantSignature: null,
+    aadhaarDocument: null,
     jointPhoto: null,
-    jointSignature: null,
+    jointAadhaar: null,
     nomineePhoto: null,
     witnessSignature: null,
     introducerSignature: null
@@ -170,7 +191,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     }
 
     if (!uploads.applicantPhoto) newErrors.applicantPhoto = 'Photo required';
-    if (!uploads.applicantSignature) newErrors.applicantSignature = 'Signature required';
+    if (!uploads.aadhaarDocument) newErrors.aadhaarDocument = 'Aadhaar required';
 
     if (formData.hasJointApplicant) {
       if (!formData.jointApplicantName) newErrors.jointApplicantName = 'Required';
@@ -184,7 +205,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       }
       
       if (!uploads.jointPhoto) newErrors.jointPhoto = 'Photo required';
-      if (!uploads.jointSignature) newErrors.jointSignature = 'Signature required';
+      if (!uploads.jointAadhaar) newErrors.jointAadhaar = 'Aadhaar required';
     }
     
     setErrors(newErrors);
@@ -239,9 +260,25 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     }
   };
 
-  const handlePaymentSuccess = () => {
-    localStorage.removeItem('odiyooru_account_draft');
-    setSuccess(true);
+  const handlePaymentSuccess = async () => {
+    // Submit to backend
+    const payload = {
+      nameAsAadhar: formData.applicantFullName,
+      addressAsAadhar: formData.residentialAddress,
+      dob: formData.dob,
+      aadharNumber: (formData.aadhaarNumber || '').replace(/\s/g, ''),
+      panNumber: formData.panNumber,
+      accountType: 'Savings',
+      aadharDocumentUrl: '/dummy-aadhar.png'
+    };
+    
+    const isSuccess = await submitAccountApplication(payload);
+    if (isSuccess) {
+      localStorage.removeItem('odiyooru_account_draft');
+      setSuccess(true);
+    } else {
+      alert("Failed to submit application. Please check your details or you may already have a pending application.");
+    }
   };
 
   if (success) {
@@ -317,10 +354,19 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                   </span>
                 </div>
               </div></div>
-              <div className="text-right text-xs font-medium space-y-1 w-40 shrink-0 opacity-90 print:text-gray-800">
-                <div className="flex items-center gap-2 justify-end"><span className="opacity-70">Branch:</span> <input type="text" name="branch" value={formData.branch} onChange={handleChange} className="bg-transparent border-b border-white/30 outline-none w-24 text-right print:border-gray-300 print:text-gray-900" placeholder="Branch Name"/></div>
-                <div>Customer ID: <span className="font-mono bg-white/10 px-2 py-0.5 rounded print:bg-gray-100">{user?.customerId || 'UNASSIGNED'}</span></div>
-                <div>Account No: <span className="font-mono bg-white/10 px-2 py-0.5 rounded print:bg-gray-100">__ __ __ __ __</span></div>
+              <div className="text-right text-xs font-medium space-y-2 w-48 shrink-0 opacity-90 print:text-gray-800">
+                <div className="flex items-center gap-2 justify-end">
+                  <span className="opacity-70">Branch:</span> 
+                  <input type="text" name="branch" value={formData.branch} onChange={handleChange} className="bg-transparent border-b border-white/30 outline-none w-28 text-right print:border-gray-300 print:text-gray-900" placeholder="Branch Name"/>
+                </div>
+                <div className="flex items-center gap-2 justify-end">
+                  <span className="opacity-70">Customer ID:</span> 
+                  <span className="font-mono bg-white/10 px-2 py-0.5 rounded print:bg-gray-100 whitespace-nowrap">{user?.customerId || 'UNASSIGNED'}</span>
+                </div>
+                <div className="flex items-center gap-2 justify-end">
+                  <span className="opacity-70 whitespace-nowrap">Account No:</span> 
+                  <span className="font-mono bg-white/10 px-2 py-0.5 rounded print:bg-gray-100 whitespace-nowrap">__ __ __ __ __</span>
+                </div>
               </div>
             </div>
           </div>
@@ -330,7 +376,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
             {/* PAGE 1: ACCOUNT OPENING FORM */}
             <div className={step === 1 ? 'block' : 'hidden print:block print:break-after-page'}>
               <div className="border-b-2 border-[#EAF6FF] pb-4 mb-6 flex justify-between items-end print:border-gray-200">
-                <h2 className="text-xl font-black text-[#0F4C81] uppercase tracking-wider">Page 1: Account Opening Form</h2>
+                <h2 className="text-xl font-black text-[#0F4C81] uppercase tracking-wider"></h2>
                 <div className="w-32"><InputField label="Date" name="date" type="date"  formData={formData} handleChange={handleChange} error={errors['date']} /></div>
               </div>
 
@@ -373,14 +419,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                 </div>
 
                 <div className="w-full md:w-48 shrink-0 flex flex-col gap-4 print:hidden">
-                  <div className="h-48 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative">
+                  <div className="h-40 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative">
                     <div className="absolute inset-0 flex items-center justify-center p-4">
                       <FileUploadBox label="Upload Photo" field="applicantPhoto"  uploads={uploads} handleFileUpload={handleFileUpload} error={errors['applicantPhoto']} />
                     </div>
                   </div>
-                  <div className="h-32 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative">
+                  <div className="h-40 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative">
                     <div className="absolute inset-0 flex items-center justify-center p-4">
-                      <FileUploadBox label="Upload Signature" field="applicantSignature"  uploads={uploads} handleFileUpload={handleFileUpload} error={errors['applicantSignature']} />
+                      <FileUploadBox label="Upload Aadhaar" field="aadhaarDocument" accept="image/*,application/pdf" uploads={uploads} handleFileUpload={handleFileUpload} error={errors['aadhaarDocument']} />
                     </div>
                   </div>
                 </div>
@@ -417,8 +463,8 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                       </div>
                     </div>
                     <div className="w-full md:w-48 shrink-0 flex flex-col gap-4 print:hidden">
-                      <div className="h-48 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative"><div className="absolute inset-0 flex items-center justify-center p-4"><FileUploadBox label="Joint Photo" field="jointPhoto"  uploads={uploads} handleFileUpload={handleFileUpload} error={errors['jointPhoto']} /></div></div>
-                      <div className="h-32 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative"><div className="absolute inset-0 flex items-center justify-center p-4"><FileUploadBox label="Joint Signature" field="jointSignature"  uploads={uploads} handleFileUpload={handleFileUpload} error={errors['jointSignature']} /></div></div>
+                      <div className="h-40 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative"><div className="absolute inset-0 flex items-center justify-center p-4"><FileUploadBox label="Joint Photo" field="jointPhoto"  uploads={uploads} handleFileUpload={handleFileUpload} error={errors['jointPhoto']} /></div></div>
+                      <div className="h-40 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative"><div className="absolute inset-0 flex items-center justify-center p-4"><FileUploadBox label="Joint Aadhaar" field="jointAadhaar" accept="image/*,application/pdf" uploads={uploads} handleFileUpload={handleFileUpload} error={errors['jointAadhaar']} /></div></div>
                     </div>
                      <div className="hidden print:flex flex-col gap-4 w-32 shrink-0">
                       <div className="h-40 border-2 border-gray-400 flex items-center justify-center text-xs text-gray-400 text-center p-2">Affix Recent Passport Size Photo</div>
@@ -491,17 +537,6 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                 {/* Removed Witness and Introducer Sections */}
               </div>
 
-              {/* Declaration Section */}
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 print:bg-transparent print:p-0 print:border-none print:mt-8">
-                <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-3">Declaration</h3>
-                <p className="text-xs text-gray-600 leading-relaxed mb-8 text-justify">
-                  I/We declare that the information provided is true and correct. I/We agree to abide by the rules and regulations of ODIYOORU SOUHARDA COOPERATIVE SOCIETY LTD governing the account. I/We authorize the society to verify the details and open the account in my/our name(s).
-                </p>
-                <div className="flex justify-between items-end gap-8 pt-8">
-                  <div className="flex-1 border-t-2 border-gray-400 pt-2 text-center text-xs font-bold text-gray-500">Applicant Signature</div>
-                  {formData.hasJointApplicant && <div className="flex-1 border-t-2 border-gray-400 pt-2 text-center text-xs font-bold text-gray-500">Joint Applicant Signature</div>}
-                </div>
-              </div>
 
               {/* Office Verification Section - Print only visually */}
               <div className="mt-8 border-2 border-[#0F4C81] p-6 rounded-xl hidden print:block relative">
@@ -565,13 +600,13 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                       <tr>
                         <td className="border border-gray-400 p-3 text-sm text-center">1</td>
                         <td className="border border-gray-400 p-3 text-sm font-medium">{formData.applicantFullName || '_______________________'}</td>
-                        <td className="border border-gray-400 p-3 h-24 relative print:h-32 text-center text-xs text-gray-400">{uploads.applicantSignature ? "Signature Uploaded" : "Sign Here"}</td>
+                        <td className="border border-gray-400 p-3 h-24 relative print:h-32 text-center text-xs text-gray-400">Sign Here</td>
                       </tr>
                       {formData.hasJointApplicant && (
                         <tr>
                           <td className="border border-gray-400 p-3 text-sm text-center">2</td>
                           <td className="border border-gray-400 p-3 text-sm font-medium">{formData.jointApplicantName || '_______________________'}</td>
-                          <td className="border border-gray-400 p-3 h-24 relative print:h-32 text-center text-xs text-gray-400">{uploads.jointSignature ? "Signature Uploaded" : "Sign Here"}</td>
+                          <td className="border border-gray-400 p-3 h-24 relative print:h-32 text-center text-xs text-gray-400">Sign Here</td>
                         </tr>
                       )}
                     </tbody>

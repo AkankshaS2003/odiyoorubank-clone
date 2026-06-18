@@ -140,10 +140,31 @@ const verifyCustomer = async (req, res, next) => {
   }
 };
 
+const getCustomerByCustomerId = async (req, res, next) => {
+  try {
+    const { customerId } = req.params;
+    const User = require('../models/User');
+    
+    const customer = await User.findOne({ customerId }).select('fullName email phone address dob aadharNumber panNumber');
+    
+    if (!customer) {
+      return res.status(404).json({ success: false, error: 'Customer not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: customer
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getProfile,
   getAccountDetails,
   applyMembership,
   makeDeposit,
-  verifyCustomer
+  verifyCustomer,
+  getCustomerByCustomerId
 };
