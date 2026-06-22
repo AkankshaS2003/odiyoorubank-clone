@@ -7,7 +7,7 @@ interface EducationalLoanApplicationProps {
 }
 
 const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false }: any) => (
-  <div className={`${width} mb-3`}>
+  <div className={`${width} mb-3 h-full flex flex-col`}>
     <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
     <input
       type={type}
@@ -16,19 +16,19 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
       onChange={onChange}
       placeholder={placeholder}
       readOnly={readOnly}
-      className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
+      className={`mt-auto w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
     />
   </div>
 );
 
 const SelectField = ({ label, name, value, onChange, options, width = "w-full" }: any) => (
-  <div className={`${width} mb-3`}>
+  <div className={`${width} mb-3 h-full flex flex-col`}>
     <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
     <select
       name={name}
       value={value}
       onChange={onChange}
-      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent"
+      className="mt-auto w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent"
     >
       <option value="">Select Option</option>
       {options.map((opt: string) => (
@@ -203,6 +203,23 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
     coAppPlace: '',
     coAppDate: new Date().toISOString().split('T')[0],
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev: any) => ({
+        ...prev,
+        memberNo: prev.memberNo || user.memberId || '',
+        fullName: prev.fullName || user.fullName || '',
+        mobile: prev.mobile || user.phone || '',
+        email: prev.email || user.email || '',
+        dob: prev.dob || user.dob || '',
+        permHouse: prev.permHouse || user.address || '',
+        aadhaar: prev.aadhaar || user.aadharNumber || '',
+        pan: prev.pan || user.panNumber || '',
+        accNumber: prev.accNumber || user.accountNumber || '',
+      }));
+    }
+  }, [user]);
 
   // Calculate totals
   const totalCourseCost = Number(formData.tuitionFee) + Number(formData.hostelFee) + Number(formData.examFee) + Number(formData.booksFee) + Number(formData.otherFee);

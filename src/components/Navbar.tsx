@@ -250,7 +250,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                           className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center"
                         >
                           <LogOut className="h-4 w-4 mr-2" />
-                          {""}
+                          Logout
                         </button>
                       </div>
                     </div>

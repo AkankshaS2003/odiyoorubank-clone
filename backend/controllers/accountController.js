@@ -65,13 +65,13 @@ const applyMembership = async (req, res, next) => {
       address,
       dob,
       membershipStatus: 'pending'
-    }, { new: true });
+    }, { returnDocument: 'after' });
 
     const Membership = require('../models/Membership');
     await Membership.findOneAndUpdate(
       { userId: req.user._id },
       { customerId: user.customerId || 'PENDING', status: 'Pending' },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     res.status(200).json({
@@ -132,7 +132,8 @@ const verifyCustomer = async (req, res, next) => {
       data: {
         address: req.user.addressAsAadhar || req.user.address || '',
         dob: req.user.dob || '',
-        accountNumber: account ? account.accountNumber : ''
+        accountNumber: account ? account.accountNumber : '',
+        profileImageBase64: req.user.profileImageBase64 || ''
       }
     });
   } catch (error) {

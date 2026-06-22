@@ -76,7 +76,7 @@ const updateLoanStatus = async (req, res, next) => {
     }
 
     loan = await Loan.findByIdAndUpdate(req.params.id, { status: req.body.status }, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true
     });
 
@@ -379,7 +379,7 @@ const updateSettings = async (req, res, next) => {
     }
 
     settings = await SystemSettings.findByIdAndUpdate(settings._id, req.body, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true
     });
 
@@ -407,7 +407,7 @@ const getUsers = async (req, res, next) => {
 const updateUserRole = async (req, res, next) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, { role: req.body.role }, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true
     }).select('-password');
 
@@ -427,7 +427,7 @@ const updateUserRole = async (req, res, next) => {
 const updateUserStatus = async (req, res, next) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, { status: req.body.status }, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true
     }).select('-password');
 
@@ -524,7 +524,7 @@ const updateMembershipStatus = async (req, res, next) => {
     }
 
     const updatedUser = await User.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true
     }).select('-password');
 

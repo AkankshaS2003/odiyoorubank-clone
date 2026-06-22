@@ -9,7 +9,7 @@ const crypto = require('crypto');
 // @access  Private
 exports.submitApplication = async (req, res, next) => {
   try {
-    const { nameAsAadhar, addressAsAadhar, dob, aadharNumber, panNumber, accountType, aadharDocumentUrl } = req.body;
+    const { nameAsAadhar, addressAsAadhar, dob, aadharNumber, panNumber, accountType, aadharDocumentUrl, applicantPhotoBase64 } = req.body;
 
     // Check if user already has a pending or approved application
     const existingApp = await AccountApplication.findOne({ userId: req.user.id, status: { $ne: 'Rejected' } });
@@ -25,7 +25,8 @@ exports.submitApplication = async (req, res, next) => {
       aadharNumber,
       panNumber,
       accountType,
-      aadharDocumentUrl
+      aadharDocumentUrl,
+      applicantPhotoBase64
     });
 
     res.status(201).json({ success: true, data: application });
@@ -77,6 +78,10 @@ exports.updateApplicationStatus = async (req, res, next) => {
       user.aadharNumber = application.aadharNumber;
       user.aadharUrl = application.aadharDocumentUrl;
       user.dob = application.dob;
+      user.address = application.addressAsAadhar;
+      if (application.applicantPhotoBase64) {
+        user.profileImageBase64 = application.applicantPhotoBase64;
+      }
       await user.save();
 
       // 2. Create actual Account

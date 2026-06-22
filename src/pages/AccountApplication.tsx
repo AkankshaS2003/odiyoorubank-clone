@@ -2,11 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, ChevronRight, ChevronLeft, Save, FileDown, CheckCircle, Send, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { PaymentGatewayModal } from '../components/PaymentGatewayModal';
 
 interface AccountApplicationProps {
   setCurrentTab: (tab: string) => void;
 }
+
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
 
 const THEME = {
   blue: '#0F4C81',
@@ -51,7 +59,6 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
-  const [showPaymentGateway, setShowPaymentGateway] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const defaultFormData = {
@@ -133,6 +140,8 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     introducerSignature: null
   });
 
+  const [fileObjects, setFileObjects] = useState<{ [key: string]: File | null }>({});
+
   useEffect(() => {
     const draft = localStorage.getItem('odiyooru_account_draft');
     if (draft) {
@@ -166,7 +175,9 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
 
   const handleFileUpload = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setUploads(prev => ({ ...prev, [field]: e.target.files![0].name }));
+      const file = e.target.files[0];
+      setUploads(prev => ({ ...prev, [field]: file.name }));
+      setFileObjects(prev => ({ ...prev, [field]: file }));
       if (errors[field]) {
         setErrors(prev => ({ ...prev, [field]: undefined }));
       }
@@ -256,11 +267,20 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 3) {
-      setShowPaymentGateway(true);
+      submitApplicationData();
     }
   };
 
-  const handlePaymentSuccess = async () => {
+  const submitApplicationData = async () => {
+    let applicantPhotoBase64 = null;
+    if (fileObjects.applicantPhoto) {
+      try {
+        applicantPhotoBase64 = await fileToBase64(fileObjects.applicantPhoto);
+      } catch (err) {
+        console.error('Failed to convert photo', err);
+      }
+    }
+
     // Submit to backend
     const payload = {
       nameAsAadhar: formData.applicantFullName,
@@ -269,7 +289,8 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       aadharNumber: (formData.aadhaarNumber || '').replace(/\s/g, ''),
       panNumber: formData.panNumber,
       accountType: 'Savings',
-      aadharDocumentUrl: '/dummy-aadhar.png'
+      aadharDocumentUrl: '/dummy-aadhar.png',
+      applicantPhotoBase64
     };
     
     const isSuccess = await submitAccountApplication(payload);
@@ -300,7 +321,6 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
 
   return (
     <div className="bg-slate-50 min-h-screen py-8 print:py-0 print:bg-white">
-      {showPaymentGateway && <PaymentGatewayModal onClose={() => setShowPaymentGateway(false)} onConfirm={handlePaymentSuccess} amount={Number(formData.initialDepositAmount)} />}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Progress Bar (Hidden on Print) */}
@@ -647,14 +667,6 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
           </form>
         </div>
       </div>
-      
-      <PaymentGatewayModal 
-        isOpen={showPaymentGateway}
-        onClose={() => setShowPaymentGateway(false)}
-        amount={Number(formData.initialDepositAmount) || 500}
-        purpose="Initial Account Deposit"
-        onSuccess={handlePaymentSuccess}
-      />
     </div>
   );
 };

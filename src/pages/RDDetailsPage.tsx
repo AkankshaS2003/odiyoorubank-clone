@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Printer, Download, CheckCircle, ShieldCheck, FileText, DownloadCloud, Landmark, User, FileImage, CreditCard } from 'lucide-react';
 
-export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurrentTab: (tab: string) => void }) => {
+export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurrentTab: (tab: string) => void }) => {
   const { getUserServiceApplications } = useAuth();
-  const [fdData, setFdData] = useState<any>(null);
+  const [rdData, setRdData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
         const apps = await getUserServiceApplications();
         const found = apps.find(a => a._id === appId);
         if (found) {
-          setFdData(found);
+          setRdData(found);
         }
       } catch (err) {
         console.error(err);
@@ -25,32 +25,32 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
   }, [appId, getUserServiceApplications]);
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-[#0F4C81]">Loading FD Details...</div>;
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-[#0F4C81]">Loading RD Details...</div>;
   }
 
-  if (!fdData) {
+  if (!rdData) {
     return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <h2 className="text-xl font-bold text-slate-800 mb-4">FD Account not found</h2>
+      <h2 className="text-xl font-bold text-slate-800 mb-4">RD Account not found</h2>
       <button onClick={() => setCurrentTab('dashboard')} className="px-6 py-2 bg-[#0F4C81] text-white rounded-lg">Return to Dashboard</button>
     </div>;
   }
 
   // Simulated Computations
-  const fdAccountNumber = `FD-${fdData._id.substring(0, 8).toUpperCase()}`;
+  const rdAccountNumber = `RD-${rdData._id.substring(0, 8).toUpperCase()}`;
   const transactionRef = `TXN${Math.floor(100000000 + Math.random() * 900000000)}`;
   const receiptNumber = `RCPT-${Math.floor(100000 + Math.random() * 900000)}`;
   const employeeId = `EMP${Math.floor(1000 + Math.random() * 9000)}`;
   
-  const principalAmount = Number(fdData.formData?.amount) || 0;
-  const depositPeriod = Number(fdData.formData?.depositPeriod) || 12; // assuming months
+  const principalAmount = Number(rdData.formData?.amount) || 0;
+  const depositPeriod = Number(rdData.formData?.depositPeriod) || 12; // assuming months
   
   // Base logic for rates
   let interestRate = 7.5; // default
   if (depositPeriod >= 24) interestRate = 8.0;
   if (depositPeriod >= 60) interestRate = 8.5;
 
-  const startDateStr = new Date(fdData.submittedAt).toLocaleDateString();
-  const maturityDateObj = new Date(fdData.submittedAt);
+  const startDateStr = new Date(rdData.submittedAt).toLocaleDateString();
+  const maturityDateObj = new Date(rdData.submittedAt);
   maturityDateObj.setMonth(maturityDateObj.getMonth() + depositPeriod);
   const maturityDateStr = maturityDateObj.toLocaleDateString();
 
@@ -61,7 +61,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
 
   // Today progress
   const today = new Date();
-  const start = new Date(fdData.submittedAt);
+  const start = new Date(rdData.submittedAt);
   const totalDays = Math.ceil((maturityDateObj.getTime() - start.getTime()) / (1000 * 3600 * 24));
   const daysPassed = Math.max(0, Math.ceil((today.getTime() - start.getTime()) / (1000 * 3600 * 24)));
   const remainingDays = Math.max(0, totalDays - daysPassed);
@@ -132,7 +132,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
                     <td className="text-left pb-2">
                       <input 
                         type="text" 
-                        value={fdData.formData?.app1MemberNo || 'CUST-XXXX'} 
+                        value={rdData.formData?.app1MemberNo || 'CUST-XXXX'} 
                         readOnly
                         className="w-32 bg-white/20 rounded px-2 py-1 outline-none text-center text-white border border-white/10 placeholder-white/60 font-bold tracking-wide transition-colors focus:bg-white/30" 
                       />
@@ -141,7 +141,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
                   <tr>
                     <td className="text-right pr-3 opacity-90">Application No:</td>
                     <td className="text-left">
-                      <input type="text" value={fdData.formData?.applicationNo || '— — — —'} readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors tracking-widest font-bold" />
+                      <input type="text" value={rdData.formData?.applicationNo || '— — — —'} readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors tracking-widest font-bold" />
                     </td>
                   </tr>
                 </tbody>
@@ -149,20 +149,20 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
             </div>
           </div>
 
-          {/* FD SUMMARY CARD */}
+          {/* RD SUMMARY CARD */}
           <div className="bg-[#EAF6FF] rounded-2xl p-6 border border-blue-100 mb-8 print:border-slate-300 print:bg-transparent">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">FD Account Number</p>
-                <p className="text-lg font-black text-[#0F4C81]">{fdAccountNumber}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">RD Account Number</p>
+                <p className="text-lg font-black text-[#0F4C81]">{rdAccountNumber}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Application No</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{fdData.formData?.applicationNo || 'N/A'}</p>
+                <p className="text-sm font-bold text-slate-800 mt-1">{rdData.formData?.applicationNo || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Customer ID</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{fdData.formData?.app1MemberNo || 'CUST-XXXX'}</p>
+                <p className="text-sm font-bold text-slate-800 mt-1">{rdData.formData?.app1MemberNo || 'CUST-XXXX'}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Deposit Date</p>
@@ -176,19 +176,19 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
             <div>
               <SectionTitle title="Depositor Details" icon={User} />
               <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1">
-                <InfoRow label="Full Name" value={fdData.formData?.app1Name} />
-                <InfoRow label="Mobile Number" value={fdData.formData?.app1Mobile} />
-                <InfoRow label="Aadhaar Number" value={fdData.formData?.app1Aadhaar || 'XXXX-XXXX-XXXX'} />
-                <InfoRow label="PAN Number" value={fdData.formData?.app1Pan || 'XXXXX0000X'} />
-                <InfoRow label="Address" value={fdData.formData?.app1Address} />
+                <InfoRow label="Full Name" value={rdData.formData?.app1Name} />
+                <InfoRow label="Mobile Number" value={rdData.formData?.app1Mobile} />
+                <InfoRow label="Aadhaar Number" value={rdData.formData?.app1Aadhaar || 'XXXX-XXXX-XXXX'} />
+                <InfoRow label="PAN Number" value={rdData.formData?.app1Pan || 'XXXXX0000X'} />
+                <InfoRow label="Address" value={rdData.formData?.app1Address} />
               </div>
             </div>
 
-            {/* FD DETAILS */}
+            {/* RD DETAILS */}
             <div>
               <SectionTitle title="Deposit Information" icon={FileText} />
               <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1 bg-slate-50/50">
-                <InfoRow label="Deposit Type" value={fdData.applicationType} />
+                <InfoRow label="Deposit Type" value={rdData.applicationType} />
                 <InfoRow label="Principal Amount" value={`₹${principalAmount.toLocaleString('en-IN')}`} />
                 <InfoRow label="Interest Rate" value={`${interestRate}% p.a.`} />
                 <InfoRow label="Tenure" value={`${depositPeriod} Months`} />
@@ -201,10 +201,10 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
             <div>
               <SectionTitle title="Nominee Details" icon={ShieldCheck} />
               <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1">
-                <InfoRow label="Nominee Name" value={fdData.formData?.nomineeName} />
-                <InfoRow label="Relationship" value={fdData.formData?.nomineeRelationship} />
-                <InfoRow label="Date of Birth" value={fdData.formData?.minorDob || 'Not Specified'} />
-                <InfoRow label="Address" value={fdData.formData?.nomineeAddress} />
+                <InfoRow label="Nominee Name" value={rdData.formData?.nomineeName} />
+                <InfoRow label="Relationship" value={rdData.formData?.nomineeRelationship} />
+                <InfoRow label="Date of Birth" value={rdData.formData?.minorDob || 'Not Specified'} />
+                <InfoRow label="Address" value={rdData.formData?.nomineeAddress} />
               </div>
             </div>
 
@@ -212,8 +212,8 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
             <div>
               <SectionTitle title="Payment & Operation" icon={CreditCard} />
               <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1">
-                <InfoRow label="Mode of Operation" value={fdData.formData?.modeOfOperation || 'Self'} />
-                <InfoRow label="Auto Renewal" value={fdData.formData?.standingInstructions ? 'Yes' : 'No'} />
+                <InfoRow label="Mode of Operation" value={rdData.formData?.modeOfOperation || 'Self'} />
+                <InfoRow label="Auto Renewal" value={rdData.formData?.standingInstructions ? 'Yes' : 'No'} />
                 <InfoRow label="Transaction Ref" value={transactionRef} />
                 <InfoRow label="Receipt Number" value={receiptNumber} />
               </div>
@@ -248,11 +248,11 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
           </div>
 
           {/* DOCUMENTS SECTION */}
-          {fdData.images && Object.keys(fdData.images).length > 0 && (
+          {rdData.images && Object.keys(rdData.images).length > 0 && (
             <>
               <SectionTitle title="Attached Documents" icon={FileImage} />
               <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {Object.keys(fdData.images).map(key => (
+                {Object.keys(rdData.images).map(key => (
                   <div key={key} className="border border-slate-200 rounded-lg p-3 text-center hover:bg-slate-50 transition-colors cursor-pointer group">
                     <FileImage className="w-8 h-8 text-slate-400 mx-auto mb-2 group-hover:text-[#0F4C81] transition-colors" />
                     <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">{key}</span>
@@ -262,7 +262,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
             </>
           )}
 
-          {/* FD CERTIFICATE VISUAL RENDERING */}
+          {/* RD CERTIFICATE VISUAL RENDERING */}
           <div className="mt-16 mb-8 p-8 border-[12px] border-double border-[#0F4C81]/20 bg-[#fffdf5] rounded-xl relative overflow-hidden print:break-inside-avoid shadow-inner">
             <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
               <Landmark className="w-96 h-96 text-[#0F4C81]" />
@@ -279,16 +279,16 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
                     Cooperative Society Ltd
                   </span>
                   <span className="text-xs font-bold block mt-1.5 font-mono leading-none">
-                    DRP:S.9:88:RGN:520:2010-11 <span className="mx-2 text-slate-300">|</span> <span className="text-slate-500">Certificate of Fixed Deposit</span>
+                    DRP:S.9:88:RGN:520:2010-11 <span className="mx-2 text-slate-300">|</span> <span className="text-slate-500">Certificate of Recurring Deposit</span>
                   </span>
                 </div>
               </div>
               
               <div className="text-sm font-medium text-slate-800 leading-loose max-w-2xl mx-auto mb-12 text-justify italic">
                 This is to certify that a sum of <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">₹{principalAmount.toLocaleString('en-IN')}</span> has been received from 
-                <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{fdData.formData?.app1Name?.toUpperCase()}</span> 
-                on <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{startDateStr}</span> as a Fixed Deposit 
-                bearing Account Number <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{fdAccountNumber}</span>. 
+                <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{rdData.formData?.app1Name?.toUpperCase()}</span> 
+                on <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{startDateStr}</span> as a Recurring Deposit 
+                bearing Account Number <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{rdAccountNumber}</span>. 
                 The deposit will earn interest at the rate of <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{interestRate}% p.a.</span> 
                 and will mature on <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{maturityDateStr}</span> 
                 with a maturity value of <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">₹{maturityAmount.toLocaleString('en-IN')}</span>.
@@ -314,7 +314,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex justify-between items-center print:hidden">
             <div className="text-xs text-slate-500 font-medium">
               <p>Approved By: <span className="font-bold text-slate-800">Admin</span> (Emp ID: {employeeId})</p>
-              <p>Approval Date: <span className="font-bold text-slate-800">{new Date(fdData.updatedAt || fdData.submittedAt).toLocaleDateString()}</span></p>
+              <p>Approval Date: <span className="font-bold text-slate-800">{new Date(rdData.updatedAt || rdData.submittedAt).toLocaleDateString()}</span></p>
             </div>
             <div className="text-right text-xs text-slate-500 font-medium">
               <p>Remarks: <span className="font-bold text-slate-800 italic">"Verified and Approved"</span></p>
@@ -323,7 +323,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
 
           {/* FUTURE ENHANCEMENTS PLACEHOLDER */}
           <div className="mt-8 pt-8 border-t border-slate-200 flex flex-wrap gap-4 justify-center print:hidden">
-            <button onClick={() => alert('FD Renewal History will be available soon.')} className="px-4 py-2 border border-slate-300 rounded text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">FD Renewal History</button>
+            <button onClick={() => alert('RD Renewal History will be available soon.')} className="px-4 py-2 border border-slate-300 rounded text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">RD Renewal History</button>
             <button onClick={() => alert('Premature Closure requests will be available soon.')} className="px-4 py-2 bg-rose-50 border border-rose-200 rounded text-xs font-bold text-rose-600 hover:bg-rose-100 transition-colors">Request Premature Closure</button>
           </div>
 

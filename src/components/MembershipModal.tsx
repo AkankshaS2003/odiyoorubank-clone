@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShieldCheck, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MembershipCard } from './MembershipCard';
-import { PaymentGatewayModal } from './PaymentGatewayModal';
+import { PaymentModal } from './PaymentModal';
 
 interface MembershipModalProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const [isVerified, setIsVerified] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState('');
+  const [profileImage, setProfileImage] = useState(user?.profileImageBase64 || '');
   const [hasPrefilledAddress, setHasPrefilledAddress] = useState(false);
   const [hasPrefilledDob, setHasPrefilledDob] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(user?.membershipStatus === 'pending');
@@ -55,6 +56,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
         setDob(data.data.dob || '');
         setHasPrefilledDob(!!data.data.dob);
         setAccountNumber(data.data.accountNumber || '');
+        setProfileImage(data.data.profileImageBase64 || '');
         setIsVerified(true);
       } else {
         setVerifyError(data.error || 'Failed to verify Customer ID');
@@ -179,6 +181,17 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
 
                   {isVerified && (
                     <>
+                      {/* Photo */}
+                      {profileImage && (
+                        <div className="md:col-span-2 flex justify-center mb-2">
+                          <img 
+                            src={profileImage} 
+                            alt="Customer" 
+                            className="w-24 h-24 rounded-xl object-cover border-4 border-white shadow-lg shadow-slate-200/50"
+                          />
+                        </div>
+                      )}
+
                       {/* Name */}
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Full Name</label>
@@ -257,13 +270,14 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
         </motion.div>
       </motion.div>
       
-      <PaymentGatewayModal 
-        isOpen={showPaymentGateway}
-        onClose={() => setShowPaymentGateway(false)}
-        amount={200}
-        purpose="Membership Application Fee"
-        onSuccess={handlePaymentSuccess}
-      />
+      {showPaymentGateway && (
+        <PaymentModal 
+          amount={200}
+          type="Membership Application Fee"
+          onClose={() => setShowPaymentGateway(false)}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </AnimatePresence>
   );
 };

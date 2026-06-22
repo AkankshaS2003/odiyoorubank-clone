@@ -78,9 +78,12 @@ const UserSchema = new mongoose.Schema({
     status: String,
     accruedInterest: Number
   }],
+  profileImageBase64: {
+    type: String
+  },
   loans: [{
     id: String,
-    type: String,
+    type: { type: String },
     amount: Number,
     outstanding: Number,
     rate: Number,

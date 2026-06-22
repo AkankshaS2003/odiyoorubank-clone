@@ -18,6 +18,20 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ amount, type, onClos
   const [error, setError] = useState('');
   const [currentAmount, setCurrentAmount] = useState<number | ''>(amount);
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePayment = async () => {
     if (type === 'Initial Deposit' && (!currentAmount || currentAmount < 500)) {
       setError('Minimum deposit amount is ₹500');
@@ -29,7 +43,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ amount, type, onClos
     setError('');
     
     try {
-      // Mock Create Order
+      const res = await loadRazorpayScript();
+      if (!res) {
+        setError('Failed to load Razorpay SDK');
+        setLoading(false);
+        return;
+      }
+
       const orderRes = await api.post('/payments/create-order', { amount: finalAmount, type }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -38,34 +58,52 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ amount, type, onClos
         throw new Error('Failed to initiate payment');
       }
 
-      // Simulate a small delay for "Razorpay" modal to process
-      setTimeout(async () => {
-        try {
-          // Mock Verify Payment
-          const verifyRes = await api.post('/payments/verify', {
-            razorpayOrderId: orderRes.data.data.id,
-            razorpayPaymentId: 'pay_' + Math.random().toString(36).substring(7),
-            amount: finalAmount,
-            type
-          }, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+      const order = orderRes.data.data;
 
-          if (verifyRes.data.success) {
-            setStep(2);
-            setTimeout(() => {
-              onSuccess();
-              onClose();
-            }, 2000);
+      const options = {
+        key: order.key_id || 'rzp_test_YourTestKey',
+        amount: order.amount,
+        currency: order.currency,
+        name: "Odiyooru Souharda Sahakari",
+        description: `Payment for ${type}`,
+        order_id: order.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await api.post('/payments/verify', {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              amount: finalAmount,
+              type
+            }, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (verifyRes.data.success) {
+              setStep(2);
+              setTimeout(() => {
+                onSuccess();
+                onClose();
+              }, 2000);
+            }
+          } catch (err: any) {
+            setError(err.response?.data?.message || 'Payment verification failed');
           }
-        } catch (err) {
-          setError('Payment verification failed');
-          setLoading(false);
+        },
+        theme: {
+          color: "#0A315C"
         }
-      }, 1500);
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.on('payment.failed', function (response: any) {
+        setError(response.error.description || 'Payment failed');
+      });
+      paymentObject.open();
+      setLoading(false);
 
     } catch (err: any) {
-      setError(err.message || 'Payment failed');
+      setError(err.response?.data?.message || err.message || 'Payment failed');
       setLoading(false);
     }
   };

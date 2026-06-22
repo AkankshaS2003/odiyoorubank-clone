@@ -159,7 +159,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
               </div>
             </div>
             <IdCard 
-              user={{ fullName: user.fullName, customerId: user.customerId || '', phone: user.phone, dob: user.dob }} 
+              user={{ fullName: user.fullName, customerId: user.customerId || '', phone: user.phone, dob: user.dob, profileImageBase64: user.profileImageBase64 }} 
               membership={{ memberId: user.memberId || 'MEM-001', issuedDate: new Date().toISOString() }} 
             />
           </div>
@@ -286,6 +286,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
                         {app.applicationType === 'Fixed Deposit' && app.status === 'Approved' && (
                           <button 
                             onClick={() => setCurrentTab(`view-fd-details|${app._id}`)}
+                            className="px-3 py-1.5 bg-[#0F4C81] text-white text-[10px] font-bold uppercase rounded hover:bg-blue-900 transition-colors"
+                          >
+                            View Certificate
+                          </button>
+                        )}
+                        {app.applicationType === 'Recurring Deposit' && app.status === 'Approved' && (
+                          <button 
+                            onClick={() => setCurrentTab(`view-rd-details|${app._id}`)}
                             className="px-3 py-1.5 bg-[#0F4C81] text-white text-[10px] font-bold uppercase rounded hover:bg-blue-900 transition-colors"
                           >
                             View Certificate

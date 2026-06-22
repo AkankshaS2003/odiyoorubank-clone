@@ -27,6 +27,7 @@ import { HousingLoanApplication } from './pages/HousingLoanApplication';
 import { MortgageLoanApplication } from './pages/MortgageLoanApplication';
 import { AgriculturalLoanApplication } from './pages/AgriculturalLoanApplication';
 import { FDDetailsPage } from './pages/FDDetailsPage';
+import { RDDetailsPage } from './pages/RDDetailsPage';
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -139,6 +140,11 @@ const AppContent: React.FC = () => {
             if (!isAuthenticated) return <Home setCurrentTab={setCurrentTab} />;
             const appId = currentTab.split('|')[1];
             return <FDDetailsPage appId={appId} setCurrentTab={setCurrentTab} />;
+          }
+          if (currentTab.startsWith('view-rd-details|')) {
+            if (!isAuthenticated) return <Home setCurrentTab={setCurrentTab} />;
+            const appId = currentTab.split('|')[1];
+            return <RDDetailsPage appId={appId} setCurrentTab={setCurrentTab} />;
           }
           return <Home setCurrentTab={setCurrentTab} />;
       }

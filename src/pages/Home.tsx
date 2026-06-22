@@ -27,7 +27,7 @@ export const Home: React.FC<HomeProps> = ({ setCurrentTab }) => {
 
       {/* 2. Banking Products tabs (FD, RD, Gold Loans cards) */}
       <div id="products-section">
-        <Products />
+        <Products setCurrentTab={setCurrentTab} />
       </div>
 
       {/* Replaced DigitalBanking with HowToJoin in a different position */}

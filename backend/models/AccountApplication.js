@@ -49,6 +49,9 @@ const AccountApplicationSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  applicantPhotoBase64: {
+    type: String
   }
 });
 

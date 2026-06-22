@@ -1,13 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Printer, CheckCircle, FileCheck } from 'lucide-react';
+
+const numberToWords = (num: number): string => {
+  if (num === 0) return 'Zero Rupees Only';
+  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  if (num < 0) return 'Negative ' + numberToWords(Math.abs(num));
+  if (num > 999999999) return 'Amount too large';
+  
+  let str = '';
+  const crore = Math.floor(num / 10000000);
+  if (crore > 0) {
+    str += (crore < 20 ? a[crore] : b[Math.floor(crore / 10)] + (crore % 10 !== 0 ? ' ' + a[crore % 10] : '')) + ' Crore ';
+    num %= 10000000;
+  }
+  const lakh = Math.floor(num / 100000);
+  if (lakh > 0) {
+    str += (lakh < 20 ? a[lakh] : b[Math.floor(lakh / 10)] + (lakh % 10 !== 0 ? ' ' + a[lakh % 10] : '')) + ' Lakh ';
+    num %= 100000;
+  }
+  const thousand = Math.floor(num / 1000);
+  if (thousand > 0) {
+    str += (thousand < 20 ? a[thousand] : b[Math.floor(thousand / 10)] + (thousand % 10 !== 0 ? ' ' + a[thousand % 10] : '')) + ' Thousand ';
+    num %= 1000;
+  }
+  const hundred = Math.floor(num / 100);
+  if (hundred > 0) {
+    str += a[hundred] + ' Hundred ';
+    num %= 100;
+  }
+  if (num > 0) {
+    if (str !== '') str += 'and ';
+    str += (num < 20 ? a[num] : b[Math.floor(num / 10)] + (num % 10 !== 0 ? ' ' + a[num % 10] : ''));
+  }
+  return str.trim() + ' Rupees Only';
+};
 
 interface DepositApplicationProps {
   setCurrentTab: (tab: string) => void;
 }
 
 const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full" }: any) => (
-  <div className={`${width} mb-3`}>
+  <div className={`${width} mb-3 h-full flex flex-col`}>
     <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
     <input
       type={type}
@@ -15,7 +51,7 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent"
+      className="mt-auto w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent"
     />
   </div>
 );
@@ -110,6 +146,30 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
     introducerAccountNo: '',
   });
 
+  useEffect(() => {
+    if (user) {
+      setFormData((prev: any) => ({
+        ...prev,
+        app1MemberNo: prev.app1MemberNo || user.memberId || '',
+        app1Name: prev.app1Name || user.fullName || '',
+        app1Mobile: prev.app1Mobile || user.phone || '',
+        app1Address: prev.app1Address || user.address || '',
+        app1Dob: prev.app1Dob || user.dob || '',
+      }));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (formData?.amount) {
+      const amountNum = parseInt(formData.amount, 10);
+      if (!isNaN(amountNum) && amountNum >= 0) {
+        setFormData(prev => ({ ...prev, amountWords: numberToWords(amountNum) }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, amountWords: '' }));
+    }
+  }, [formData?.amount]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
@@ -150,6 +210,13 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
       alert("Please fill in Deposit Type, Amount, and Period");
       return;
     }
+
+    const amountNum = parseInt(formData.amount, 10);
+    if (user && amountNum > (user.savingsBalance || 0)) {
+      alert(`Insufficient savings balance. Your current balance is ₹${user.savingsBalance || 0}`);
+      return;
+    }
+
     
     setIsSubmitting(true);
     

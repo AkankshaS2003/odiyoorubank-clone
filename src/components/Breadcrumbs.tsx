@@ -11,7 +11,8 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ currentTab, setCurrentTab }) 
   if (currentTab === 'home') return null;
 
   // Since we have a flat navigation structure (tabs), the breadcrumb will usually just be Home > Current Tab
-  const text = currentTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  const baseTab = currentTab.split('|')[0];
+  const text = baseTab.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
   return (
     <nav className="bg-gray-50 border-b border-gray-200 px-4 py-3 sm:px-6 lg:px-8">

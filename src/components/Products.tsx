@@ -115,38 +115,6 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
   const activeProducts = activeTab === 'deposit' ? depositProducts : loanProducts;
 
   const handleApplyClick = (product: ProductItem) => {
-    if (setCurrentTab && (product.id === 'prod-fixed' || product.id === 'prod-recurring')) {
-      setCurrentTab('apply-deposit');
-      return;
-    }
-    if (setCurrentTab && product.id === 'prod-gold') {
-      setCurrentTab('apply-gold-loan');
-      return;
-    }
-    if (setCurrentTab && product.id === 'prod-vehicle') {
-      setCurrentTab('apply-vehicle-loan');
-      return;
-    }
-    if (setCurrentTab && product.id === 'prod-education') {
-      setCurrentTab('apply-educational-loan');
-      return;
-    }
-    if (setCurrentTab && product.id === 'prod-personal') {
-      setCurrentTab('apply-personal-loan');
-      return;
-    }
-    if (setCurrentTab && product.id === 'prod-housing') {
-      setCurrentTab('apply-housing-loan');
-      return;
-    }
-    if (setCurrentTab && product.id === 'prod-mortgage') {
-      setCurrentTab('apply-mortgage-loan');
-      return;
-    }
-    if (setCurrentTab && product.id === 'prod-agriculture') {
-      setCurrentTab('apply-agricultural-loan');
-      return;
-    }
     setSelectedProduct(product);
     setApplyAmount(product.category === 'deposit' ? 25000 : 100000);
     setApplyDuration(product.category === 'deposit' ? 3 : 24); // years for deposits, months for loans
@@ -169,27 +137,23 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
         return;
       }
       
-      const success = await openNewDeposit(
-        selectedProduct.name.replace(' Deposit', '').replace(' (FD)', '').replace(' Scheme', '') as any,
-        applyAmount,
-        applyDuration
-      );
-      if (success) {
-        setApplicationSuccess(true);
-      } else {
-        setApplicationError('Something went wrong. Please check your inputs and try again.');
+      if (setCurrentTab) {
+        if (selectedProduct.id === 'prod-savings') {
+          setCurrentTab('apply-account');
+        } else {
+          setCurrentTab('apply-deposit');
+        }
       }
     } else {
       // Loan Application
-      const success = await applyForLoan(
-        selectedProduct.name as any,
-        applyAmount,
-        applyDuration
-      );
-      if (success) {
-        setApplicationSuccess(true);
-      } else {
-        setApplicationError('Could not process loan application. Verify parameters.');
+      if (setCurrentTab) {
+        if (selectedProduct.id === 'prod-gold') setCurrentTab('apply-gold-loan');
+        else if (selectedProduct.id === 'prod-vehicle') setCurrentTab('apply-vehicle-loan');
+        else if (selectedProduct.id === 'prod-personal') setCurrentTab('apply-personal-loan');
+        else if (selectedProduct.id === 'prod-education') setCurrentTab('apply-educational-loan');
+        else if (selectedProduct.id === 'prod-housing') setCurrentTab('apply-housing-loan');
+        else if (selectedProduct.id === 'prod-mortgage') setCurrentTab('apply-mortgage-loan');
+        else if (selectedProduct.id === 'prod-agriculture') setCurrentTab('apply-agricultural-loan');
       }
     }
   };
