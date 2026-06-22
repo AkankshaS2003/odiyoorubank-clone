@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Printer, Download, CheckCircle, ShieldCheck, FileText, DownloadCloud, Landmark, User, FileImage, CreditCard } from 'lucide-react';
 
 export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurrentTab: (tab: string) => void }) => {
-  const { getUserServiceApplications } = useAuth();
+  const { getUserServiceApplications, systemSettings } = useAuth();
   const [fdData, setFdData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,9 +45,7 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
   const depositPeriod = Number(fdData.formData?.depositPeriod) || 12; // assuming months
   
   // Base logic for rates
-  let interestRate = 7.5; // default
-  if (depositPeriod >= 24) interestRate = 8.0;
-  if (depositPeriod >= 60) interestRate = 8.5;
+  const interestRate = systemSettings?.fdRate || 8.50;
 
   const startDateStr = new Date(fdData.submittedAt).toLocaleDateString();
   const maturityDateObj = new Date(fdData.submittedAt);
@@ -178,8 +176,8 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
               <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1">
                 <InfoRow label="Full Name" value={fdData.formData?.app1Name} />
                 <InfoRow label="Mobile Number" value={fdData.formData?.app1Mobile} />
-                <InfoRow label="Aadhaar Number" value={fdData.formData?.app1Aadhaar || 'XXXX-XXXX-XXXX'} />
-                <InfoRow label="PAN Number" value={fdData.formData?.app1Pan || 'XXXXX0000X'} />
+                <InfoRow label="Aadhaar Number" value={fdData.formData?.app1Aadhaar ? 'XXXX XXXX ' + String(fdData.formData.app1Aadhaar).slice(-4) : 'XXXX XXXX 1234'} />
+                <InfoRow label="PAN Number" value={fdData.formData?.app1Pan ? 'XXXXXX' + String(fdData.formData.app1Pan).slice(-4) : 'XXXXXX1234'} />
                 <InfoRow label="Address" value={fdData.formData?.app1Address} />
               </div>
             </div>

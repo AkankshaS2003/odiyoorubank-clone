@@ -159,7 +159,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
               </div>
             </div>
             <IdCard 
-              user={{ fullName: user.fullName, customerId: user.customerId || '', phone: user.phone, dob: user.dob, profileImageBase64: user.profileImageBase64 }} 
+              user={{ fullName: user.fullName, customerId: user.customerId || '', phone: user.phone, dob: user.dob, profileImageBase64: user.profileImageBase64, address: user.address }} 
               membership={{ memberId: user.memberId || 'MEM-001', issuedDate: new Date().toISOString() }} 
             />
           </div>

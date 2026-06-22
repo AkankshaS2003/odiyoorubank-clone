@@ -22,7 +22,7 @@ const THEME = {
   white: '#FFFFFF'
 };
 
-const InputField = ({ label, name, type = "text", required = false, width = "w-full", placeholder = "", formData, handleChange, error }: any) => (
+const InputField = ({ label, name, type = "text", required = false, width = "w-full", placeholder = "", formData, handleChange, error, ...props }: any) => (
   <div className={`${width} mb-4`}>
     <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">{label} {required && <span className="text-red-500">*</span>}</label>
     <input
@@ -31,7 +31,8 @@ const InputField = ({ label, name, type = "text", required = false, width = "w-f
       value={formData[name]}
       onChange={handleChange}
       placeholder={placeholder}
-      className={`w-full px-4 py-2.5 border ${error ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 focus:ring-primary/20'} rounded-xl focus:ring-2 focus:border-primary outline-none transition-all text-sm font-medium text-slate-800 bg-white`}
+      className={`w-full px-4 py-2.5 border ${error ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 focus:ring-primary/20'} rounded-xl focus:ring-2 focus:border-primary outline-none transition-all text-sm font-medium text-slate-800 bg-white ${props.autocapitalize === 'characters' ? 'uppercase' : ''}`}
+      {...props}
     />
     {error && <p className="text-xs text-red-500 mt-1 font-semibold">{error}</p>}
   </div>
@@ -114,14 +115,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     if (customer) {
       setFormData(prev => ({
         ...prev,
-        memberNo: customer.memberId || prev.memberNo,
-        fullName: customer.fullName || prev.fullName,
-        permHouse: customer.address || prev.permHouse,
-        mobile: customer.phone || prev.mobile,
+        memberNo: customer.memberId || (prev as any).memberNo,
+        applicantFullName: customer.fullName || prev.applicantFullName,
+        residentialAddress: customer.address || prev.residentialAddress,
+        mobileNumber: customer.phone || prev.mobileNumber,
         dob: customer.dob || prev.dob,
-        aadhaar: customer.aadharNumber || prev.aadhaar,
-        pan: customer.panNumber || prev.pan,
-        email: customer.email || prev.email,
+        aadhaarNumber: customer.aadharNumber || prev.aadhaarNumber,
+        panNumber: customer.panNumber || prev.panNumber,
+        emailId: customer.email || prev.emailId,
       }));
     } else {
       alert("Customer not found");
@@ -162,13 +163,56 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
+    let finalValue = value;
+    
+    // Auto-capitalize PAN Numbers
+    if (name === 'panNumber' || name === 'jointPanNumber') {
+      finalValue = value.toUpperCase();
+    }
+    
+    // Restrict Aadhaar to 12 digits max
+    if (name === 'aadhaarNumber' || name === 'jointAadhaarNumber') {
+      finalValue = value.replace(/\D/g, '').slice(0, 12);
+    }
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: finalValue }));
     }
     if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    let errorStr: string | undefined = undefined;
+    
+    const requiredFields = ['applicantFullName', 'mobileNumber', 'panNumber', 'aadhaarNumber', 'dob', 'residentialAddress', 'occupationAddress'];
+    if (formData.hasJointApplicant) {
+      requiredFields.push('jointApplicantName', 'jointMobileNumber', 'jointPanNumber', 'jointDob', 'jointResidentialAddress');
+    }
+
+    if (requiredFields.includes(name) && !value) {
+      errorStr = 'Required';
+    } else if (value) {
+      if ((name === 'panNumber' || name === 'jointPanNumber') && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(value)) {
+        errorStr = 'Invalid PAN format';
+      } else if ((name === 'aadhaarNumber' || name === 'jointAadhaarNumber') && !/^\d{12}$/.test(value.replace(/\s/g, ''))) {
+        errorStr = 'Invalid Aadhaar (12 digits required)';
+      } else if (name === 'dob' || name === 'jointDob') {
+        const dobDate = new Date(value);
+        const ageDate = new Date(Date.now() - dobDate.getTime());
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        if (age < 10) errorStr = 'Must be at least 10 years old';
+      }
+    }
+    
+    if (errorStr !== undefined) {
+      setErrors(prev => ({ ...prev, [name]: errorStr }));
+    } else {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
@@ -176,6 +220,15 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   const handleFileUpload = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      
+      // Enforce 1MB file size limit for all uploads
+      if (file.size > 1024 * 1024) {
+        alert('File size must be less than 1MB');
+        // Reset the file input so the user can try again
+        e.target.value = '';
+        return;
+      }
+
       setUploads(prev => ({ ...prev, [field]: file.name }));
       setFileObjects(prev => ({ ...prev, [field]: file }));
       if (errors[field]) {
@@ -190,7 +243,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     if (!formData.mobileNumber) newErrors.mobileNumber = 'Required';
     if (!formData.panNumber) newErrors.panNumber = 'Required';
     if (!formData.aadhaarNumber) newErrors.aadhaarNumber = 'Required';
-    if (!formData.dob) newErrors.dob = 'Required';
+    if (!formData.dob) {
+      newErrors.dob = 'Required';
+    } else {
+      const dobDate = new Date(formData.dob);
+      const ageDate = new Date(Date.now() - dobDate.getTime());
+      const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+      if (age < 10) newErrors.dob = 'Must be at least 10 years old';
+    }
     if (!formData.residentialAddress) newErrors.residentialAddress = 'Required';
     if (!formData.occupationAddress) newErrors.occupationAddress = 'Required';
     
@@ -208,7 +268,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       if (!formData.jointApplicantName) newErrors.jointApplicantName = 'Required';
       if (!formData.jointMobileNumber) newErrors.jointMobileNumber = 'Required';
       if (!formData.jointPanNumber) newErrors.jointPanNumber = 'Required';
-      if (!formData.jointDob) newErrors.jointDob = 'Required';
+      if (!formData.jointDob) {
+        newErrors.jointDob = 'Required';
+      } else {
+        const dobDate = new Date(formData.jointDob);
+        const ageDate = new Date(Date.now() - dobDate.getTime());
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        if (age < 10) newErrors.jointDob = 'Must be at least 10 years old';
+      }
       if (!formData.jointResidentialAddress) newErrors.jointResidentialAddress = 'Required';
 
       if (formData.jointPanNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formData.jointPanNumber)) {
@@ -397,19 +464,19 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
             <div className={step === 1 ? 'block' : 'hidden print:block print:break-after-page'}>
               <div className="border-b-2 border-[#EAF6FF] pb-4 mb-6 flex justify-between items-end print:border-gray-200">
                 <h2 className="text-xl font-black text-[#0F4C81] uppercase tracking-wider"></h2>
-                <div className="w-32"><InputField label="Date" name="date" type="date"  formData={formData} handleChange={handleChange} error={errors['date']} /></div>
+                <div className="w-32"><InputField onBlur={handleBlur} label="Date" name="date" type="date"  formData={formData} handleChange={handleChange} error={errors['date']} /></div>
               </div>
 
               <div className="flex flex-col md:flex-row gap-8">
                 <div className="flex-grow space-y-4">
-                  <InputField label="Applicant Full Name" name="applicantFullName" required  formData={formData} handleChange={handleChange} error={errors['applicantFullName']} />
+                  <InputField onBlur={handleBlur} label="Applicant Full Name" name="applicantFullName" required  formData={formData} handleChange={handleChange} error={errors['applicantFullName']} />
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputField label="Mobile Number" name="mobileNumber" required type="tel"  formData={formData} handleChange={handleChange} error={errors['mobileNumber']} />
-                    <InputField label="Email ID" name="emailId" type="email"  formData={formData} handleChange={handleChange} error={errors['emailId']} />
-                    <InputField label="PAN Number" name="panNumber"  formData={formData} handleChange={handleChange} error={errors['panNumber']} />
-                    <InputField label="Aadhaar Number" name="aadhaarNumber"  formData={formData} handleChange={handleChange} error={errors['aadhaarNumber']} />
-                    <InputField label="Date of Birth" name="dob" type="date"  formData={formData} handleChange={handleChange} error={errors['dob']} />
+                    <InputField onBlur={handleBlur} label="Mobile Number" name="mobileNumber" required type="tel"  formData={formData} handleChange={handleChange} error={errors['mobileNumber']} />
+                    <InputField onBlur={handleBlur} label="Email ID" name="emailId" type="email"  formData={formData} handleChange={handleChange} error={errors['emailId']} />
+                    <InputField onBlur={handleBlur} label="PAN Number" name="panNumber"  formData={formData} handleChange={handleChange} error={errors['panNumber']} autocapitalize="characters" />
+                    <InputField onBlur={handleBlur} label="Aadhaar Number" name="aadhaarNumber"  formData={formData} handleChange={handleChange} error={errors['aadhaarNumber']} />
+                    <InputField onBlur={handleBlur} label="Date of Birth" name="dob" type="date"  formData={formData} handleChange={handleChange} error={errors['dob']} />
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Senior Citizen</label>
@@ -468,12 +535,12 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                   <h3 className="text-sm font-black text-gray-700 uppercase tracking-wider mb-4">Joint Applicant Details</h3>
                   <div className="flex flex-col md:flex-row gap-8">
                     <div className="flex-grow space-y-4">
-                      <InputField label="Joint Applicant Full Name" name="jointApplicantName" required={formData.hasJointApplicant}  formData={formData} handleChange={handleChange} error={errors['jointApplicantName']} />
+                      <InputField onBlur={handleBlur} label="Joint Applicant Full Name" name="jointApplicantName" required={formData.hasJointApplicant}  formData={formData} handleChange={handleChange} error={errors['jointApplicantName']} />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <InputField label="Mobile Number" name="jointMobileNumber"  formData={formData} handleChange={handleChange} error={errors['jointMobileNumber']} />
-                        <InputField label="Email ID" name="jointEmailId"  formData={formData} handleChange={handleChange} error={errors['jointEmailId']} />
-                        <InputField label="PAN Number" name="jointPanNumber"  formData={formData} handleChange={handleChange} error={errors['jointPanNumber']} />
-                        <InputField label="Date of Birth" name="jointDob" type="date"  formData={formData} handleChange={handleChange} error={errors['jointDob']} />
+                        <InputField onBlur={handleBlur} label="Mobile Number" name="jointMobileNumber"  formData={formData} handleChange={handleChange} error={errors['jointMobileNumber']} />
+                        <InputField onBlur={handleBlur} label="Email ID" name="jointEmailId"  formData={formData} handleChange={handleChange} error={errors['jointEmailId']} />
+                        <InputField onBlur={handleBlur} label="PAN Number" name="jointPanNumber"  formData={formData} handleChange={handleChange} error={errors['jointPanNumber']} autocapitalize="characters" />
+                        <InputField onBlur={handleBlur} label="Date of Birth" name="jointDob" type="date"  formData={formData} handleChange={handleChange} error={errors['jointDob']} />
                       </div>
                       <div className="grid grid-cols-1 gap-4">
                         <div>
@@ -518,9 +585,9 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                 <h3 className="text-sm font-black text-[#0F4C81] uppercase tracking-wider mb-4">Nominee Details</h3>
                 <div className="flex flex-col md:flex-row gap-8">
                   <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputField label="Nominee Name" name="nomineeName"  formData={formData} handleChange={handleChange} error={errors['nomineeName']} />
-                    <InputField label="Relationship with Applicant" name="nomineeRelationship"  formData={formData} handleChange={handleChange} error={errors['nomineeRelationship']} />
-                    <InputField label="Date of Birth" name="nomineeDob" type="date"  formData={formData} handleChange={handleChange} error={errors['nomineeDob']} />
+                    <InputField onBlur={handleBlur} label="Nominee Name" name="nomineeName"  formData={formData} handleChange={handleChange} error={errors['nomineeName']} />
+                    <InputField onBlur={handleBlur} label="Relationship with Applicant" name="nomineeRelationship"  formData={formData} handleChange={handleChange} error={errors['nomineeRelationship']} />
+                    <InputField onBlur={handleBlur} label="Date of Birth" name="nomineeDob" type="date"  formData={formData} handleChange={handleChange} error={errors['nomineeDob']} />
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Nominee Address</label>
                       <textarea name="nomineeAddress" value={formData.nomineeAddress} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white resize-none"></textarea>
@@ -542,8 +609,8 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                   </label>
                   {formData.isNomineeMinor && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-8 border-l-2 border-gray-200">
-                      <InputField label="Guardian Name" name="guardianName"  formData={formData} handleChange={handleChange} error={errors['guardianName']} />
-                      <InputField label="Relationship" name="guardianRelationship"  formData={formData} handleChange={handleChange} error={errors['guardianRelationship']} />
+                      <InputField onBlur={handleBlur} label="Guardian Name" name="guardianName"  formData={formData} handleChange={handleChange} error={errors['guardianName']} />
+                      <InputField onBlur={handleBlur} label="Relationship" name="guardianRelationship"  formData={formData} handleChange={handleChange} error={errors['guardianRelationship']} />
                       <div className="md:col-span-2">
                         <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Guardian Address</label>
                         <textarea name="guardianAddress" value={formData.guardianAddress} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white resize-none"></textarea>
