@@ -69,32 +69,9 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
   const [success, setSuccess] = useState(false);
   const [receiptNo, setReceiptNo] = useState('');
 
-  useEffect(() => {
-    // Attempt to load the current logged in user's savings profile by default
-    const fetchProfile = async () => {
-      try {
-        const data = await getSavingsProfile();
-        setSavingsAccount(data.account);
-        // Pre-fill if we don't have customerId input yet
-        if (!customerIdInput && user?.customerId) {
-          setCustomerIdInput(user.customerId);
-          setCustomerInfo(user);
-        }
-      } catch (err) {
-        console.error('Failed to fetch savings profile', err);
-      }
-    };
-    fetchProfile();
-  }, [user]);
+  
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (customerIdInput && customerIdInput.length >= 3) {
-        handleCustomerLookup();
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [customerIdInput]);
+  
 
   const handleCustomerLookup = async () => {
     if (!customerIdInput) return;
@@ -142,7 +119,7 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
 
       if (depositRes.success) {
         const options = {
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YourKeyId',
+          key: depositRes.order.key_id || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YourKeyId',
           amount: depositRes.order.amount,
           currency: depositRes.order.currency,
           name: 'Odiyooru Souharda Bank',
@@ -285,7 +262,6 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
                     type="text" 
                     value={customerIdInput}
                     onChange={(e) => setCustomerIdInput(e.target.value)}
-                    onBlur={handleCustomerLookup}
                     placeholder="Enter Customer ID"
                     className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-[#ED7F1E] outline-none transition-all" 
                   />
@@ -305,7 +281,7 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
 
               <div>
                 <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Savings Account No</label>
-                <input type="text" readOnly value={customerIdInput ? (customerInfo?.savingsAccountNumber || '') : (savingsAccount?.accountNumber || '')} placeholder="Auto-filled" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-500 outline-none" />
+                <input type="text" readOnly value={customerInfo?.savingsAccountNumber || ''} placeholder="Auto-filled" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-500 outline-none" />
               </div>
               
               <div>

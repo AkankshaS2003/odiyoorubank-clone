@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { UserCheck, ShieldAlert, Award, CheckSquare, X } from 'lucide-react';
+import { UserCheck, ShieldAlert, Award, CheckSquare, X, History } from 'lucide-react';
 import { MembershipCard } from '../components/MembershipCard';
 import { EligibilityDashboard } from '../components/LoanEligibility/EligibilityDashboard';
 import { IdCard } from '../components/IdCard';
@@ -197,12 +197,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab }) => {
                 <UserCheck className="h-5 w-5 text-primary" />
                 <span>{"Account Details"}</span>
               </h4>
-              <button 
-                onClick={() => setShowAddFundsModal(true)}
-                className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-colors"
-              >
-                + Add Funds
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setCurrentTab('savings-history')}
+                  className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                >
+                  <History className="w-3 h-3" /> View History
+                </button>
+                <button 
+                  onClick={() => setShowAddFundsModal(true)}
+                  className="px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-colors"
+                >
+                  + Add Funds
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">

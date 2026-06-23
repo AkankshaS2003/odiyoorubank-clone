@@ -80,28 +80,44 @@ exports.updateApplicationStatus = async (req, res, next) => {
       const user = await User.findById(application.userId);
       if (user) {
         const amount = Number(application.formData?.amount) || 0;
+        let transactionType = application.applicationType;
+        const account = await Account.findOne({ userId: user._id });
+
         if (application.applicationType === 'Fixed Deposit') {
           await User.updateOne({ _id: user._id }, { $inc: { fdBalance: amount, savingsBalance: -amount } });
+          if (account) {
+            account.balance = (account.balance || 0) - amount;
+            await account.save();
+          }
         } else if (application.applicationType === 'Recurring Deposit') {
           await User.updateOne({ _id: user._id }, { $inc: { rdBalance: amount, savingsBalance: -amount } });
-        }
-        
-        // Also update the Account document's balance if it exists
-        const account = await Account.findOne({ userId: user._id });
-        if (account) {
-          account.balance = (account.balance || 0) - amount;
-          await account.save();
+          if (account) {
+            account.balance = (account.balance || 0) - amount;
+            await account.save();
+          }
+        } else if (application.applicationType.includes('Loan')) {
+          transactionType = 'Loan Disbursement';
+          // Disburse the loan amount to their savings
+          await User.updateOne({ _id: user._id }, { $inc: { savingsBalance: amount } });
+          if (account) {
+            account.balance = (account.balance || 0) + amount;
+            await account.save();
+          }
+        } else {
+          transactionType = 'Application Fee';
         }
         
         // Create Transaction Record
-        const Transaction = require('../models/Transaction');
-        await Transaction.create({
-          userId: user._id,
-          accountId: account ? account._id : undefined,
-          amount: amount,
-          type: application.applicationType,
-          status: 'Completed'
-        });
+        if (amount > 0) {
+          const Transaction = require('../models/Transaction');
+          await Transaction.create({
+            userId: user._id,
+            accountId: account ? account._id : undefined,
+            amount: amount,
+            type: transactionType,
+            status: 'Completed'
+          });
+        }
       }
     }
 
