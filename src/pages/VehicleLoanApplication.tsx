@@ -131,7 +131,6 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
     // ID
     aadhaar: '',
     pan: '',
-    dl: '',
 
     // Occupation
     occupation: '',
@@ -447,7 +446,6 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <InputField label="Aadhaar Number" name="aadhaar" value={formData.aadhaar} onChange={handleChange} />
               <InputField label="PAN Number" name="pan" value={formData.pan} onChange={handleChange} />
-              <InputField label="Driving License Number" name="dl" value={formData.dl} onChange={handleChange} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2 border-t border-slate-300 print:hidden">
               <div className="flex flex-col">

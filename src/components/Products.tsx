@@ -237,10 +237,14 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
 
               {/* Interest Rate & CTA */}
               <div className="border-t border-slate-100 pt-4 mt-auto flex justify-between items-center">
-                <div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Interest Rate</span>
-                  <span className="text-lg font-extrabold text-primary">{product.interestRate}</span>
-                </div>
+                {product.id !== 'prod-savings' ? (
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Interest Rate</span>
+                    <span className="text-lg font-extrabold text-primary">{product.interestRate}</span>
+                  </div>
+                ) : (
+                  <div></div>
+                )}
                 <button 
                   onClick={() => handleApplyClick(product)}
                   className="px-3 sm:px-4.5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors shadow-md hover:shadow-lg"
@@ -281,7 +285,9 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
                   <p className="text-slate-500 font-semibold uppercase tracking-wider">Transaction Invoice</p>
                   <p className="text-slate-800"><span className="font-semibold">Type:</span> {selectedProduct.name}</p>
                   <p className="text-slate-800"><span className="font-semibold">Principal:</span> ₹{applyAmount.toLocaleString('en-IN')}</p>
-                  <p className="text-slate-800"><span className="font-semibold">Interest Rate:</span> {selectedProduct.interestRate}</p>
+                  {selectedProduct.id !== 'prod-savings' && (
+                    <p className="text-slate-800"><span className="font-semibold">Interest Rate:</span> {selectedProduct.interestRate}</p>
+                  )}
                   <p className="text-slate-800"><span className="font-semibold">Repayment/Lock:</span> {applyDuration} {selectedProduct.category === 'deposit' ? 'Years' : 'Months'}</p>
                 </div>
                 <button
@@ -355,10 +361,12 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
                 </div>
 
                 <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl space-y-2">
-                  <div className="flex justify-between text-xs text-slate-600">
-                    <span>Standard Rate:</span>
-                    <span className="font-bold text-slate-800">{selectedProduct.interestRate}</span>
-                  </div>
+                  {selectedProduct.id !== 'prod-savings' && (
+                    <div className="flex justify-between text-xs text-slate-600">
+                      <span>Standard Rate:</span>
+                      <span className="font-bold text-slate-800">{selectedProduct.interestRate}</span>
+                    </div>
+                  )}
                   {isAuthenticated && user && (
                     <div className="flex justify-between text-xs text-slate-600 border-t border-slate-200/50 pt-2">
                       <span>Available Savings Balance:</span>
