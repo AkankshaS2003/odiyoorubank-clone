@@ -6,6 +6,7 @@ import { EligibilityDashboard } from '../components/LoanEligibility/EligibilityD
 import { IdCard } from '../components/IdCard';
 import { PaymentModal } from '../components/PaymentModal';
 import { AddFundsModal } from '../components/AddFundsModal';
+import { SavingsSummaryCard } from '../components/SavingsSummaryCard';
 
 interface DashboardProps {
   setCurrentTab: (tab: string) => void;

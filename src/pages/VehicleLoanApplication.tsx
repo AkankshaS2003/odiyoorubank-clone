@@ -7,7 +7,7 @@ interface VehicleLoanApplicationProps {
 }
 
 const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false }: any) => (
-  <div className={`${width} mb-3 h-full flex flex-col`}>
+  <div className={`\ mb-3`}>
     <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
     <input
       type={type}
@@ -16,19 +16,19 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
       onChange={onChange}
       placeholder={placeholder}
       readOnly={readOnly}
-      className={`mt-auto w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
+      className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
     />
   </div>
 );
 
 const SelectField = ({ label, name, value, onChange, options, width = "w-full" }: any) => (
-  <div className={`${width} mb-3 h-full flex flex-col`}>
+  <div className={`\ mb-3`}>
     <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
     <select
       name={name}
       value={value}
       onChange={onChange}
-      className="mt-auto w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent"
+      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent"
     >
       <option value="">Select Option</option>
       {options.map((opt: string) => (
@@ -524,21 +524,6 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
               <InputField label="Account Number" name="accNumber" value={formData.accNumber} onChange={handleChange} />
               <InputField label="Branch" name="accBranch" value={formData.accBranch} onChange={handleChange} />
               <InputField label="IFSC Code" name="accIfsc" value={formData.accIfsc} onChange={handleChange} />
-            </div>
-          </div>
-
-          {/* GUARANTOR DETAILS */}
-          <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
-            <h3 className="text-xs font-black text-white bg-slate-600 px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-slate-800 print:border print:border-slate-800 print:px-2 uppercase tracking-wider">Guarantor Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <InputField label="Guarantor Name" name="guarName" value={formData.guarName} onChange={handleChange} />
-              <InputField label="Membership Number" name="guarMemberNo" value={formData.guarMemberNo} onChange={handleChange} />
-              <InputField label="Mobile Number" name="guarMobile" value={formData.guarMobile} onChange={handleChange} />
-              <InputField label="Occupation" name="guarOccupation" value={formData.guarOccupation} onChange={handleChange} />
-              <div className="lg:col-span-4"><InputField label="Address" name="guarAddress" value={formData.guarAddress} onChange={handleChange} /></div>
-            </div>
-            <div className="flex justify-end">
-              <div className="w-48 border-t border-slate-800 pt-2 text-center text-[10px] font-bold uppercase">Guarantor Signature</div>
             </div>
           </div>
 

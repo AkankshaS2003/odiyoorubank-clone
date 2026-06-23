@@ -43,7 +43,7 @@ interface DepositApplicationProps {
 }
 
 const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full" }: any) => (
-  <div className={`${width} mb-3 h-full flex flex-col`}>
+  <div className={`\ mb-3`}>
     <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
     <input
       type={type}
@@ -51,7 +51,7 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="mt-auto w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent"
+      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent"
     />
   </div>
 );

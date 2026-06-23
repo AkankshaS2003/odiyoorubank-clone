@@ -162,7 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                     onClick={() => handleNavClick('products')}
                     className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors uppercase"
                   >
-                    {"Products"}
+                    {"Services"}
                   </button>
                   <button
                     onClick={() => handleNavClick('loan-eligibility')}

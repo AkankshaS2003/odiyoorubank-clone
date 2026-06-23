@@ -25,6 +25,15 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
 
   const depositProducts: ProductItem[] = [
     {
+      id: 'prod-savings',
+      name: "Savings Deposit Account",
+      category: 'deposit',
+      description: "Securely deposit money into your savings account and track all transactions in real-time through your banking dashboard.",
+      interestRate: `${systemSettings?.savingsRate || 4.50}% p.a.`,
+      badge: 'Popular',
+      benefits: ['Instant Savings Deposit Facility', 'Real-Time Balance Update', 'Complete Transaction History Tracking']
+    },
+    {
       id: 'prod-fixed',
       name: "Fixed Deposit (FD)",
       category: 'deposit',
@@ -111,7 +120,8 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       return;
     }
     if (setCurrentTab) {
-      if (product.id === 'prod-gold') setCurrentTab('apply-gold-loan');
+      if (product.id === 'prod-savings') setCurrentTab('apply-savings-deposit');
+      else if (product.id === 'prod-gold') setCurrentTab('apply-gold-loan');
       else if (product.id === 'prod-vehicle') setCurrentTab('apply-vehicle-loan');
       else if (product.id === 'prod-personal') setCurrentTab('apply-personal-loan');
       else if (product.id === 'prod-education') setCurrentTab('apply-educational-loan');
@@ -235,7 +245,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
                   onClick={() => handleApplyClick(product)}
                   className="px-3 sm:px-4.5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors shadow-md hover:shadow-lg"
                 >
-                  Apply Now
+                  {product.id === 'prod-savings' ? 'Deposit Now' : 'Apply Now'}
                 </button>
               </div>
 

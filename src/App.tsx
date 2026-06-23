@@ -19,6 +19,8 @@ import { BranchesPage } from './pages/BranchesPage';
 import Breadcrumbs from './components/Breadcrumbs';
 import { AccountApplication } from './pages/AccountApplication';
 import { DepositApplication } from './pages/DepositApplication';
+import { SavingsDepositApplication } from './pages/SavingsDepositApplication';
+import { SavingsHistory } from './pages/SavingsHistory';
 import { GoldLoanApplication } from './pages/GoldLoanApplication';
 import { VehicleLoanApplication } from './pages/VehicleLoanApplication';
 import { EducationalLoanApplication } from './pages/EducationalLoanApplication';
@@ -54,7 +56,7 @@ const AppContent: React.FC = () => {
     let tabToRender = currentTab;
     let showLoginModal = false;
 
-    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'apply-deposit' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan') && !isAuthenticated) {
+    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'savings-history' || tabToRender === 'apply-savings-deposit' || tabToRender === 'apply-deposit' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan') && !isAuthenticated) {
       showLoginModal = true;
       tabToRender = 'home';
     } else if (tabToRender === 'login') {
@@ -95,6 +97,16 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />; // Modal logic will catch this before
           }
           return <AccountApplication setCurrentTab={setCurrentTab} />;
+        case 'savings-history':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <SavingsHistory setCurrentTab={setCurrentTab} />;
+        case 'apply-savings-deposit':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <SavingsDepositApplication setCurrentTab={setCurrentTab} />;
         case 'apply-deposit':
           if (!isAuthenticated) {
             return <Home setCurrentTab={setCurrentTab} />;

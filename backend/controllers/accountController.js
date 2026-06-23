@@ -147,6 +147,11 @@ const getCustomerByCustomerId = async (req, res, next) => {
     const User = require('../models/User');
     
     const customer = await User.findOne({ customerId }).select('fullName email phone address dob aadharNumber panNumber');
+      let savingsAccount = null;
+            if (customer) {
+        const SavingsAccount = require('../models/SavingsAccount');
+        savingsAccount = await SavingsAccount.findOne({ userId: customer._id });
+      }
     
     if (!customer) {
       return res.status(404).json({ success: false, error: 'Customer not found' });
@@ -154,7 +159,7 @@ const getCustomerByCustomerId = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: customer
+      data: { ...customer.toObject(), savingsAccountNumber: savingsAccount ? savingsAccount.accountNumber : null }
     });
   } catch (error) {
     next(error);
