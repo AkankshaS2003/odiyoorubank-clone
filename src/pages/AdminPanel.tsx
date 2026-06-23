@@ -120,10 +120,16 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   // Form States (CMS / Settings / Employee Creation)
   const [cmsState, setCmsState] = useState({
-    fdRate: 8.50,
-    goldLoanRate: 8.50,
-    savingsRate: 4.50,
-    rdRate: 7.75,
+      fdRate: 8.50,
+      goldLoanRate: 8.50,
+      savingsRate: 4.50,
+      rdRate: 7.75,
+      vehicleLoanRate: 10.00,
+      personalLoanRate: 11.50,
+      educationalLoanRate: 7.90,
+      housingLoanRate: 8.25,
+      mortgageLoanRate: 9.50,
+      agriculturalLoanRate: 8.50,
     marqueeText: '',
     heroTitle: '',
     heroDesc: '',
@@ -267,9 +273,15 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     if (systemSettings) {
       setCmsState({
         fdRate: systemSettings.fdRate || 8.50,
-        goldLoanRate: systemSettings.goldLoanRate || 8.50,
-        savingsRate: systemSettings.savingsRate || 4.50,
-        rdRate: systemSettings.rdRate || 7.75,
+          goldLoanRate: systemSettings.goldLoanRate || 8.50,
+          savingsRate: systemSettings.savingsRate || 4.50,
+          rdRate: systemSettings.rdRate || 7.75,
+          vehicleLoanRate: systemSettings.vehicleLoanRate || 10.00,
+          personalLoanRate: systemSettings.personalLoanRate || 11.50,
+          educationalLoanRate: systemSettings.educationalLoanRate || 7.90,
+          housingLoanRate: systemSettings.housingLoanRate || 8.25,
+          mortgageLoanRate: systemSettings.mortgageLoanRate || 9.50,
+          agriculturalLoanRate: systemSettings.agriculturalLoanRate || 8.50,
         marqueeText: systemSettings.marqueeText || '',
         heroTitle: systemSettings.heroTitle || '',
         heroDesc: systemSettings.heroDesc || '',
@@ -482,9 +494,15 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     const payload = {
       ...cmsState,
       fdRate: Number(cmsState.fdRate),
-      goldLoanRate: Number(cmsState.goldLoanRate),
-      savingsRate: Number(cmsState.savingsRate),
-      rdRate: Number(cmsState.rdRate)
+        goldLoanRate: Number(cmsState.goldLoanRate),
+        savingsRate: Number(cmsState.savingsRate),
+        rdRate: Number(cmsState.rdRate),
+        vehicleLoanRate: Number(cmsState.vehicleLoanRate),
+        personalLoanRate: Number(cmsState.personalLoanRate),
+        educationalLoanRate: Number(cmsState.educationalLoanRate),
+        housingLoanRate: Number(cmsState.housingLoanRate),
+        mortgageLoanRate: Number(cmsState.mortgageLoanRate),
+        agriculturalLoanRate: Number(cmsState.agriculturalLoanRate)
     };
 
     const isSuccess = await updateSystemSettings(payload);
@@ -1297,7 +1315,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
             {activeTab === 'deposit_products' && (
               <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm max-w-2xl">
                 <div className="pb-6 border-b border-slate-100 mb-6">
-                  <h2 className="text-lg font-black text-slate-900 uppercase">Cooperative Deposit Products & Rates</h2>
+                  <h2 className="text-lg font-black text-slate-900 uppercase">Cooperative Products & Rates</h2>
                   <p className="text-xs text-slate-400 font-bold mt-1">Configure interest rate schemes. Saved settings will change calculators and layouts on the website instantly.</p>
                 </div>
 
@@ -1357,6 +1375,33 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                         value={cmsState.goldLoanRate}
                         onChange={(e) => setCmsState({ ...cmsState, goldLoanRate: Number(e.target.value) })}
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Vehicle Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.vehicleLoanRate} onChange={(e) => setCmsState({ ...cmsState, vehicleLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Personal Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.personalLoanRate} onChange={(e) => setCmsState({ ...cmsState, personalLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Educational Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.educationalLoanRate} onChange={(e) => setCmsState({ ...cmsState, educationalLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Housing Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.housingLoanRate} onChange={(e) => setCmsState({ ...cmsState, housingLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Mortgage Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.mortgageLoanRate} onChange={(e) => setCmsState({ ...cmsState, mortgageLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Agricultural Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.agriculturalLoanRate} onChange={(e) => setCmsState({ ...cmsState, agriculturalLoanRate: Number(e.target.value) })} />
                     </div>
                   </div>
 
@@ -1450,6 +1495,33 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                         value={cmsState.contactEmail}
                         onChange={(e) => setCmsState({ ...cmsState, contactEmail: e.target.value })}
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Vehicle Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.vehicleLoanRate} onChange={(e) => setCmsState({ ...cmsState, vehicleLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Personal Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.personalLoanRate} onChange={(e) => setCmsState({ ...cmsState, personalLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Educational Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.educationalLoanRate} onChange={(e) => setCmsState({ ...cmsState, educationalLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Housing Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.housingLoanRate} onChange={(e) => setCmsState({ ...cmsState, housingLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Mortgage Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.mortgageLoanRate} onChange={(e) => setCmsState({ ...cmsState, mortgageLoanRate: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Agricultural Loan Rate (% p.a.)</label>
+                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.agriculturalLoanRate} onChange={(e) => setCmsState({ ...cmsState, agriculturalLoanRate: Number(e.target.value) })} />
                     </div>
                   </div>
 

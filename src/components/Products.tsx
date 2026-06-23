@@ -57,7 +57,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       name: "Vehicle Loan",
       category: 'loan',
       description: "Drive your dream car or two-wheeler home with cheap monthly EMIs and flexible payoff schedules.",
-      interestRate: '10.00% - 14.50% p.a.',
+      interestRate: `${systemSettings?.vehicleLoanRate || 10.00}% p.a.`,
       benefits: ['Up to 85% on-road funding', 'Up to 7 years repayment tenure', 'Quick loan sanction']
     },
     {
@@ -65,7 +65,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       name: "Personal Loan",
       category: 'loan',
       description: "Simulate personal financial security for weddings, travel, medical needs, or retail consolidation.",
-      interestRate: '11.50% p.a.',
+      interestRate: `${systemSettings?.personalLoanRate || 11.50}% p.a.`,
       benefits: ['No collateral requirements', 'Flexible loan limit up to ₹5 Lakhs', 'Simplified paperless eligibility check']
     },
     {
@@ -73,7 +73,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       name: "Educational Loan",
       category: 'loan',
       description: "Invest in your future with our competitive education loans",
-      interestRate: '7.90% p.a.',
+      interestRate: `${systemSettings?.educationalLoanRate || 7.90}% p.a.`,
       benefits: ['Moratorium period during studies', 'Tax rebates under Section 80E', 'Direct tuition fee disbursements']
     },
     {
@@ -81,7 +81,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       name: "Housing Loan",
       category: 'loan',
       description: "Build or purchase your dream house with affordable cooperative society home loan schemes.",
-      interestRate: '8.25% p.a.',
+      interestRate: `${systemSettings?.housingLoanRate || 8.25}% p.a.`,
       benefits: ['Subsidized rates for cooperative members', 'Long terms up to 20 years', 'Zero prepayment charges']
     },
 
@@ -90,7 +90,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       name: "Member's Mortgage Loans",
       category: 'loan',
       description: "Unlock the value of your property with our long-term mortgage loans tailored for members.",
-      interestRate: '9.50% p.a.',
+      interestRate: `${systemSettings?.mortgageLoanRate || 9.50}% p.a.`,
       benefits: ['High loan-to-value ratio', 'Extended repayment periods', 'Transparent processing']
     },
     {
@@ -98,7 +98,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       name: "Agricultural Loan",
       category: 'loan',
       description: "Financial support for crop cultivation, farm development, and irrigation tailored for our farmer members.",
-      interestRate: '8.50% p.a.',
+      interestRate: `${systemSettings?.agriculturalLoanRate || 8.50}% p.a.`,
       benefits: ['Flexible repayment linked to harvest', 'Subsidized interest for prompt payment', 'Minimal processing fee']
     }
   ];
