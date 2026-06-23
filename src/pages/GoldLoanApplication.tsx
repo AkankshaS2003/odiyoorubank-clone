@@ -186,6 +186,20 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
     }
   }, [user]);
 
+
+  useEffect(() => {
+    const draft = localStorage.getItem('draft_GoldLoanApplication');
+    if (draft) {
+      try {
+        setFormData(JSON.parse(draft));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('draft_GoldLoanApplication', JSON.stringify(formData));
+  }, [formData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
@@ -244,8 +258,8 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoFile) {
-      alert("Please upload the required photo.");
+    if (!photoFile || !signatureFile || !aadhaarFile || !panFile) {
+      alert("Please upload all the required images (Aadhaar, PAN, Photo, and Signature).");
       return;
     }
     if (!formData.requestedAmount || !formData.tenure || !formData.purpose) {
@@ -269,6 +283,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
     
     setIsSubmitting(false);
     if (res) {
+      localStorage.removeItem('draft_GoldLoanApplication');
       setSuccess(true);
     } else {
       alert("Failed to submit application. Please try again.");

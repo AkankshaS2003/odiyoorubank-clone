@@ -25,15 +25,6 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
 
   const depositProducts: ProductItem[] = [
     {
-      id: 'prod-savings',
-      name: "Savings Deposit",
-      category: 'deposit',
-      description: "Flexible savings account with competitive interest rates and no hidden maintenance charges.",
-      interestRate: `${systemSettings?.savingsRate || 4.50}% p.a.`,
-      badge: 'Most Popular',
-      benefits: ['Zero balance facility for members', 'Free monthly physical statements', 'Simulated online fund transfers']
-    },
-    {
       id: 'prod-fixed',
       name: "Fixed Deposit (FD)",
       category: 'deposit',
@@ -115,11 +106,21 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
   const activeProducts = activeTab === 'deposit' ? depositProducts : loanProducts;
 
   const handleApplyClick = (product: ProductItem) => {
-    setSelectedProduct(product);
-    setApplyAmount(product.category === 'deposit' ? 25000 : 100000);
-    setApplyDuration(product.category === 'deposit' ? 3 : 24); // years for deposits, months for loans
-    setApplicationSuccess(false);
-    setApplicationError(null);
+    if (!isAuthenticated || !user) {
+      alert('Please register or log in as a member to apply for our banking products.');
+      return;
+    }
+    if (setCurrentTab) {
+      if (product.id === 'prod-gold') setCurrentTab('apply-gold-loan');
+      else if (product.id === 'prod-vehicle') setCurrentTab('apply-vehicle-loan');
+      else if (product.id === 'prod-personal') setCurrentTab('apply-personal-loan');
+      else if (product.id === 'prod-education') setCurrentTab('apply-educational-loan');
+      else if (product.id === 'prod-housing') setCurrentTab('apply-housing-loan');
+      else if (product.id === 'prod-mortgage') setCurrentTab('apply-mortgage-loan');
+      else if (product.id === 'prod-agriculture') setCurrentTab('apply-agricultural-loan');
+      else if (product.category === 'deposit') setCurrentTab('apply-deposit');
+    }
+    return;
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -366,17 +367,6 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
                   <span>Confirm Account Opening</span>
                 </button>
 
-                {selectedProduct.category === 'deposit' && setCurrentTab && (
-                  <div className="text-center pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentTab('apply-deposit')}
-                      className="text-xs font-bold text-primary hover:text-primary-dark underline"
-                    >
-                      Or fill out the Detailed Physical Deposit Application Form
-                    </button>
-                  </div>
-                )}
               </form>
             )}
 

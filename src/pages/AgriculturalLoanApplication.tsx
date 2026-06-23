@@ -208,6 +208,20 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
   const addCropRow = () => setCropDetails(prev => [...prev, { id: Date.now(), cropName: '', area: '', season: '', yield: '' }]);
   const removeCropRow = (id: number) => setCropDetails(prev => prev.filter(row => row.id !== id));
 
+
+  useEffect(() => {
+    const draft = localStorage.getItem('draft_AgriculturalLoanApplication');
+    if (draft) {
+      try {
+        setFormData(JSON.parse(draft));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('draft_AgriculturalLoanApplication', JSON.stringify(formData));
+  }, [formData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => {
@@ -268,6 +282,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
     
     setIsSubmitting(false);
     if (res) {
+      localStorage.removeItem('draft_AgriculturalLoanApplication');
       setSuccess(true);
     } else {
       alert("Failed to submit application. Please try again.");

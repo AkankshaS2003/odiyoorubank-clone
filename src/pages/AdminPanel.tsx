@@ -2239,7 +2239,9 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
               <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
                 <h4 className="font-bold text-blue-900 text-sm mb-3 border-b border-blue-200 pb-2">Form Data Fields</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(selectedServiceApp.formData).map(([key, value]: any) => (
+                  {Object.entries(selectedServiceApp.formData)
+                    .filter(([key]) => !['minorDob', 'guardianName', 'introducerName', 'introducerAccountNo'].includes(key))
+                    .map(([key, value]: any) => (
                     <div key={key} className="flex flex-col">
                       <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
                       <span className="text-sm font-semibold text-slate-800 break-words">

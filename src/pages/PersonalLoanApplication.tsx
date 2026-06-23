@@ -183,6 +183,20 @@ export const PersonalLoanApplication: React.FC<PersonalLoanApplicationProps> = (
     }
   }, [user]);
 
+
+  useEffect(() => {
+    const draft = localStorage.getItem('draft_PersonalLoanApplication');
+    if (draft) {
+      try {
+        setFormData(JSON.parse(draft));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('draft_PersonalLoanApplication', JSON.stringify(formData));
+  }, [formData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
@@ -225,8 +239,8 @@ export const PersonalLoanApplication: React.FC<PersonalLoanApplicationProps> = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoFile) {
-      alert("Please upload the required photo.");
+    if (!photoFile || !signatureFile || !aadhaarFile || !panFile) {
+      alert("Please upload all the required images (Aadhaar, PAN, Photo, and Signature).");
       return;
     }
     if (!formData.loanAmountRequired || !formData.tenure || !formData.purpose) {
@@ -250,6 +264,7 @@ export const PersonalLoanApplication: React.FC<PersonalLoanApplicationProps> = (
     
     setIsSubmitting(false);
     if (res) {
+      localStorage.removeItem('draft_PersonalLoanApplication');
       setSuccess(true);
     } else {
       alert("Failed to submit application. Please try again.");

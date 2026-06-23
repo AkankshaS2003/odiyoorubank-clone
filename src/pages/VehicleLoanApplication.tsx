@@ -196,6 +196,20 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
     }
   }, [user]);
 
+
+  useEffect(() => {
+    const draft = localStorage.getItem('draft_VehicleLoanApplication');
+    if (draft) {
+      try {
+        setFormData(JSON.parse(draft));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('draft_VehicleLoanApplication', JSON.stringify(formData));
+  }, [formData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
@@ -239,8 +253,8 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoFile) {
-      alert("Please upload the required photo.");
+    if (!photoFile || !signatureFile || !aadhaarFile || !panFile) {
+      alert("Please upload all the required images (Aadhaar, PAN, Photo, and Signature).");
       return;
     }
     if (!formData.requestedAmount || !formData.tenure || !formData.purpose || !formData.vehicleType) {
@@ -264,6 +278,7 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
     
     setIsSubmitting(false);
     if (res) {
+      localStorage.removeItem('draft_VehicleLoanApplication');
       setSuccess(true);
     } else {
       alert("Failed to submit application. Please try again.");

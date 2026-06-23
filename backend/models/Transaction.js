@@ -16,7 +16,7 @@ const TransactionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['Deposit', 'Withdrawal', 'Transfer', 'Loan Disbursement', 'EMI Payment', 'Account Deposit', 'Fund Transfer', 'Application Fee', 'Fixed Deposit', 'Recurring Deposit'],
+    enum: ['Deposit', 'Withdrawal', 'Transfer', 'Loan Disbursement', 'EMI Payment', 'Account Deposit', 'Fund Transfer', 'Application Fee', 'Fixed Deposit', 'Recurring Deposit', 'Initial Deposit', 'Membership Application Fee'],
     required: true
   },
   razorpayOrderId: String,

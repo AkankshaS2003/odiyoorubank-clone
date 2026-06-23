@@ -161,6 +161,10 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     alert('Draft saved securely!');
   };
 
+  useEffect(() => {
+    localStorage.setItem('odiyooru_account_draft', JSON.stringify({ formData, uploads }));
+  }, [formData, uploads]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     let finalValue = value;
@@ -168,6 +172,10 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     // Auto-capitalize PAN Numbers
     if (name === 'panNumber' || name === 'jointPanNumber') {
       finalValue = value.toUpperCase();
+    } else if (type === 'text' || type === 'textarea') {
+      if (finalValue.length > 0) {
+        finalValue = finalValue.charAt(0).toUpperCase() + finalValue.slice(1);
+      }
     }
     
     // Restrict Aadhaar to 12 digits max
@@ -206,7 +214,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
         const dobDate = new Date(value);
         const ageDate = new Date(Date.now() - dobDate.getTime());
         const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        if (age < 10) errorStr = 'Must be at least 10 years old';
+        if (age < 10) errorStr = 'Please enter a valid date of birth';
       }
     }
     
@@ -464,7 +472,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
             <div className={step === 1 ? 'block' : 'hidden print:block print:break-after-page'}>
               <div className="border-b-2 border-[#EAF6FF] pb-4 mb-6 flex justify-between items-end print:border-gray-200">
                 <h2 className="text-xl font-black text-[#0F4C81] uppercase tracking-wider"></h2>
-                <div className="w-32"><InputField onBlur={handleBlur} label="Date" name="date" type="date"  formData={formData} handleChange={handleChange} error={errors['date']} /></div>
+                <div className="w-40"><InputField onBlur={handleBlur} label="Date" name="date" type="date"  formData={formData} handleChange={handleChange} error={errors['date']} /></div>
               </div>
 
               <div className="flex flex-col md:flex-row gap-8">

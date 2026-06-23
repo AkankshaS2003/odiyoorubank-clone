@@ -225,6 +225,20 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
   const totalCourseCost = Number(formData.tuitionFee) + Number(formData.hostelFee) + Number(formData.examFee) + Number(formData.booksFee) + Number(formData.otherFee);
   const loanAmountRequired = Math.max(0, totalCourseCost - Number(formData.scholarship) - Number(formData.familyContribution));
 
+
+  useEffect(() => {
+    const draft = localStorage.getItem('draft_EducationalLoanApplication');
+    if (draft) {
+      try {
+        setFormData(JSON.parse(draft));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('draft_EducationalLoanApplication', JSON.stringify(formData));
+  }, [formData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
@@ -257,8 +271,8 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoFile) {
-      alert("Please upload the required photo.");
+    if (!photoFile || !signatureFile || !aadhaarFile || !panFile) {
+      alert("Please upload all the required images (Aadhaar, PAN, Photo, and Signature).");
       return;
     }
     if (!formData.courseName || !formData.institutionName || !formData.coName) {
@@ -297,6 +311,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
     
     setIsSubmitting(false);
     if (res) {
+      localStorage.removeItem('draft_EducationalLoanApplication');
       setSuccess(true);
     } else {
       alert("Failed to submit application. Please try again.");

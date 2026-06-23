@@ -170,6 +170,20 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
     }
   }, [formData?.amount]);
 
+
+  useEffect(() => {
+    const draft = localStorage.getItem('draft_DepositApplication');
+    if (draft) {
+      try {
+        setFormData(JSON.parse(draft));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('draft_DepositApplication', JSON.stringify(formData));
+  }, [formData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
@@ -211,6 +225,11 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
       return;
     }
 
+    if (!signatureFile) {
+      alert("Please upload a photo of your signature.");
+      return;
+    }
+
     const amountNum = parseInt(formData.amount, 10);
     if (user && amountNum > (user.savingsBalance || 0)) {
       alert(`Insufficient savings balance. Your current balance is ₹${user.savingsBalance || 0}`);
@@ -233,6 +252,7 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
     setIsSubmitting(false);
     
     if (res) {
+      localStorage.removeItem('draft_DepositApplication');
       setSuccess(true);
     } else {
       alert("Failed to submit application. Please try again.");
