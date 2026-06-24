@@ -499,7 +499,7 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <InputField label="Requested Loan Amount (₹)" name="requestedAmount" type="number" value={formData.requestedAmount} onChange={handleChange} />
               <SelectField 
-                label="Loan Tenure" 
+                label="Loan Tenure (in Years)" 
                 name="tenure" 
                 value={formData.tenure} 
                 onChange={handleChange} 

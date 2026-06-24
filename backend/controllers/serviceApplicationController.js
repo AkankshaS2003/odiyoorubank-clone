@@ -38,7 +38,9 @@ exports.submitApplication = async (req, res, next) => {
 // @access  Private
 exports.getUserApplications = async (req, res, next) => {
   try {
-    const applications = await ServiceApplication.find({ userId: req.user.id }).sort('-submittedAt');
+    const applications = await ServiceApplication.find({ userId: req.user.id })
+      .populate('userId', 'fullName email phone customerId panNumber aadharNumber address dob accountNumber')
+      .sort('-submittedAt');
     res.status(200).json({ success: true, data: applications });
   } catch (error) {
     next(error);

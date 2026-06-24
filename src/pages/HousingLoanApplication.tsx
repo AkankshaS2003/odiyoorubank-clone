@@ -492,7 +492,7 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
               <InputField label="Loan Amount Required (₹)" name="loanAmountRequired" type="number" value={formData.loanAmountRequired} onChange={handleChange} />
               <InputField label="Applicant Contribution (₹)" name="applicantContribution" type="number" value={formData.applicantContribution} onChange={handleChange} />
               <SelectField 
-                label="Loan Tenure" 
+                label="Loan Tenure (in Years)" 
                 name="tenure" 
                 value={formData.tenure} 
                 onChange={handleChange} 

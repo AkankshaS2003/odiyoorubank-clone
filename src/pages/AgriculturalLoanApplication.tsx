@@ -598,7 +598,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
               <SelectField label="Type of Agricultural Loan" name="loanType" value={formData.loanType} onChange={handleChange} options={['Crop Loan', 'Plantation Loan', 'Irrigation Loan', 'Farm Mechanization Loan', 'Dairy Loan', 'Horticulture Loan', 'Agricultural Term Loan']} />
               <InputField label="Loan Amount Required (₹)" name="loanAmount" type="number" value={formData.loanAmount} onChange={handleChange} />
               <InputField label="Purpose of Loan" name="loanPurpose" value={formData.loanPurpose} onChange={handleChange} />
-              <SelectField label="Loan Tenure" name="loanTenure" value={formData.loanTenure} onChange={handleChange} options={['6 Months', '12 Months', '24 Months', '36 Months', '60 Months']} />
+              <SelectField label="Loan Tenure (in Years)" name="loanTenure" value={formData.loanTenure} onChange={handleChange} options={['1 Year', '2 Years', '3 Years', '4 Years', '5 Years']} />
             </div>
           </div>
 

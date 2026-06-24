@@ -4,6 +4,9 @@ const Loan = require('../models/Loan');
 const Contact = require('../models/Contact');
 const KnowledgeBase = require('../models/KnowledgeBase');
 const SystemSettings = require('../models/SystemSettings');
+const ServiceApplication = require('../models/ServiceApplication');
+const FixedDeposit = require('../models/FixedDeposit');
+const SavingsAccount = require('../models/SavingsAccount');
 const { getEmbedding } = require('../services/embeddingService');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
@@ -17,17 +20,25 @@ const getStats = async (req, res, next) => {
     const totalCustomers = await User.countDocuments({ role: 'customer' });
     const totalEmployees = await User.countDocuments({ role: 'employee' });
     
-    const loans = await Loan.find();
-    const totalLoans = loans.length;
-    const approvedLoans = loans.filter(l => l.status === 'Approved').length;
-    const pendingLoans = loans.filter(l => l.status === 'Pending').length;
-    const rejectedLoans = loans.filter(l => l.status === 'Rejected').length;
+    const serviceLoans = await ServiceApplication.find({ applicationType: /Loan/i });
+    const totalLoans = serviceLoans.length;
+    const approvedLoans = serviceLoans.filter(l => l.status === 'Approved').length;
+    const pendingLoans = serviceLoans.filter(l => l.status === 'Pending').length;
+    const rejectedLoans = serviceLoans.filter(l => l.status === 'Rejected').length;
 
     const totalAccounts = await Account.countDocuments();
     
-    // Calculate total deposits
+    // Calculate total deposits (Legacy Accounts + FD + Savings)
     const accounts = await Account.find();
-    const totalDeposits = accounts.reduce((acc, curr) => acc + curr.balance, 0);
+    const legacyDeposits = accounts.reduce((acc, curr) => acc + curr.balance, 0);
+
+    const fds = await FixedDeposit.find();
+    const fdDeposits = fds.reduce((acc, curr) => acc + curr.principalAmount, 0);
+
+    const savings = await SavingsAccount.find();
+    const savingsBalance = savings.reduce((acc, curr) => acc + curr.balance, 0);
+
+    const totalDeposits = legacyDeposits + fdDeposits + savingsBalance;
 
     res.status(200).json({
       success: true,

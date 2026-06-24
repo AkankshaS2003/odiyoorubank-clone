@@ -475,11 +475,11 @@ export const PersonalLoanApplication: React.FC<PersonalLoanApplicationProps> = (
                 options={['Medical Expenses', 'Marriage', 'Education', 'Home Renovation', 'Travel', 'Debt Consolidation', 'Business Support', 'Personal Requirement', 'Other']} 
               />
               <SelectField 
-                label="Loan Tenure" 
+                label="Loan Tenure (in Years)" 
                 name="tenure" 
                 value={formData.tenure} 
                 onChange={handleChange} 
-                options={['12 Months', '24 Months', '36 Months', '48 Months', '60 Months']} 
+                options={['1 Year', '2 Years', '3 Years', '4 Years', '5 Years']} 
               />
             </div>
           </div>

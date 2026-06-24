@@ -499,7 +499,7 @@ export const MortgageLoanApplication: React.FC<MortgageLoanApplicationProps> = (
                 options={['Business', 'Education', 'Medical', 'Marriage', 'Agriculture', 'Home Improvement', 'Other']} 
               />
               <SelectField 
-                label="Loan Tenure" 
+                label="Loan Tenure (in Years)" 
                 name="tenure" 
                 value={formData.tenure} 
                 onChange={handleChange} 

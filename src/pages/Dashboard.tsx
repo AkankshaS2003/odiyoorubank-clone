@@ -305,6 +305,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                         <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Loan Type</th>
                         <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Amount</th>
                         <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                        <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -332,6 +333,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                             }`}>
                               {app.status}
                             </span>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            {app.status === 'Approved' && (
+                              <button
+                                onClick={() => setCurrentTab(`view-loan-details|${app._id}`)}
+                                className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
+                              >
+                                View Details
+                              </button>
+                            )}
                           </td>
                         </tr>
                       ))}

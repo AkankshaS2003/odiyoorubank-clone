@@ -541,7 +541,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
               />
               
               <SelectField 
-                label="Loan Tenure" 
+                label="Loan Tenure (in Years)" 
                 name="tenure" 
                 value={formData.tenure} 
                 onChange={handleChange} 

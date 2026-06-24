@@ -461,7 +461,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
               <InputField label="Institution / College Name" name="institutionName" value={formData.institutionName} onChange={handleChange} />
               <InputField label="University Name" name="universityName" value={formData.universityName} onChange={handleChange} />
               <SelectField label="Course Type" name="courseType" value={formData.courseType} onChange={handleChange} options={['Diploma', 'Undergraduate', 'Postgraduate', 'Professional Course', 'Doctorate']} />
-              <InputField label="Course Duration" name="courseDuration" value={formData.courseDuration} onChange={handleChange} />
+              <InputField label="Course Duration (in Years)" name="courseDuration" value={formData.courseDuration} onChange={handleChange} />
               <InputField label="Academic Year" name="academicYear" value={formData.academicYear} onChange={handleChange} />
               <InputField label="Expected Completion Year" name="expectedCompletion" type="number" value={formData.expectedCompletion} onChange={handleChange} />
             </div>

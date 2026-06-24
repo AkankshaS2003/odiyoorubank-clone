@@ -229,6 +229,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
         setSuccess(`Service application ${status}`);
         addAuditLog(`Updated service application status to ${status} for ID ${appId}`);
         fetchServiceApplications();
+        fetchStats();
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update service application status');
@@ -1312,6 +1313,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       <thead>
                         <tr className="border-b border-slate-150 text-[10px] text-slate-400 font-black uppercase tracking-wider">
                           <th className="pb-3 pl-2">Member Name</th>
+                          <th className="pb-3">Cust ID</th>
+                          <th className="pb-3">Member ID</th>
                           <th className="pb-3">Email Address</th>
                           <th className="pb-3">Mobile Contact</th>
                           <th className="pb-3">Account Status</th>
@@ -1322,6 +1325,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                         {filteredCustomers.map((customer) => (
                           <tr key={customer._id} className="hover:bg-slate-50/50">
                             <td className="py-4 pl-2 font-bold text-slate-900">{customer.fullName}</td>
+                            <td className="py-4 font-mono text-slate-500">{customer.customerId || '—'}</td>
+                            <td className="py-4 font-mono text-slate-500">{customer.memberId || '—'}</td>
                             <td className="py-4">{customer.email}</td>
                             <td className="py-4 font-mono text-slate-500">{customer.phone}</td>
                             <td className="py-4">
@@ -2534,7 +2539,11 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 <h4 className="font-bold text-blue-900 text-sm mb-3 border-b border-blue-200 pb-2">Form Data Fields</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {Object.entries(selectedServiceApp.formData)
-                    .filter(([key]) => !['minorDob', 'guardianName', 'introducerName', 'introducerAccountNo'].includes(key))
+                    .filter(([key, value]) => {
+                      if (['minorDob', 'guardianName', 'introducerName', 'introducerAccountNo'].includes(key)) return false;
+                      if (value === '' || value === null || value === undefined || value === '-') return false;
+                      return true;
+                    })
                     .map(([key, value]: any) => (
                     <div key={key} className="flex flex-col">
                       <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">{key.replace(/([A-Z])/g, ' $1').trim()}</span>

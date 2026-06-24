@@ -34,6 +34,7 @@ import { FDDetailsPage } from './pages/FDDetailsPage';
 import { RDDetailsPage } from './pages/RDDetailsPage';
 import { MyFixedDeposits } from './pages/MyFixedDeposits';
 import { FDDashboardReceipt } from './pages/FDDashboardReceipt';
+import { LoanDetailsPage } from './pages/LoanDetailsPage';
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
@@ -182,6 +183,11 @@ const AppContent: React.FC = () => {
             if (!isAuthenticated) return <Home setCurrentTab={setCurrentTab} />;
             const appId = currentTab.split('|')[1];
             return <RDDetailsPage appId={appId} setCurrentTab={setCurrentTab} />;
+          }
+          if (currentTab.startsWith('view-loan-details|')) {
+            if (!isAuthenticated) return <Home setCurrentTab={setCurrentTab} />;
+            const appId = currentTab.split('|')[1];
+            return <LoanDetailsPage appId={appId} setCurrentTab={setCurrentTab} />;
           }
           return <Home setCurrentTab={setCurrentTab} />;
       }
