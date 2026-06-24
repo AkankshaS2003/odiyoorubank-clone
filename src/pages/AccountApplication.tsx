@@ -22,21 +22,46 @@ const THEME = {
   white: '#FFFFFF'
 };
 
-const InputField = ({ label, name, type = "text", required = false, width = "w-full", placeholder = "", formData, handleChange, error, ...props }: any) => (
-  <div className={`${width} mb-4`}>
-    <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">{label} {required && <span className="text-red-500">*</span>}</label>
-    <input
-      type={type}
-      name={name}
-      value={formData[name]}
-      onChange={handleChange}
-      placeholder={placeholder}
-      className={`w-full px-4 py-2.5 border ${error ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 focus:ring-primary/20'} rounded-xl focus:ring-2 focus:border-primary outline-none transition-all text-sm font-medium text-slate-800 bg-white ${props.autocapitalize === 'characters' ? 'uppercase' : ''}`}
-      {...props}
-    />
-    {error && <p className="text-xs text-red-500 mt-1 font-semibold">{error}</p>}
-  </div>
-);
+const InputField = ({ label, name, type = "text", required = false, width = "w-full", placeholder = "", formData, handleChange, error, ...props }: any) => {
+  let displayValue = formData[name] || '';
+  if (type === 'date' && typeof displayValue === 'string' && displayValue.includes('-')) {
+    const parts = displayValue.split('-');
+    if (parts.length === 3 && parts[0].length === 2) {
+      displayValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+
+  const internalHandleChange = (e: any) => {
+    let finalValue = e.target.value;
+    if (type === 'date' && finalValue) {
+      const parts = finalValue.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        finalValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+    const syntheticEvent = {
+      ...e,
+      target: { ...e.target, name, value: finalValue }
+    };
+    handleChange(syntheticEvent);
+  };
+
+  return (
+    <div className={`${width} mb-4`}>
+      <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">{label} {required && <span className="text-red-500">*</span>}</label>
+      <input
+        type={type}
+        name={name}
+        value={displayValue}
+        onChange={internalHandleChange}
+        placeholder={placeholder}
+        className={`w-full px-4 py-2.5 border ${error ? 'border-red-400 focus:ring-red-200' : 'border-slate-200 focus:ring-primary/20'} rounded-xl focus:ring-2 focus:border-primary outline-none transition-all text-sm font-medium text-slate-800 bg-white ${props.autocapitalize === 'characters' ? 'uppercase' : ''}`}
+        {...props}
+      />
+      {error && <p className="text-xs text-red-500 mt-1 font-semibold">{error}</p>}
+    </div>
+  );
+};
 
 const FileUploadBox = ({ label, field, accept = "image/*", uploads, handleFileUpload, error }: any) => (
   <div className={`flex flex-col items-center justify-center p-4 border-2 border-dashed ${error ? 'border-red-400 bg-red-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'} rounded-xl transition-colors cursor-pointer relative overflow-hidden group w-full h-full`}>

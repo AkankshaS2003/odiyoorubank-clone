@@ -27,7 +27,7 @@ export const WhyChooseUs: React.FC = () => {
     {
       icon: Gift,
       title: "Industry-Best Deposit Rates",
-      desc: "best_desc"
+      desc: "Enjoy highest-in-class interest rates on Fixed and Recurring Deposits.\nCompounding interest that helps your wealth grow faster and more securely."
     },
     {
       icon: Headphones,
@@ -64,7 +64,7 @@ export const WhyChooseUs: React.FC = () => {
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-base font-bold text-slate-900 mb-2">{b.title}</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{b.desc}</p>
+                <p className="text-xs text-slate-500 leading-relaxed whitespace-pre-line">{b.desc}</p>
               </div>
             );
           })}

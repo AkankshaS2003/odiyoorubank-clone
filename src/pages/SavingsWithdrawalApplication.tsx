@@ -111,7 +111,7 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
             <p className="text-2xl font-mono text-slate-800 font-black">{receiptNo}</p>
           </div>
           <br/>
-          <button onClick={() => setCurrentTab('profile')} className="px-8 py-4 bg-[#0F4C81] text-white rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-[#0A315C] transition-colors shadow-lg shadow-blue-200">
+          <button onClick={() => setCurrentTab('dashboard')} className="px-8 py-4 bg-[#0F4C81] text-white rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-[#0A315C] transition-colors shadow-lg shadow-blue-200">
             View Dashboard
           </button>
         </div>

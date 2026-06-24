@@ -111,7 +111,7 @@ export const SavingsHistory: React.FC<{ setCurrentTab: (tab: string) => void }> 
                         </td>
                         <td className="py-4 px-6 text-right">
                           <span className={`text-sm font-black ${isCredit ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            {isCredit ? '+' : '-'}₹{(isCredit ? txn.creditAmount : txn.debitAmount).toLocaleString('en-IN')}
+                            {!isCredit && '-'}₹{(isCredit ? txn.creditAmount : txn.debitAmount).toLocaleString('en-IN')}
                           </span>
                         </td>
                         <td className="py-4 px-6 text-right">

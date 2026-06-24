@@ -188,7 +188,7 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
             <p className="text-2xl font-mono text-slate-800 font-black">{receiptNo || 'RCPT-SUCCESS'}</p>
           </div>
           <br/>
-          <button onClick={() => setCurrentTab('profile')} className="px-8 py-4 bg-[#ED7F1E] text-white rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-[#d66b12] transition-colors shadow-lg shadow-orange-200">
+          <button onClick={() => setCurrentTab('dashboard')} className="px-8 py-4 bg-[#ED7F1E] text-white rounded-xl font-bold uppercase tracking-widest text-sm hover:bg-[#d66b12] transition-colors shadow-lg shadow-orange-200">
             View Dashboard
           </button>
         </div>

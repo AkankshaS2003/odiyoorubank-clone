@@ -34,6 +34,14 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       benefits: ['Instant Savings Deposit Facility', 'Real-Time Balance Update', 'Complete Transaction History Tracking']
     },
     {
+      id: 'prod-withdrawal',
+      name: "Withdrawal",
+      category: 'deposit',
+      description: "Instantly withdraw funds from your savings account with real-time balance updates and no hidden transaction charges.",
+      interestRate: "N/A",
+      benefits: ['Instant Cash Withdrawal', 'Real-Time Balance Update', 'Zero Hidden Fees']
+    },
+    {
       id: 'prod-fixed',
       name: "Fixed Deposit (FD)",
       category: 'deposit',
@@ -121,6 +129,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
     }
     if (setCurrentTab) {
       if (product.id === 'prod-savings') setCurrentTab('apply-savings-deposit');
+      else if (product.id === 'prod-withdrawal') setCurrentTab('apply-savings-withdrawal');
       else if (product.id === 'prod-gold') setCurrentTab('apply-gold-loan');
       else if (product.id === 'prod-vehicle') setCurrentTab('apply-vehicle-loan');
       else if (product.id === 'prod-personal') setCurrentTab('apply-personal-loan');
@@ -203,7 +212,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${activeTab === 'deposit' ? 'lg:grid-cols-2 max-w-5xl mx-auto' : 'lg:grid-cols-3'} gap-8`}>
           {activeProducts.map((product) => (
             <div 
               key={product.id}
@@ -237,7 +246,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
 
               {/* Interest Rate & CTA */}
               <div className="border-t border-slate-100 pt-4 mt-auto flex justify-between items-center">
-                {product.id !== 'prod-savings' ? (
+                {product.id !== 'prod-savings' && product.id !== 'prod-withdrawal' ? (
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Interest Rate</span>
                     <span className="text-lg font-extrabold text-primary">{product.interestRate}</span>
@@ -249,7 +258,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
                   onClick={() => handleApplyClick(product)}
                   className="px-3 sm:px-4.5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors shadow-md hover:shadow-lg"
                 >
-                  {product.id === 'prod-savings' ? 'Deposit Now' : 'Apply Now'}
+                  {product.id === 'prod-savings' ? 'Deposit' : product.id === 'prod-withdrawal' ? 'Withdrawal' : 'Apply Now'}
                 </button>
               </div>
 

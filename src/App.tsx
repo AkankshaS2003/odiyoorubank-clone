@@ -209,7 +209,7 @@ const AppContent: React.FC = () => {
 
       {/* 2. Primary Page Body content */}
       <main className="flex-grow">
-        <Breadcrumbs currentTab={currentTab} setCurrentTab={setCurrentTab} />
+        <Breadcrumbs currentTab={currentTab} setCurrentTab={setCurrentTab} goBack={goBack} />
         {renderActiveTab()}
       </main>
 

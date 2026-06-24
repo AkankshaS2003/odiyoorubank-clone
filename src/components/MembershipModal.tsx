@@ -225,13 +225,36 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                       {/* DOB */}
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Birth</label>
-                        <input
-                          type="date"
-                          readOnly={hasPrefilledDob}
-                          value={dob}
-                          onChange={(e) => !hasPrefilledDob && setDob(e.target.value)}
-                          className={`w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl font-medium outline-none ${hasPrefilledDob ? 'cursor-not-allowed' : 'bg-white'}`}
-                        />
+                        {(() => {
+                          let displayDob = dob;
+                          if (typeof dob === 'string' && dob.includes('-')) {
+                            const parts = dob.split('-');
+                            if (parts.length === 3 && parts[0].length === 2) {
+                              displayDob = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                            }
+                          }
+                          const internalDobChange = (e: any) => {
+                            if (!hasPrefilledDob) {
+                              let finalValue = e.target.value;
+                              if (finalValue) {
+                                const parts = finalValue.split('-');
+                                if (parts.length === 3 && parts[0].length === 4) {
+                                  finalValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                                }
+                              }
+                              setDob(finalValue);
+                            }
+                          };
+                          return (
+                            <input
+                              type="date"
+                              readOnly={hasPrefilledDob}
+                              value={displayDob}
+                              onChange={internalDobChange}
+                              className={`w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl font-medium outline-none ${hasPrefilledDob ? 'cursor-not-allowed' : 'bg-white'}`}
+                            />
+                          );
+                        })()}
                       </div>
 
                       {/* Address */}

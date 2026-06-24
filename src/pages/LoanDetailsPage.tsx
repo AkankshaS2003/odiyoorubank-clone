@@ -142,15 +142,10 @@ export const LoanDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCu
                 </div>
               </div>
               <div className="sm:text-right">
-                <h2 className="text-lg font-bold uppercase text-[#0F4C81]">Loan Sanction Letter</h2>
-                <p className="text-sm mt-2 text-slate-700"><strong>Date:</strong> {startDateStr}</p>
+                <p className="text-sm text-slate-700"><strong>Date:</strong> {startDateStr}</p>
                 <p className="text-sm text-slate-700"><strong>Receipt No:</strong> {receiptNumber}</p>
               </div>
             </div>
-
-            <p className="text-sm mb-6 text-justify text-slate-700">
-              This letter serves as the official confirmation of the sanction and disbursement of the cooperative credit facility applied by the member below. The requested loan amount has been credited directly to the member's linked savings account.
-            </p>
 
             <h3 className="text-sm font-black uppercase bg-[#0F4C81]/10 text-[#0F4C81] border border-[#0F4C81] p-1.5 px-3 mb-0">1. Applicant Details</h3>
             <table className="w-full border-collapse border border-[#0F4C81] text-sm mb-6">
@@ -195,7 +190,9 @@ export const LoanDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCu
                   <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Interest Rate</td>
                   <td className="border border-[#0F4C81] p-2 font-semibold text-slate-900">{interestRate}% p.a.</td>
                   <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Tenure</td>
-                  <td className="border border-[#0F4C81] p-2 font-semibold text-slate-900">{tenureMonths} Months</td>
+                  <td className="border border-[#0F4C81] p-2 font-semibold text-slate-900">
+                    {tenureMonths >= 12 && tenureMonths % 12 === 0 ? `${tenureMonths / 12} Year${tenureMonths / 12 > 1 ? 's' : ''}` : `${tenureMonths} Months`}
+                  </td>
                 </tr>
               </tbody>
             </table>

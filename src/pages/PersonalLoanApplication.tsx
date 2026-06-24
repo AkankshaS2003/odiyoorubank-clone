@@ -6,20 +6,45 @@ interface PersonalLoanApplicationProps {
   setCurrentTab?: (tab: string) => void;
 }
 
-const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false }: any) => (
-  <div className={`\ mb-3`}>
-    <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      readOnly={readOnly}
-      className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] capitalize bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
-    />
-  </div>
-);
+const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false }: any) => {
+  let displayValue = value || '';
+  if (type === 'date' && typeof displayValue === 'string' && displayValue.includes('-')) {
+    const parts = displayValue.split('-');
+    if (parts.length === 3 && parts[0].length === 2) {
+      displayValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+
+  const internalOnChange = (e: any) => {
+    let finalValue = e.target.value;
+    if (type === 'date' && finalValue) {
+      const parts = finalValue.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        finalValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+    const syntheticEvent = {
+      ...e,
+      target: { ...e.target, name, value: finalValue }
+    };
+    onChange(syntheticEvent);
+  };
+
+  return (
+    <div className={`\ mb-3`}>
+      <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
+      <input
+        type={type}
+        name={name}
+        value={displayValue}
+        onChange={internalOnChange}
+        placeholder={placeholder}
+        readOnly={readOnly}
+        className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] ${type === 'date' ? 'lowercase' : 'capitalize'} bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
+      />
+    </div>
+  );
+};
 
 const SelectField = ({ label, name, value, onChange, options, width = "w-full" }: any) => (
   <div className={`\ mb-3`}>
