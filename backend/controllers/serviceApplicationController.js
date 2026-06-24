@@ -89,6 +89,53 @@ exports.updateApplicationStatus = async (req, res, next) => {
             account.balance = (account.balance || 0) - amount;
             await account.save();
           }
+
+          // Fixed Deposit specific logic with Quarterly Compound Interest
+          const SystemSettings = require('../models/SystemSettings');
+          const settings = await SystemSettings.findOne();
+          const fdRate = settings ? settings.fdRate : 8.5;
+          
+          let tenureMonths = 12; // default
+          if (application.formData?.depositPeriod) {
+            const parsed = parseInt(application.formData.depositPeriod);
+            if (!isNaN(parsed)) tenureMonths = parsed;
+          }
+
+          const principal = amount;
+          const r = fdRate / 100;
+          const n = 4; // Quarterly
+          const t = tenureMonths / 12;
+          const maturityAmount = principal * Math.pow(1 + (r / n), n * t);
+          const interestEarned = maturityAmount - principal;
+
+          const depositDate = new Date();
+          const maturityDate = new Date(depositDate);
+          maturityDate.setMonth(maturityDate.getMonth() + tenureMonths);
+
+          const FixedDeposit = require('../models/FixedDeposit');
+          const fdCount = await FixedDeposit.countDocuments();
+          const fdNumber = `FD${new Date().getFullYear()}${String(fdCount + 1).padStart(5, '0')}`;
+
+          await FixedDeposit.create({
+            fdNumber,
+            userId: user._id,
+            applicationId: application._id,
+            principalAmount: principal,
+            interestRate: fdRate,
+            compoundingFrequency: 'Quarterly',
+            tenureMonths,
+            depositDate,
+            maturityDate,
+            interestEarned: Math.round(interestEarned * 100) / 100,
+            maturityAmount: Math.round(maturityAmount * 100) / 100,
+            status: 'Active',
+            nomineeDetails: {
+              name: application.formData?.nomineeName || '',
+              relation: application.formData?.nomineeRelationship || ''
+            },
+            linkedSavingsAccount: account ? account._id : null
+          });
+          
         } else if (application.applicationType === 'Recurring Deposit') {
           await User.updateOne({ _id: user._id }, { $inc: { rdBalance: amount, savingsBalance: -amount } });
           if (account) {

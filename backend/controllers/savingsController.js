@@ -191,6 +191,105 @@ exports.verifyDepositPayment = async (req, res) => {
   }
 };
 
+// @desc    Withdraw Funds
+// @route   POST /api/savings/withdraw
+// @access  Private
+exports.withdrawFunds = async (req, res) => {
+  try {
+    const { amount, targetUserId } = req.body;
+
+    // Determine target user
+    let userIdForWithdrawal = req.user.id;
+    if (targetUserId && targetUserId !== req.user.id) {
+      if (['admin', 'employee', 'manager'].includes(req.user.role)) {
+        userIdForWithdrawal = targetUserId;
+      } else {
+        return res.status(403).json({ success: false, error: 'Not authorized to withdraw from this account' });
+      }
+    }
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid withdrawal amount' });
+    }
+
+    const account = await SavingsAccount.findOne({ userId: userIdForWithdrawal });
+    if (!account || account.status !== 'Active') {
+      return res.status(400).json({ success: false, error: 'Active savings account required' });
+    }
+
+    if (account.balance < amount) {
+      return res.status(400).json({ success: false, error: 'Insufficient balance' });
+    }
+
+    const user = await User.findById(userIdForWithdrawal);
+
+    // Process Withdrawal
+    account.balance -= amount;
+    account.totalWithdrawals += amount;
+    account.lastTransactionDate = Date.now();
+    await account.save();
+
+    user.savingsBalance = account.balance;
+    await user.save();
+
+    const transaction = new SavingsTransaction({
+      userId: userIdForWithdrawal,
+      savingsAccountId: account._id,
+      type: 'Withdrawal',
+      description: `Savings Withdrawal`,
+      creditAmount: 0,
+      debitAmount: amount,
+      balanceAfter: account.balance,
+      status: 'Completed',
+      referenceNumber: generateTransactionRef()
+    });
+    await transaction.save();
+
+    const audit = new AuditLog({
+      action: 'SAVINGS_WITHDRAWAL',
+      userId: userIdForWithdrawal,
+      details: `Withdrew ₹${amount}. New Balance: ₹${account.balance}. TxnID: ${transaction.referenceNumber}`
+    });
+    await audit.save();
+
+    res.json({ success: true, message: 'Withdrawal successful', transaction, balance: account.balance });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
+// @desc    Close Savings Account
+// @route   POST /api/savings/close
+// @access  Private
+exports.closeAccount = async (req, res) => {
+  try {
+    const account = await SavingsAccount.findOne({ userId: req.user.id });
+    if (!account || account.status === 'Closed') {
+      return res.status(400).json({ success: false, error: 'Account not found or already closed' });
+    }
+
+    if (account.balance > 0) {
+      return res.status(400).json({ success: false, error: 'Please withdraw remaining balance (₹' + account.balance + ') before closing account' });
+    }
+
+    account.status = 'Closed';
+    await account.save();
+
+    const audit = new AuditLog({
+      action: 'SAVINGS_ACCOUNT_CLOSED',
+      userId: req.user.id,
+      details: `Closed savings account ${account.accountNumber}.`
+    });
+    await audit.save();
+
+    res.json({ success: true, message: 'Account closed successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Server Error' });
+  }
+};
+
 // @desc    Get Savings Transactions
 // @route   GET /api/savings/transactions
 // @access  Private

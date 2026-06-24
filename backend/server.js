@@ -35,6 +35,8 @@ app.use('/api/savings', require('./routes/savingsRoutes'));
 app.use('/api/admin/savings', require('./routes/adminSavingsRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/memberships', require('./routes/membershipRoutes'));
+app.use('/api/fd', require('./routes/fdRoutes'));
+app.use('/api/admin/fd', require('./routes/adminFdRoutes'));
 
 // Error handler middleware
 app.use(errorHandler);

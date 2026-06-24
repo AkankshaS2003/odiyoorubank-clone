@@ -29,3 +29,18 @@ export const getAllSavingsDeposits = async () => {
   const response = await api.get('/admin/savings/deposits');
   return response.data;
 };
+
+export const withdrawSavings = async (data: any) => {
+  const response = await api.post('/savings/withdraw', data);
+  return response.data;
+};
+
+export const closeSavingsAccount = async () => {
+  const response = await api.post('/savings/close');
+  return response.data;
+};
+
+export const calculateInterest = async (data: any = {}) => {
+  const response = await api.post('/admin/savings/calculate-interest', data);
+  return response.data;
+};

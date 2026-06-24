@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { History, ArrowLeft, Loader2, ArrowUpRight, ArrowDownLeft, Calendar } from 'lucide-react';
+import { History, ArrowLeft, Loader2, ArrowUpRight, ArrowDownLeft, Calendar, Printer } from 'lucide-react';
 import { getSavingsTransactions } from '../services/savingsApi';
 
 export const SavingsHistory: React.FC<{ setCurrentTab: (tab: string) => void }> = ({ setCurrentTab }) => {
@@ -24,21 +24,27 @@ export const SavingsHistory: React.FC<{ setCurrentTab: (tab: string) => void }> 
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-transparent">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-8 hidden">
           <button 
             onClick={() => setCurrentTab('profile')}
             className="p-3 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors shadow-sm"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
+          <div className="flex-grow">
             <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
               <History className="w-6 h-6 text-[#0F4C81]" /> Savings Transaction History
             </h2>
             <p className="text-slate-500 text-sm font-medium mt-1">View all deposits, withdrawals, and interest credits</p>
           </div>
+          <button 
+            onClick={() => window.print()} 
+            className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-[#0A315C] rounded-xl text-sm font-bold transition-colors flex items-center gap-2 print:hidden"
+          >
+            <Printer className="w-4 h-4" /> Download Passbook
+          </button>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">

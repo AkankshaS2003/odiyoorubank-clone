@@ -20,6 +20,8 @@ import Breadcrumbs from './components/Breadcrumbs';
 import { AccountApplication } from './pages/AccountApplication';
 import { DepositApplication } from './pages/DepositApplication';
 import { SavingsDepositApplication } from './pages/SavingsDepositApplication';
+import { SavingsWithdrawalApplication } from './pages/SavingsWithdrawalApplication';
+import { AccountClosureApplication } from './pages/AccountClosureApplication';
 import { SavingsHistory } from './pages/SavingsHistory';
 import { GoldLoanApplication } from './pages/GoldLoanApplication';
 import { VehicleLoanApplication } from './pages/VehicleLoanApplication';
@@ -30,10 +32,13 @@ import { MortgageLoanApplication } from './pages/MortgageLoanApplication';
 import { AgriculturalLoanApplication } from './pages/AgriculturalLoanApplication';
 import { FDDetailsPage } from './pages/FDDetailsPage';
 import { RDDetailsPage } from './pages/RDDetailsPage';
+import { MyFixedDeposits } from './pages/MyFixedDeposits';
+import { FDDashboardReceipt } from './pages/FDDashboardReceipt';
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const [history, setHistory] = useState<string[]>(['home']);
+  const [fdReceiptData, setFdReceiptData] = useState<any>(null);
   const currentTab = history[history.length - 1] || 'home';
 
   useEffect(() => {
@@ -56,7 +61,7 @@ const AppContent: React.FC = () => {
     let tabToRender = currentTab;
     let showLoginModal = false;
 
-    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'savings-history' || tabToRender === 'apply-savings-deposit' || tabToRender === 'apply-deposit' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan') && !isAuthenticated) {
+    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'savings-history' || tabToRender === 'apply-savings-deposit' || tabToRender === 'apply-deposit' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan' || tabToRender === 'my_fds' || tabToRender === 'fd_receipt') && !isAuthenticated) {
       showLoginModal = true;
       tabToRender = 'home';
     } else if (tabToRender === 'login') {
@@ -107,6 +112,16 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />;
           }
           return <SavingsDepositApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-savings-withdrawal':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <SavingsWithdrawalApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-account-closure':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <AccountClosureApplication setCurrentTab={setCurrentTab} />;
         case 'apply-deposit':
           if (!isAuthenticated) {
             return <Home setCurrentTab={setCurrentTab} />;
@@ -147,6 +162,16 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />;
           }
           return <AgriculturalLoanApplication setCurrentTab={setCurrentTab} />;
+        case 'my_fds':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <MyFixedDeposits setCurrentTab={setCurrentTab} setFdReceiptData={setFdReceiptData} />;
+        case 'fd_receipt':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <FDDashboardReceipt setCurrentTab={setCurrentTab} fdData={fdReceiptData} />;
         default:
           if (currentTab.startsWith('view-fd-details|')) {
             if (!isAuthenticated) return <Home setCurrentTab={setCurrentTab} />;

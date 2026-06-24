@@ -47,8 +47,9 @@ import {
   Cell
 } from 'recharts';
 import api from '../services/api';
+import { adminGetFDs, adminSettleFD, adminCheckMaturity } from '../services/fdApi';
 import { useAuth } from '../context/AuthContext';
-import { getAllSavingsDeposits } from '../services/savingsApi';
+import { getAllSavingsDeposits, calculateInterest } from '../services/savingsApi';
 
 interface DocumentGroup {
   _id: string; // filename
@@ -64,7 +65,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   // Tab State: matching all 14 specified modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'applications' | 'service_applications' | 'customers' | 'loans' | 'deposit_products' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
+    'dashboard' | 'applications' | 'service_applications' | 'customers' | 'loans' | 'deposit_products' | 'fd_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -98,6 +99,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [savingsDeposits, setSavingsDeposits] = useState<any[]>([]);
   const [serviceApplications, setServiceApplications] = useState<any[]>([]);
   const [selectedServiceApp, setSelectedServiceApp] = useState<any>(null);
+  const [adminFds, setAdminFds] = useState<any[]>([]);
 
   // Announcements States
   const announcements = systemSettings?.announcements?.length > 0 ? systemSettings.announcements : [
@@ -161,6 +163,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     fetchMemberships();
     fetchApplications();
     fetchServiceApplications();
+    fetchAdminFds();
   }, []);
 
   const fetchServiceApplications = async () => {
@@ -171,6 +174,48 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
       }
     } catch (err) {
       console.error('Failed to fetch service applications', err);
+    }
+  };
+
+  const fetchAdminFds = async () => {
+    try {
+      const res = await adminGetFDs();
+      if (res.success) {
+        setAdminFds(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch admin FDs', err);
+    }
+  };
+
+  const handleFdSettlement = async (id: string) => {
+    if (!window.confirm('Are you sure you want to approve this settlement?')) return;
+    setActionLoading(true);
+    try {
+      const res = await adminSettleFD(id);
+      if (res.success) {
+        setSuccess('Fixed Deposit settlement approved.');
+        fetchAdminFds();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to settle FD');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCheckMaturity = async () => {
+    setActionLoading(true);
+    try {
+      const res = await adminCheckMaturity();
+      if (res.success) {
+        setSuccess(res.message || 'Maturity check completed.');
+        fetchAdminFds();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to check maturity');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -517,6 +562,27 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     setActionLoading(false);
   };
 
+  const handleCalculateInterest = async () => {
+    if (!window.confirm('Are you sure you want to calculate and credit interest to all active savings accounts? This action cannot be undone.')) return;
+    
+    setActionLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await calculateInterest();
+      if (res.success) {
+        setSuccess(`Interest calculated and credited to ${res.processed} accounts successfully.`);
+        addAuditLog(`Calculated and credited interest to ${res.processed} savings accounts`);
+      } else {
+        setError(res.error || 'Failed to calculate interest');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'An error occurred during interest calculation');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // RAG Document Handlers (Indexed vectors)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -644,6 +710,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'memberships', label: 'Memberships', icon: ShieldCheck },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
+    { id: 'fd_management', label: 'Fixed Deposits', icon: History },
     { id: 'branches', label: 'Branch Management', icon: MapPin },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'rag', label: 'RAG Knowledge Base', icon: Database },
@@ -1368,13 +1435,110 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
             )}
 
             {/* ========================================== */}
+            {/* TAB: FD MANAGEMENT */}
+            {/* ========================================== */}
+            {activeTab === 'fd_management' && (
+              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 uppercase">Fixed Deposit Management</h2>
+                    <p className="text-xs text-slate-400 font-bold mt-1">Review maturity settlements and perform daily maturity checks.</p>
+                  </div>
+                  <button 
+                    onClick={handleCheckMaturity}
+                    disabled={actionLoading}
+                    className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-xl text-xs font-bold transition-colors shadow-md flex items-center gap-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Run Maturity Check
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                        <th className="p-4 rounded-l-xl">FD Number</th>
+                        <th className="p-4">Customer Details</th>
+                        <th className="p-4">Principal / Tenure</th>
+                        <th className="p-4">Maturity Date / Amount</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-center rounded-r-xl">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {adminFds.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
+                            No Fixed Deposits found.
+                          </td>
+                        </tr>
+                      ) : (
+                        adminFds.map((fd: any) => (
+                          <tr key={fd._id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-4">
+                              <span className="font-bold text-slate-900 font-mono">{fd.fdNumber}</span>
+                            </td>
+                            <td className="p-4">
+                              <p className="font-bold text-slate-900">{fd.userId?.fullName}</p>
+                              <p className="text-[10px] text-slate-500">{fd.userId?.customerId}</p>
+                            </td>
+                            <td className="p-4">
+                              <p className="text-sm font-bold text-slate-900">₹{(fd.principalAmount || 0).toLocaleString('en-IN')}</p>
+                              <p className="text-[10px] text-slate-500 font-medium">{fd.tenureMonths} Months</p>
+                            </td>
+                            <td className="p-4">
+                              <p className="text-sm font-bold text-emerald-700">₹{(fd.maturityAmount || 0).toLocaleString('en-IN')}</p>
+                              <p className="text-[10px] text-slate-500 font-medium">{new Date(fd.maturityDate).toLocaleDateString()}</p>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                fd.status === 'Active' ? 'bg-blue-100 text-blue-700' :
+                                fd.status === 'Matured' ? 'bg-emerald-100 text-emerald-700' :
+                                fd.status === 'Pending Settlement Approval' ? 'bg-amber-100 text-amber-700' :
+                                'bg-slate-100 text-slate-600'
+                              }`}>
+                                {fd.status}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              {fd.status === 'Pending Settlement Approval' ? (
+                                <button
+                                  onClick={() => handleFdSettlement(fd._id)}
+                                  disabled={actionLoading}
+                                  className="px-3 py-1.5 bg-[#ED7F1E] text-white hover:bg-[#d66b12] rounded-lg text-[10px] font-bold transition-colors"
+                                >
+                                  Approve Settlement
+                                </button>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 font-semibold italic">No action needed</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================== */}
             {/* TAB 4: DEPOSIT PRODUCTS & CMS INTEREST RATES */}
             {/* ========================================== */}
             {activeTab === 'deposit_products' && (
               <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm max-w-2xl">
-                <div className="pb-6 border-b border-slate-100 mb-6">
-                  <h2 className="text-lg font-black text-slate-900 uppercase">Cooperative Products & Rates</h2>
-                  <p className="text-xs text-slate-400 font-bold mt-1">Configure interest rate schemes. Saved settings will change calculators and layouts on the website instantly.</p>
+                <div className="pb-6 border-b border-slate-100 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 uppercase">Cooperative Products & Rates</h2>
+                    <p className="text-xs text-slate-400 font-bold mt-1">Configure interest rate schemes. Saved settings will change calculators and layouts on the website instantly.</p>
+                  </div>
+                  <button 
+                    onClick={handleCalculateInterest}
+                    disabled={actionLoading}
+                    className="px-4 py-2 bg-[#ED7F1E] hover:bg-[#d66b12] text-white rounded-xl text-xs font-bold transition-colors shadow-md whitespace-nowrap flex items-center gap-2"
+                  >
+                    <DollarSign className="w-4 h-4" /> Credit Savings Interest
+                  </button>
                 </div>
 
                 <form onSubmit={handleCmsSubmit} className="space-y-6">

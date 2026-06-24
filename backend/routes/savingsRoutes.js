@@ -5,7 +5,9 @@ const {
   getSavingsBalance,
   createDepositOrder,
   verifyDepositPayment,
-  getSavingsTransactions
+  getSavingsTransactions,
+  withdrawFunds,
+  closeAccount
 } = require('../controllers/savingsController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -16,5 +18,7 @@ router.get('/balance', getSavingsBalance);
 router.post('/deposit', createDepositOrder);
 router.post('/payment', verifyDepositPayment);
 router.get('/transactions', getSavingsTransactions);
+router.post('/withdraw', withdrawFunds);
+router.post('/close', closeAccount);
 
 module.exports = router;
