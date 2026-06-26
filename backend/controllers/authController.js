@@ -3,6 +3,7 @@ const Account = require('../models/Account');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
+const sendEmail = require('../services/emailService');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID');
 
@@ -269,11 +270,51 @@ const googleLogin = async (req, res, next) => {
   }
 };
 
+// @desc    Send Transaction OTP
+// @route   POST /api/auth/send-otp
+// @access  Private
+const sendTransactionOtp = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Save to user with 5-minute expiry
+    user.transactionOtp = otp;
+    user.transactionOtpExpire = new Date(Date.now() + 5 * 60 * 1000);
+    await user.save();
+
+    // Send email
+    const message = `Your transaction verification OTP is ${otp}. It is valid for 5 minutes. Do not share this with anyone.`;
+    
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Odiyooru Souharda - Transaction OTP',
+        message
+      });
+      res.status(200).json({ success: true, message: 'OTP sent to email' });
+    } catch (err) {
+      user.transactionOtp = undefined;
+      user.transactionOtpExpire = undefined;
+      await user.save();
+      return res.status(500).json({ success: false, error: 'Email could not be sent' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
   forgotPassword,
   resetPassword,
-  googleLogin
+  googleLogin,
+  sendTransactionOtp
 };

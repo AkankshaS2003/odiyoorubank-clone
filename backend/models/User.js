@@ -101,6 +101,8 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  transactionOtp: String,
+  transactionOtpExpire: Date,
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   createdAt: {

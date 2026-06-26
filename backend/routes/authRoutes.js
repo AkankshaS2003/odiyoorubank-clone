@@ -5,7 +5,8 @@ const {
   getMe,
   forgotPassword,
   resetPassword,
-  googleLogin
+  googleLogin,
+  sendTransactionOtp
 } = require('../controllers/authController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -18,5 +19,6 @@ router.get('/me', protect, getMe);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 router.post('/google', googleLogin);
+router.post('/send-otp', protect, sendTransactionOtp);
 
 module.exports = router;

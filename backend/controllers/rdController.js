@@ -13,8 +13,12 @@ const razorpay = new Razorpay({
 
 exports.createRD = async (req, res, next) => {
   try {
-    const { monthlyAmount, tenureMonths, interestRate, nomineeDetails, autoDebit, linkedSavingsAccountId } = req.body;
+    const { monthlyAmount, tenureMonths, interestRate, nomineeDetails, autoDebit, linkedSavingsAccountId, otp } = req.body;
     
+    if (!otp || req.user.transactionOtp !== otp || new Date() > req.user.transactionOtpExpire) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+    }
+
     const linkedAccount = await Account.findOne({ _id: linkedSavingsAccountId, userId: req.user.id, accountType: 'Savings' });
     if (!linkedAccount) {
       return res.status(404).json({ success: false, message: 'Linked Savings Account not found' });
@@ -36,6 +40,14 @@ exports.createRD = async (req, res, next) => {
       targetUser: req.user.id,
       details: `Created RD application for Rs ${monthlyAmount}/month for ${tenureMonths} months`
     });
+
+    // Clear OTP
+    const user = await require('../models/User').findById(req.user.id);
+    if (user) {
+      user.transactionOtp = undefined;
+      user.transactionOtpExpire = undefined;
+      await user.save();
+    }
 
     res.status(201).json({ success: true, data: newRD });
   } catch (error) {

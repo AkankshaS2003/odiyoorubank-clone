@@ -30,6 +30,7 @@ import { PersonalLoanApplication } from './pages/PersonalLoanApplication';
 import { HousingLoanApplication } from './pages/HousingLoanApplication';
 import { MortgageLoanApplication } from './pages/MortgageLoanApplication';
 import { AgriculturalLoanApplication } from './pages/AgriculturalLoanApplication';
+import { CreateRD } from './pages/RD/CreateRD';
 import { FDDetailsPage } from './pages/FDDetailsPage';
 import { RDDetailsPage } from './pages/RDDetailsPage';
 import { MyFixedDeposits } from './pages/MyFixedDeposits';
@@ -63,7 +64,7 @@ const AppContent: React.FC = () => {
     let tabToRender = currentTab;
     let showLoginModal = false;
 
-    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'savings-history' || tabToRender === 'apply-savings-deposit' || tabToRender === 'apply-deposit' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan' || tabToRender === 'my_fds' || tabToRender === 'fd_receipt' || tabToRender === 'my_rds') && !isAuthenticated) {
+    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'savings-history' || tabToRender === 'apply-savings-deposit' || tabToRender === 'apply-deposit' || tabToRender === 'apply-rd' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan' || tabToRender === 'my_fds' || tabToRender === 'fd_receipt' || tabToRender === 'my_rds') && !isAuthenticated) {
       showLoginModal = true;
       tabToRender = 'home';
     } else if (tabToRender === 'login') {
@@ -129,6 +130,11 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />;
           }
           return <DepositApplication setCurrentTab={setCurrentTab} />;
+        case 'apply-rd':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <CreateRD setCurrentTab={setCurrentTab} />;
         case 'apply-gold-loan':
           if (!isAuthenticated) {
             return <Home setCurrentTab={setCurrentTab} />;

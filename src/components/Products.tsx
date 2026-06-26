@@ -137,6 +137,7 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       else if (product.id === 'prod-housing') setCurrentTab('apply-housing-loan');
       else if (product.id === 'prod-mortgage') setCurrentTab('apply-mortgage-loan');
       else if (product.id === 'prod-agriculture') setCurrentTab('apply-agricultural-loan');
+      else if (product.id === 'prod-recurring') setCurrentTab('apply-rd');
       else if (product.category === 'deposit') setCurrentTab('apply-deposit');
     }
     return;
