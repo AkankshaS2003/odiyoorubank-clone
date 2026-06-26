@@ -18,6 +18,7 @@ import { IdCard } from '../components/IdCard';
 import { SavingsSummaryCard } from '../components/SavingsSummaryCard';
 import { SavingsHistory } from './SavingsHistory';
 import { PaymentModal } from '../components/PaymentModal';
+import { DepositApplicationModal } from '../components/DepositApplicationModal';
 
 interface DashboardProps {
   setCurrentTab: (tab: string) => void;
@@ -32,6 +33,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
   const [showCard, setShowCard] = useState(false);
   const [savedReport, setSavedReport] = useState<any>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedDepositApp, setSelectedDepositApp] = useState<any>(null);
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -126,10 +128,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-40 shrink-0 mb-1 sm:mb-0">Full Name</span>
                   <span className="font-bold text-slate-800 text-sm">{user.fullName}</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center hover:bg-slate-50 transition-colors p-4">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-40 shrink-0 mb-1 sm:mb-0">S/o, D/o, W/o</span>
-                  <span className="font-bold text-slate-800 text-sm">{(user as any).guardianName || '—'}</span>
-                </div>
+
                 <div className="flex flex-col sm:flex-row sm:items-center hover:bg-slate-50 transition-colors p-4">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-40 shrink-0 mb-1 sm:mb-0">Account Number</span>
                   <span className="font-bold text-slate-800 text-sm font-mono">{user.accountNumber || 'Not Assigned'}</span>
@@ -357,7 +356,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
       case 'deposits':
         return (
           <div className="bg-white border border-slate-150 rounded-3xl shadow-sm overflow-hidden py-4">
-            <div className="px-6 md:px-8 pb-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-6 md:px-8 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h4 className="font-extrabold text-lg text-slate-900 flex items-center space-x-2">
                   <PiggyBank className="h-5 w-5 text-primary" />
@@ -414,14 +413,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                           </span>
                         </td>
                         <td className="py-4 px-6 text-right">
-                          {app.status === 'Approved' && (
-                            <button
-                              onClick={() => setCurrentTab(app.applicationType === 'Fixed Deposit' ? `view-fd-details|${app._id}` : `view-rd-details|${app._id}`)}
-                              className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
-                            >
-                              View Certificate
-                            </button>
-                          )}
+                          <button
+                            onClick={() => setSelectedDepositApp(app)}
+                            className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
+                          >
+                            View Application
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -487,6 +484,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
         setShowPaymentModal(false);
         window.location.reload();
       }} onCancel={() => setShowPaymentModal(false)} />}
+      
+      {selectedDepositApp && (
+        <DepositApplicationModal 
+          application={selectedDepositApp} 
+          onClose={() => setSelectedDepositApp(null)} 
+        />
+      )}
     </div>
   );
 };

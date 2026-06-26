@@ -65,7 +65,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   // Tab State: matching all 14 specified modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'applications' | 'service_applications' | 'customers' | 'loans' | 'deposit_products' | 'fd_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
+    'dashboard' | 'applications' | 'service_applications' | 'customers' | 'loans' | 'deposit_products' | 'fd_management' | 'rd_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -100,6 +100,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [serviceApplications, setServiceApplications] = useState<any[]>([]);
   const [selectedServiceApp, setSelectedServiceApp] = useState<any>(null);
   const [adminFds, setAdminFds] = useState<any[]>([]);
+  const [adminRds, setAdminRds] = useState<any[]>([]);
 
   // Announcements States
   const announcements = systemSettings?.announcements?.length > 0 ? systemSettings.announcements : [
@@ -164,6 +165,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     fetchApplications();
     fetchServiceApplications();
     fetchAdminFds();
+    fetchAdminRds();
   }, []);
 
   const fetchServiceApplications = async () => {
@@ -185,6 +187,17 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
       }
     } catch (err) {
       console.error('Failed to fetch admin FDs', err);
+    }
+  };
+
+  const fetchAdminRds = async () => {
+    try {
+      const res = await api.get('/rd');
+      if (res.data.success) {
+        setAdminRds(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch admin RDs', err);
     }
   };
 
@@ -712,6 +725,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     { id: 'memberships', label: 'Memberships', icon: ShieldCheck },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
     { id: 'fd_management', label: 'Fixed Deposits', icon: History },
+    { id: 'rd_management', label: 'Recurring Deposits', icon: Database },
     { id: 'branches', label: 'Branch Management', icon: MapPin },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'rag', label: 'RAG Knowledge Base', icon: Database },
@@ -1516,6 +1530,126 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                 </button>
                               ) : (
                                 <span className="text-[10px] text-slate-400 font-semibold italic">No action needed</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================== */}
+            {/* TAB: RD MANAGEMENT */}
+            {/* ========================================== */}
+            {activeTab === 'rd_management' && (
+              <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 uppercase">Recurring Deposit Management</h2>
+                    <p className="text-xs text-slate-400 font-bold mt-1">Review RD applications, approvals, and settlements.</p>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                        <th className="p-4 rounded-l-xl">RD Number</th>
+                        <th className="p-4">Customer Details</th>
+                        <th className="p-4">Monthly Amount</th>
+                        <th className="p-4">Tenure</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-center rounded-r-xl">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {adminRds.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
+                            No Recurring Deposits found.
+                          </td>
+                        </tr>
+                      ) : (
+                        adminRds.map((rd: any) => (
+                          <tr key={rd._id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="p-4">
+                              <span className="font-bold text-slate-900 font-mono">{rd.rdNumber || 'Pending'}</span>
+                            </td>
+                            <td className="p-4">
+                              <p className="font-bold text-slate-900">{rd.userId?.fullName || 'N/A'}</p>
+                              <p className="text-[10px] text-slate-500">{rd.userId?.email || 'N/A'}</p>
+                            </td>
+                            <td className="p-4">
+                              <p className="text-sm font-bold text-[#0F4C81]">₹{(rd.monthlyAmount || 0).toLocaleString('en-IN')}</p>
+                            </td>
+                            <td className="p-4">
+                              <p className="text-[10px] text-slate-500 font-medium">{rd.tenureMonths} Months</p>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                rd.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
+                                rd.status === 'Pending Approval' ? 'bg-amber-100 text-amber-700' :
+                                rd.status === 'Matured' ? 'bg-blue-100 text-blue-700' :
+                                rd.status === 'Inactive' ? 'bg-rose-100 text-rose-700' :
+                                'bg-slate-100 text-slate-600'
+                              }`}>
+                                {rd.status}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              {rd.status === 'Pending Approval' && (
+                                <button
+                                  onClick={async () => {
+                                    if (window.confirm('Approve this RD application?')) {
+                                      try {
+                                        await api.put(`/rd/${rd._id}/approve`);
+                                        fetchAdminRds();
+                                      } catch (err) {
+                                        alert('Failed to approve RD');
+                                      }
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold hover:bg-emerald-700"
+                                >
+                                  Approve RD
+                                </button>
+                              )}
+                              {rd.status === 'Pending Settlement Approval' && (
+                                <button
+                                  onClick={async () => {
+                                    if (window.confirm('Approve this settlement?')) {
+                                      try {
+                                        await api.put(`/rd/${rd._id}/approve-settlement`);
+                                        fetchAdminRds();
+                                      } catch (err) {
+                                        alert('Failed to approve Settlement');
+                                      }
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-[#ED7F1E] text-white hover:bg-[#d66b12] rounded-lg text-[10px] font-bold transition-colors"
+                                >
+                                  Approve Settlement
+                                </button>
+                              )}
+                              {rd.status === 'Inactive' && (
+                                <button
+                                  onClick={async () => {
+                                    if (window.confirm('Reactivate this RD?')) {
+                                      try {
+                                        await api.put(`/rd/${rd._id}/reactivate`);
+                                        fetchAdminRds();
+                                      } catch (err) {
+                                        alert('Failed to reactivate RD');
+                                      }
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-[10px] font-bold transition-colors"
+                                >
+                                  Reactivate
+                                </button>
                               )}
                             </td>
                           </tr>

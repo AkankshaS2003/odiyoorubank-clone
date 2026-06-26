@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Printer, CheckCircle, FileCheck } from 'lucide-react';
+import api from '../services/api';
 
 const numberToWords = (num: number): string => {
   if (num === 0) return 'Zero Rupees Only';
@@ -273,14 +274,56 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
       }
     }
 
-    const res = await submitServiceApplication(formData.depositType, formData, { signature: signatureBase64 });
+    let successStatus = false;
+    
+    if (formData.depositType === 'Recurring Deposit') {
+      try {
+        const accountsRes = await api.get('/account/details');
+        let savingsAccountId = null;
+        if (accountsRes.data.success && accountsRes.data.data.account) {
+          savingsAccountId = accountsRes.data.data.account._id;
+        }
+
+        if (!savingsAccountId) {
+          alert('You must have an active savings account to link with a Recurring Deposit.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        const rdRes = await api.post('/rd', {
+          monthlyAmount: parseInt(formData.amount, 10),
+          tenureMonths: parseInt(formData.depositPeriod) || 12,
+          interestRate: 7.75, // Default/current rate
+          autoDebit: false,
+          linkedSavingsAccountId: savingsAccountId,
+          nomineeDetails: {
+            name: formData.nomineeName,
+            relation: formData.nomineeRelationship
+          }
+        });
+
+        if (rdRes.data.success) {
+          // Additionally submit the generic service application to keep the paper-trail
+          await submitServiceApplication(formData.depositType, formData, { signature: signatureBase64 });
+          successStatus = true;
+        }
+      } catch (err: any) {
+        alert(err.response?.data?.message || 'Failed to apply for RD');
+        successStatus = false;
+      }
+    } else {
+      successStatus = await submitServiceApplication(formData.depositType, formData, { signature: signatureBase64 });
+    }
+    
     setIsSubmitting(false);
     
-    if (res) {
+    if (successStatus) {
       localStorage.removeItem('draft_DepositApplication');
       setSuccess(true);
     } else {
-      alert("Failed to submit application. Please try again.");
+      if (formData.depositType !== 'Recurring Deposit') {
+        alert("Failed to submit application. Please try again.");
+      }
     }
   };
 
@@ -483,9 +526,7 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
             <h3 className="text-xs font-black text-[#0F4C81] uppercase tracking-wider mb-4">Mode of Payment / Operation</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4">
               {[
-                'Self', 'Either or Survivor', 'First Depositor Only', 'To All Depositors Jointly',
-                'Any 2 Authorised Signatories Jointly', 'Any 3 Authorised Signatories Jointly',
-                'No.1 Jointly with Any Authorised Signatory', 'Secretary & Treasurer'
+                'Self', 'Either or Survivor', 'First Depositor Only', 'To All Depositors Jointly'
               ].map(mode => (
                 <label key={mode} className="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" checked={formData.modeOfOperation === mode} onChange={() => handleModeChange(mode)} className="w-4 h-4 mt-0.5 text-[#0F4C81] rounded border-slate-300 print:appearance-none print:border-2 print:border-slate-800 print:w-3 print:h-3" />

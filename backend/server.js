@@ -37,6 +37,10 @@ app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/memberships', require('./routes/membershipRoutes'));
 app.use('/api/fd', require('./routes/fdRoutes'));
 app.use('/api/admin/fd', require('./routes/adminFdRoutes'));
+app.use('/api/rd', require('./routes/rdRoutes'));
+
+// Initialize Cron Jobs
+require('./cron/rdCron');
 
 // Error handler middleware
 app.use(errorHandler);

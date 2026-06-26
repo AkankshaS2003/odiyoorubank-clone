@@ -94,36 +94,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentTab }) => {
           </div>
         </div>
 
-        {/* 4 Feature Columns at the bottom */}
-        <div className="mt-16 border-t border-white/10 pt-8 grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-4xl pb-8">
-          <div className="flex flex-col items-center justify-center text-center space-y-3 group border-r border-white/10 last:border-0 border-transparent md:border-white/10">
-            <div className="text-[#ED7F1E]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path><path d="M12 22s-2-2-2-4 2-4 2-4 2 2 2 4-2 4-2 4z"></path></svg>
-            </div>
-            <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-wider">Community<br/>Driven</span>
-          </div>
 
-          <div className="flex flex-col items-center justify-center text-center space-y-3 group border-r border-white/10 last:border-0 border-transparent md:border-white/10">
-            <div className="text-[#ED7F1E]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
-            </div>
-            <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-wider">Trust &<br/>Transparency</span>
-          </div>
-
-          <div className="flex flex-col items-center justify-center text-center space-y-3 group border-r border-white/10 last:border-0 border-transparent md:border-white/10">
-            <div className="text-[#ED7F1E]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><path d="M12 4 8 8"></path><path d="M12 4l4 4"></path></svg>
-            </div>
-            <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-wider">Sustainable<br/>Growth</span>
-          </div>
-
-          <div className="flex flex-col items-center justify-center text-center space-y-3 group">
-            <div className="text-[#ED7F1E]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"></path><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"></path><path d="m21 3 1 11h-2"></path><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"></path><path d="M3 4h8"></path></svg>
-            </div>
-            <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-wider">Together For<br/>A Better Future</span>
-          </div>
-        </div>
       </div>
 
     </section>
