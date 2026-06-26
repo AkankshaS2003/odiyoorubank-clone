@@ -88,8 +88,18 @@ const applyMembership = async (req, res, next) => {
 // @access  Private
 const verifyFace = async (req, res, next) => {
   try {
-    const { similarityScore, aadhaarFaceImage, selfieImage, faceVerificationStatus, details } = req.body;
+    let { similarityScore, aadhaarFaceImage, selfieImage, faceVerificationStatus, details } = req.body;
     
+    // SERVER-SIDE SECURITY GUARD: Do not trust frontend status blindly.
+    const SystemSettings = require('../models/SystemSettings');
+    const settings = await SystemSettings.findOne({});
+    const threshold = settings?.faceVerificationThreshold || 0.45;
+    
+    if (similarityScore === null || similarityScore === undefined || similarityScore > threshold) {
+      faceVerificationStatus = 'Manual Review Required';
+      details = details || `Security Override: Provided score (${similarityScore}) exceeds system threshold (${threshold})`;
+    }
+
     const Membership = require('../models/Membership');
     const membership = await Membership.findOneAndUpdate(
       { userId: req.user._id },
@@ -112,7 +122,7 @@ const verifyFace = async (req, res, next) => {
       { upsert: true, returnDocument: 'after' }
     );
 
-    // Auto-approve AccountApplication if Face Verified
+    // Auto-approve AccountApplication if Face Verified securely
     if (faceVerificationStatus === 'Face Verified') {
       const AccountApplication = require('../models/AccountApplication');
       const application = await AccountApplication.findOne({ userId: req.user._id, status: 'Pending' }).populate('userId');
@@ -137,14 +147,15 @@ const verifyFace = async (req, res, next) => {
         }
         await user.save();
 
-        const Account = require('../models/Account');
+        const SavingsAccount = require('../models/SavingsAccount');
         const accountNumber = '10' + crypto.randomInt(10000000, 99999999).toString();
         
-        await Account.create({
+        await SavingsAccount.create({
           userId: user._id,
-          accountType: application.accountType,
           accountNumber,
-          branch: 'Main Branch'
+          balance: 0,
+          totalDeposits: 0,
+          totalWithdrawals: 0
         });
       }
     }
