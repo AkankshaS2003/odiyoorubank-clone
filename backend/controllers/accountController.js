@@ -83,6 +83,81 @@ const applyMembership = async (req, res, next) => {
   }
 };
 
+// @desc    Verify face and update membership status
+// @route   POST /api/account/verify-face
+// @access  Private
+const verifyFace = async (req, res, next) => {
+  try {
+    const { similarityScore, aadhaarFaceImage, selfieImage, faceVerificationStatus, details } = req.body;
+    
+    const Membership = require('../models/Membership');
+    const membership = await Membership.findOneAndUpdate(
+      { userId: req.user._id },
+      { 
+        $set: {
+          faceVerificationStatus,
+          similarityScore,
+          aadhaarFaceImage,
+          selfieImage
+        },
+        $push: {
+          auditTrail: {
+            action: faceVerificationStatus === 'Face Verified' ? 'AI Auto-Verification' : 'AI Verification Failed - Flagged for Review',
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.headers['user-agent'],
+            details: details || `Similarity Score: ${similarityScore}`
+          }
+        }
+      },
+      { upsert: true, returnDocument: 'after' }
+    );
+
+    // Auto-approve AccountApplication if Face Verified
+    if (faceVerificationStatus === 'Face Verified') {
+      const AccountApplication = require('../models/AccountApplication');
+      const application = await AccountApplication.findOne({ userId: req.user._id, status: 'Pending' }).populate('userId');
+      
+      if (application) {
+        application.status = 'Approved';
+        await application.save();
+
+        const user = application.userId;
+        const crypto = require('crypto');
+        const customerId = 'CUST' + crypto.randomInt(100000, 999999).toString();
+        
+        user.customerId = customerId;
+        user.isKycVerified = true;
+        user.panNumber = application.panNumber;
+        user.aadharNumber = application.aadharNumber;
+        user.aadharUrl = application.aadharDocumentUrl;
+        user.dob = application.dob;
+        user.address = application.addressAsAadhar;
+        if (application.applicantPhotoBase64) {
+          user.profileImageBase64 = application.applicantPhotoBase64;
+        }
+        await user.save();
+
+        const Account = require('../models/Account');
+        const accountNumber = '10' + crypto.randomInt(10000000, 99999999).toString();
+        
+        await Account.create({
+          userId: user._id,
+          accountType: application.accountType,
+          accountNumber,
+          branch: 'Main Branch'
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: membership
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const makeDeposit = async (req, res, next) => {
   try {
     const { type, amount, durationYears } = req.body;

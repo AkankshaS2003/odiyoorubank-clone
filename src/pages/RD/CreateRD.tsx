@@ -85,9 +85,9 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
           return;
         }
 
-        const res = await api.get('/account/details');
-        if (res.data.success && res.data.data.account) {
-          const acc = res.data.data.account;
+        const res = await api.get('/savings/profile');
+        if (res.data.success && res.data.account) {
+          const acc = res.data.account;
           setSavingsAccount(acc);
           if (acc.balance < 100) {
             setError('No Active Account or Insufficient Funds: You must have an active Savings Account with at least ₹100 balance.');

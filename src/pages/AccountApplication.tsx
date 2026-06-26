@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, ChevronRight, ChevronLeft, Save, FileDown, CheckCircle, Send, Plus, Trash2 } from 'lucide-react';
+import { Upload, ChevronRight, ChevronLeft, Save, FileDown, CheckCircle, Send, Plus, Trash2, Shield, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { FaceVerification } from '../components/FaceVerification';
+import api from '../services/api';
 
 interface AccountApplicationProps {
   setCurrentTab: (tab: string) => void;
@@ -86,6 +88,24 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const [verificationResult, setVerificationResult] = useState<{
+    status: 'Face Verified' | 'Manual Review Required' | 'Failed',
+    score: number | null,
+    aadhaarFaceImage: string | null,
+    selfieImage: string | null
+  } | null>(null);
+
+  const [threshold, setThreshold] = useState(0.45);
+
+  useEffect(() => {
+    // Fetch threshold from settings
+    api.get('/admin/settings').then(res => {
+      if (res.data && res.data.success && res.data.data.faceVerificationThreshold) {
+        setThreshold(res.data.data.faceVerificationThreshold);
+      }
+    }).catch(err => console.error(err));
+  }, []);
 
   const defaultFormData = {
     date: new Date().toISOString().split('T')[0],
@@ -351,7 +371,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   const nextStep = () => {
     if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
-    setStep(prev => Math.min(prev + 1, 3));
+    setStep(prev => Math.min(prev + 1, 4));
     window.scrollTo(0, 0);
   };
 
@@ -366,7 +386,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 3) {
+    if (step === 4) {
       submitApplicationData();
     }
   };
@@ -379,6 +399,11 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       } catch (err) {
         console.error('Failed to convert photo', err);
       }
+    }
+
+    if (!verificationResult) {
+      alert("Please complete Face Verification before submitting.");
+      return;
     }
 
     // Submit to backend
@@ -395,8 +420,21 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     
     const isSuccess = await submitAccountApplication(payload);
     if (isSuccess) {
-      localStorage.removeItem('odiyooru_account_draft');
-      setSuccess(true);
+      try {
+        await api.post('/account/verify-face', {
+          faceVerificationStatus: verificationResult.status,
+          similarityScore: verificationResult.score,
+          aadhaarFaceImage: verificationResult.aadhaarFaceImage,
+          selfieImage: verificationResult.selfieImage
+        });
+        localStorage.removeItem('odiyooru_account_draft');
+        setSuccess(true);
+      } catch (verifyErr) {
+        console.error("Verification submit error", verifyErr);
+        alert("Account created, but failed to securely save face verification. Admin review flagged.");
+        localStorage.removeItem('odiyooru_account_draft');
+        setSuccess(true);
+      }
     } else {
       alert("Failed to submit application. Please check your details or you may already have a pending application.");
     }
@@ -430,17 +468,17 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
               <button onClick={handleSaveDraft} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm">
                 <Save className="w-4 h-4" /> Save Draft
               </button>
-              <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-[#EAF6FF] text-[#0F4C81] rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors shadow-sm">
-                <FileDown className="w-4 h-4" /> Download PDF
+              <button className="flex items-center gap-2 px-4 py-2 bg-[#0F4C81]/10 text-[#0F4C81] rounded-lg text-sm font-bold">
+                Step {step} of 4
               </button>
             </div>
           </div>
           
           <div className="flex items-center justify-between relative">
             <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 rounded-full z-0"></div>
-            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-[#0F4C81] rounded-full z-0 transition-all duration-500" style={{ width: `${((step - 1) / 2) * 100}%` }}></div>
+            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-[#0F4C81] rounded-full z-0 transition-all duration-500" style={{ width: `${((step - 1) / 3) * 100}%` }}></div>
             
-            {[1, 2, 3].map((num) => (
+            {[1, 2, 3, 4].map((num) => (
               <div key={num} className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm border-4 transition-colors ${step >= num ? 'bg-[#0F4C81] border-[#EAF6FF] text-white' : 'bg-white border-gray-200 text-gray-400'}`}>
                 {num}
               </div>
@@ -449,7 +487,8 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
           <div className="flex justify-between mt-2 text-xs font-bold text-gray-500 px-1">
             <span className={step >= 1 ? 'text-[#0F4C81]' : ''}>Applicant Info</span>
             <span className={step >= 2 ? 'text-[#0F4C81]' : ''}>Nomination & Deposit</span>
-            <span className={step >= 3 ? 'text-[#0F4C81]' : ''}>Confirm & Pay</span>
+            <span className={step >= 3 ? 'text-[#0F4C81]' : ''}>Confirm</span>
+            <span className={step >= 4 ? 'text-[#0F4C81]' : ''}>Verification</span>
           </div>
         </div>
 
@@ -745,6 +784,40 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
               </div>
             </div>
 
+            {/* PAGE 4: FACE VERIFICATION */}
+            <div className={step === 4 ? 'block' : 'hidden print:hidden'}>
+              <div className="border-b-2 border-[#EAF6FF] pb-4 mb-6">
+                <h2 className="text-xl font-black text-[#0F4C81] uppercase tracking-wider">Page 4: Identity Verification</h2>
+              </div>
+              
+              {!verificationResult ? (
+                <FaceVerification 
+                  threshold={threshold}
+                  onVerificationComplete={(res) => setVerificationResult(res)}
+                />
+              ) : (
+                <div className={`p-6 rounded-xl border ${verificationResult.status === 'Face Verified' ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    {verificationResult.status === 'Face Verified' ? (
+                      <CheckCircle className="w-8 h-8 text-green-600" />
+                    ) : (
+                      <AlertTriangle className="w-8 h-8 text-orange-600" />
+                    )}
+                    <div>
+                      <h4 className={`text-lg font-bold ${verificationResult.status === 'Face Verified' ? 'text-green-800' : 'text-orange-800'}`}>
+                        {verificationResult.status}
+                      </h4>
+                      <p className={`text-sm ${verificationResult.status === 'Face Verified' ? 'text-green-600' : 'text-orange-600'}`}>
+                        {verificationResult.status === 'Face Verified' 
+                          ? 'Your identity has been successfully verified. You may submit your application now.' 
+                          : 'Biometric verification requires manual review. You may still submit your application.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Navigation Buttons (Hidden on print) */}
             <div className="mt-10 flex justify-between items-center border-t border-gray-300 pt-6 print:hidden">
               {step > 1 ? (
@@ -753,12 +826,12 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                 </button>
               ) : <div></div>}
               
-              {step < 3 ? (
+              {step < 4 ? (
                 <button type="button" onClick={nextStep} className="flex items-center gap-2 px-8 py-3 bg-[#0F4C81] text-white rounded-xl font-bold hover:bg-blue-900 transition-colors shadow-lg shadow-[#0F4C81]/30">
-                  Next Step <ChevronRight className="w-5 h-5" />
+                  {step === 3 ? "Next: Verify Identity" : "Next Step"} <ChevronRight className="w-5 h-5" />
                 </button>
               ) : (
-                <button type="submit" className="flex items-center gap-2 px-8 py-3 bg-[#ED7F1E] text-white rounded-xl font-bold hover:bg-[#d66a10] transition-colors shadow-lg">
+                <button type="submit" disabled={!verificationResult} className={`flex items-center gap-2 px-8 py-3 text-white rounded-xl font-bold transition-colors shadow-lg ${!verificationResult ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#ED7F1E] hover:bg-[#d66a10]'}`}>
                   <Send className="w-5 h-5" /> Submit Application
                 </button>
               )}

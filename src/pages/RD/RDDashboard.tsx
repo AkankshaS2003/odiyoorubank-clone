@@ -5,6 +5,7 @@ import { ArrowRight, PlusCircle } from 'lucide-react';
 export const RDDashboard = ({ setCurrentTab }: { setCurrentTab: (tab: string) => void }) => {
   const [rds, setRds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedRdId, setExpandedRdId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRDs = async () => {
@@ -64,17 +65,25 @@ export const RDDashboard = ({ setCurrentTab }: { setCurrentTab: (tab: string) =>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">RD Number</div>
                     <div className="font-bold text-lg">{rd.rdNumber || 'Pending'}</div>
                   </div>
-                  <div className={`text-xs font-bold px-2 py-1 rounded uppercase tracking-wider ${
-                    rd.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
-                    rd.status === 'Pending Approval' ? 'bg-amber-100 text-amber-700' :
-                    rd.status === 'Matured' ? 'bg-blue-100 text-blue-700' :
-                    rd.status === 'Inactive' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {rd.status}
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setExpandedRdId(expandedRdId === rd._id ? null : rd._id)}
+                      className="text-xs font-bold text-[#0F4C81] bg-[#EAF6FF] hover:bg-blue-100 px-3 py-1.5 rounded transition-colors"
+                    >
+                      {expandedRdId === rd._id ? 'Close Details' : 'View Application'}
+                    </button>
+                    <div className={`text-xs font-bold px-2 py-1.5 rounded uppercase tracking-wider ${
+                      rd.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
+                      rd.status === 'Pending Approval' ? 'bg-amber-100 text-amber-700' :
+                      rd.status === 'Matured' ? 'bg-blue-100 text-blue-700' :
+                      rd.status === 'Inactive' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      {rd.status}
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Monthly Amount</div>
                     <div className="font-bold text-[#0F4C81]">₹{rd.monthlyAmount.toLocaleString('en-IN')}</div>
@@ -83,22 +92,44 @@ export const RDDashboard = ({ setCurrentTab }: { setCurrentTab: (tab: string) =>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Deposited</div>
                     <div className="font-bold text-[#0F4C81]">₹{rd.totalDeposited.toLocaleString('en-IN')}</div>
                   </div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Interest Rate</div>
-                    <div className="font-bold">{rd.interestRate}% p.a.</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tenure</div>
-                    <div className="font-bold">{rd.tenureMonths} Months</div>
-                  </div>
                 </div>
 
-                <button 
-                  onClick={() => setCurrentTab(`view-rd-details|${rd._id}`)}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-[#0F4C81] font-bold rounded-xl border border-slate-200 group-hover:bg-[#0F4C81] group-hover:text-white transition-colors"
-                >
-                  View Details <ArrowRight className="w-4 h-4" />
-                </button>
+                {expandedRdId === rd._id && (
+                  <div className="mt-4 pt-4 border-t border-slate-100 animate-in fade-in slide-in-from-top-2">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-sm text-left">
+                        <tbody className="divide-y divide-slate-200">
+                          <tr className="hover:bg-slate-100/50">
+                            <th className="px-4 py-3 text-slate-500 font-bold bg-slate-100/50 w-1/2">Interest Rate</th>
+                            <td className="px-4 py-3 font-semibold text-slate-900">{rd.interestRate}% p.a.</td>
+                          </tr>
+                          <tr className="hover:bg-slate-100/50">
+                            <th className="px-4 py-3 text-slate-500 font-bold bg-slate-100/50">Tenure</th>
+                            <td className="px-4 py-3 font-semibold text-slate-900">{rd.tenureMonths} Months</td>
+                          </tr>
+                          <tr className="hover:bg-slate-100/50">
+                            <th className="px-4 py-3 text-slate-500 font-bold bg-slate-100/50">Maturity Date</th>
+                            <td className="px-4 py-3 font-semibold text-slate-900">
+                              {rd.maturityDate ? new Date(rd.maturityDate).toLocaleDateString() : 'Pending'}
+                            </td>
+                          </tr>
+                          <tr className="hover:bg-slate-100/50">
+                            <th className="px-4 py-3 text-slate-500 font-bold bg-slate-100/50">Next Installment Due</th>
+                            <td className="px-4 py-3 font-semibold text-slate-900">
+                              {rd.nextInstallmentDate ? new Date(rd.nextInstallmentDate).toLocaleDateString() : 'N/A'}
+                            </td>
+                          </tr>
+                          <tr className="hover:bg-slate-100/50">
+                            <th className="px-4 py-3 text-slate-500 font-bold bg-slate-100/50">Maturity Amount (Est.)</th>
+                            <td className="px-4 py-3 font-bold text-emerald-600">
+                              ₹{rd.maturityAmount ? rd.maturityAmount.toLocaleString('en-IN') : 'Calculating...'}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

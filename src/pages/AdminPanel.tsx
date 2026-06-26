@@ -1011,12 +1011,19 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               {m.address}
                             </td>
                             <td className="p-4">
-                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${m.membershipStatus === 'approved' ? 'bg-emerald-100 text-emerald-700' :
-                                  m.membershipStatus === 'rejected' ? 'bg-rose-100 text-rose-700' :
-                                    'bg-blue-100 text-blue-700'
-                                }`}>
-                                {m.membershipStatus}
-                              </span>
+                              <div className="flex flex-col gap-1">
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider w-fit ${m.membershipStatus === 'approved' ? 'bg-emerald-100 text-emerald-700' :
+                                    m.membershipStatus === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                                      'bg-blue-100 text-blue-700'
+                                  }`}>
+                                  {m.membershipStatus}
+                                </span>
+                                {m.faceVerificationStatus === 'Manual Review Required' && (
+                                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-700 w-fit">
+                                    Manual Review Reqd
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="p-4 text-center">
                               {m.membershipStatus === 'pending' ? (
@@ -2536,7 +2543,18 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   <p className="text-xs text-slate-400 font-bold mt-1">Configure vector database connections and system limits.</p>
                 </div>
 
-                <form onSubmit={(e) => { e.preventDefault(); alert('Saved Settings configuration!'); }} className="space-y-4">
+                <form onSubmit={async (e) => { 
+                  e.preventDefault();
+                  const target = e.target as typeof e.target & {
+                    faceVerificationThreshold: { value: string };
+                  };
+                  try {
+                    await updateSystemSettings({ faceVerificationThreshold: parseFloat(target.faceVerificationThreshold.value) });
+                    alert('Saved Settings configuration!');
+                  } catch (err) {
+                    alert('Failed to save settings.');
+                  }
+                }} className="space-y-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">FastAPI RAG API Base URL</label>
                     <input
@@ -2555,6 +2573,20 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold"
                       defaultValue="₹25,00,000"
                     />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Face Verification Similarity Threshold (0.0 to 1.0)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="1"
+                      name="faceVerificationThreshold"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold"
+                      defaultValue={systemSettings?.faceVerificationThreshold || 0.45}
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">Lower threshold = stricter match. Default is 0.45.</p>
                   </div>
 
                   <button
