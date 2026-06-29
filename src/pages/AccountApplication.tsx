@@ -53,6 +53,7 @@ const InputField = ({ label, name, type = "text", required = false, width = "w-f
       <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">{label} {required && <span className="text-red-500">*</span>}</label>
       <input
         type={type}
+        max={type === 'date' ? "9999-12-31" : undefined}
         name={name}
         value={displayValue}
         onChange={internalHandleChange}
@@ -96,7 +97,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     selfieImage: string | null
   } | null>(null);
 
-  const [threshold, setThreshold] = useState(0.45);
+  const [threshold, setThreshold] = useState(0.60);
 
   useEffect(() => {
     // Fetch threshold from settings
@@ -392,17 +393,24 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   };
 
   const submitApplicationData = async () => {
-    let applicantPhotoBase64 = null;
-    if (fileObjects.applicantPhoto) {
-      try {
-        applicantPhotoBase64 = await fileToBase64(fileObjects.applicantPhoto);
-      } catch (err) {
-        console.error('Failed to convert photo', err);
+    const convertedImages: any = {};
+    for (const [key, file] of Object.entries(fileObjects)) {
+      if (file) {
+        try {
+          convertedImages[key] = await fileToBase64(file);
+        } catch (err) {
+          console.error(`Failed to convert ${key}`, err);
+        }
       }
     }
 
     if (!verificationResult) {
       alert("Please complete Face Verification before submitting.");
+      return;
+    }
+
+    if (verificationResult.status !== 'Face Verified') {
+      alert("Face verification failed. Please try again or visit a branch for manual verification. Application cannot be submitted online.");
       return;
     }
 
@@ -414,8 +422,10 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       aadharNumber: (formData.aadhaarNumber || '').replace(/\s/g, ''),
       panNumber: formData.panNumber,
       accountType: 'Savings',
-      aadharDocumentUrl: '/dummy-aadhar.png',
-      applicantPhotoBase64
+      aadharDocumentUrl: convertedImages.aadhaarDocument || '/dummy-aadhar.png',
+      applicantPhotoBase64: convertedImages.applicantPhoto || null,
+      formData: formData,
+      images: convertedImages
     };
     
     const isSuccess = await submitAccountApplication(payload);
@@ -716,14 +726,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
               </div>
 
               <div className="max-w-3xl mx-auto border-2 border-[#0F4C81] rounded-none print:border-4">
-                <div className="bg-[#0F4C81] p-4 text-white text-center print:bg-white print:text-[#0F4C81] print:border-b-4 print:border-[#0F4C81] flex items-center">
-                  <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center shrink-0 print:bg-gray-100">
-                    <span className="font-bold text-[8px] tracking-widest opacity-80 print:text-[#0F4C81]">LOGO</span>
+                <div className="bg-[#0F4C81] p-4 text-white text-center print:bg-white print:text-[#0F4C81] print:border-b-4 print:border-[#0F4C81] flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                    <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="w-10 h-10 object-contain" />
                   </div>
-                  <div className="flex-grow">
+                  <div>
                     <h2 className="text-lg font-black tracking-widest uppercase leading-tight text-center">ODIYOORU SOUHARDA<br/>COOPERATIVE SOCIETY LTD</h2>
                     <p className="text-xs font-bold text-gray-500 mt-1 text-center">DRP:S.9:88:RGN:520:2010-11</p>
-                    <p className="text-xs tracking-widest mt-0.5">SPECIMEN SIGNATURE CARD</p>
+                    <p className="text-xs tracking-widest mt-0.5 text-center">SPECIMEN SIGNATURE CARD</p>
                   </div>
                 </div>
                 

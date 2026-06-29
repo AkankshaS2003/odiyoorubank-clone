@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Account = require('../models/Account');
 const Loan = require('../models/Loan');
@@ -549,6 +550,52 @@ const updateMembershipStatus = async (req, res, next) => {
   }
 };
 
+// @desc    Get customer 360 view by customerId
+// @route   GET /api/admin/customer/:custId
+// @access  Private/Admin
+const getCustomerByCustId = async (req, res, next) => {
+  try {
+    const { custId } = req.params;
+    
+    // 1. Find User by customerId (case-insensitive)
+    const user = await User.findOne({ customerId: new RegExp(`^${custId}$`, 'i') }).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Customer not found with this ID' });
+    }
+
+    const userId = user._id;
+
+    // 2. Fetch all related entities
+    const legacyAccounts = await Account.find({ userId });
+    const savingsAccounts = await SavingsAccount.find({ userId });
+    const fixedDeposits = await FixedDeposit.find({ userId });
+    
+    let recurringDeposits = [];
+    if (mongoose.models.RecurringDeposit) {
+      recurringDeposits = await mongoose.model('RecurringDeposit').find({ userId });
+    }
+
+    const loans = await Loan.find({ userId });
+    const serviceApplications = await ServiceApplication.find({ userId });
+
+    // 3. Assemble 360-degree profile
+    const customerProfile = {
+      user,
+      legacyAccounts,
+      savingsAccounts,
+      fixedDeposits,
+      recurringDeposits,
+      loans,
+      serviceApplications
+    };
+
+    res.status(200).json({ success: true, data: customerProfile });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getStats,
   getAllLoans,
@@ -566,6 +613,7 @@ module.exports = {
   createEmployee,
   replyToMessage,
   getMemberships,
-  updateMembershipStatus
+  updateMembershipStatus,
+  getCustomerByCustId
 };
 

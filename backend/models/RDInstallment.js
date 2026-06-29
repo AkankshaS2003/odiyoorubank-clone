@@ -36,6 +36,25 @@ const RDInstallmentSchema = new mongoose.Schema({
   transactionRef: {
     type: mongoose.Schema.ObjectId,
     ref: 'Transaction'
+  },
+  paymentMode: {
+    type: String,
+    enum: ['Cash', 'Transfer from Linked Savings Account', 'UPI', 'Net Banking']
+  },
+  paymentReference: String,
+  receiptNumber: String,
+  signatureBase64: String,
+  remarks: String,
+  ipAddress: String,
+  userAgent: String,
+  reversed: {
+    type: Boolean,
+    default: false
+  },
+  reversedAt: Date,
+  reversedBy: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User'
   }
 }, { timestamps: true });
 

@@ -15,9 +15,61 @@ exports.createRD = async (req, res, next) => {
   try {
     const { monthlyAmount, tenureMonths, interestRate, nomineeDetails, autoDebit, linkedSavingsAccountId, otp } = req.body;
     
-    if (!otp || req.user.transactionOtp !== otp || new Date() > req.user.transactionOtpExpire) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+    const Otp = require('../models/Otp');
+    const OtpAuditLog = require('../models/OtpAuditLog');
+    const crypto = require('crypto');
+    const hashOtp = (o) => crypto.createHash('sha256').update(o).digest('hex');
+
+    const otpDoc = await Otp.findOne({ email: req.user.email }).sort({ createdAt: -1 });
+
+    if (!otpDoc) {
+      return res.status(400).json({ success: false, message: 'No OTP generated for this email' });
     }
+
+    if (otpDoc.attempts >= 3) {
+      return res.status(400).json({ success: false, message: 'This OTP verification flow is locked due to too many failed attempts. Please generate a new OTP.' });
+    }
+
+    if (new Date() > otpDoc.expiresAt) {
+      return res.status(400).json({ success: false, message: 'OTP has expired' });
+    }
+
+    if (otpDoc.status !== 'Pending') {
+      return res.status(400).json({ success: false, message: 'OTP already verified or used' });
+    }
+
+    const isMatch = hashOtp(otp) === otpDoc.otpHash;
+    if (!isMatch) {
+      otpDoc.attempts += 1;
+      await otpDoc.save();
+
+      await OtpAuditLog.create({
+        email: req.user.email,
+        action: 'Failed',
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+        details: `Failed transaction OTP attempt ${otpDoc.attempts}`
+      });
+
+      const remaining = 3 - otpDoc.attempts;
+      return res.status(400).json({ 
+        success: false, 
+        message: remaining <= 0 
+          ? 'Too many failed attempts. Verification locked. Please generate a new OTP.' 
+          : `Invalid OTP. ${remaining} attempts remaining.` 
+      });
+    }
+
+    // Success - delete OTP
+    await Otp.deleteMany({ email: req.user.email });
+
+    await OtpAuditLog.create({
+      email: req.user.email,
+      action: 'Verified',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      details: 'Transaction OTP successfully verified for RD creation'
+    });
 
     const linkedAccount = await Account.findOne({ _id: linkedSavingsAccountId, userId: req.user.id, accountType: 'Savings' });
     if (!linkedAccount) {
@@ -40,14 +92,6 @@ exports.createRD = async (req, res, next) => {
       targetUser: req.user.id,
       details: `Created RD application for Rs ${monthlyAmount}/month for ${tenureMonths} months`
     });
-
-    // Clear OTP
-    const user = await require('../models/User').findById(req.user.id);
-    if (user) {
-      user.transactionOtp = undefined;
-      user.transactionOtpExpire = undefined;
-      await user.save();
-    }
 
     res.status(201).json({ success: true, data: newRD });
   } catch (error) {
@@ -426,5 +470,318 @@ exports.reactivateRD = async (req, res, next) => {
     res.status(200).json({ success: true, message: 'RD Reactivated' });
   } catch(err) {
     next(err);
+  }
+};
+
+// ==========================================
+// RD Monthly Installment Payment Systems
+// ==========================================
+
+exports.searchByCustomer = async (req, res, next) => {
+  try {
+    const { customerId } = req.params;
+    const User = require('../models/User');
+    const user = await User.findOne({ customerId });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Customer not found' });
+    }
+
+    const rd = await RecurringDeposit.findOne({ userId: user._id, status: 'Active' });
+    if (!rd) {
+      return res.status(404).json({ success: false, message: 'No active Recurring Deposit found for this customer' });
+    }
+
+    const installments = await RDInstallment.find({ rdId: rd._id }).sort({ installmentNumber: 1 });
+    
+    const paidCount = installments.filter(inst => inst.status === 'Paid').length;
+    const pendingCount = installments.filter(inst => inst.status === 'Pending').length;
+    const overdueCount = installments.filter(inst => inst.status === 'Overdue').length;
+
+    // Find the next due installment (first one that is Pending or Overdue)
+    const nextInstallment = installments.find(inst => inst.status === 'Pending' || inst.status === 'Overdue');
+    
+    let penalty = 0;
+    let totalPayable = 0;
+    if (nextInstallment) {
+      const today = new Date();
+      if (new Date(nextInstallment.dueDate) < today) {
+        penalty = Math.round(nextInstallment.amount * 0.02);
+      }
+      totalPayable = nextInstallment.amount + penalty;
+    }
+
+    // Get linked savings account details
+    const linkedAccount = await Account.findById(rd.linkedSavingsAccount);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        customer: {
+          id: user.customerId,
+          name: user.fullName,
+          mobile: user.phone,
+          email: user.email
+        },
+        rd: {
+          id: rd._id,
+          rdNumber: rd.rdNumber || 'RD-' + rd._id.toString().slice(-6).toUpperCase(),
+          status: rd.status,
+          monthlyAmount: rd.monthlyAmount,
+          interestRate: rd.interestRate,
+          tenureMonths: rd.tenureMonths,
+          depositDate: rd.depositDate,
+          maturityDate: rd.maturityDate,
+          openingDate: rd.createdAt,
+          nextDueDate: nextInstallment ? nextInstallment.dueDate : null,
+          installmentsPaid: paidCount,
+          pendingInstallments: pendingCount,
+          overdueInstallments: overdueCount,
+          totalDeposited: rd.totalDeposited
+        },
+        linkedSavingsAccount: linkedAccount ? {
+          accountNumber: linkedAccount.accountNumber,
+          balance: linkedAccount.balance
+        } : null,
+        nextInstallment: nextInstallment ? {
+          id: nextInstallment._id,
+          installmentNumber: nextInstallment.installmentNumber,
+          dueDate: nextInstallment.dueDate,
+          amount: nextInstallment.amount,
+          penalty,
+          totalPayable
+        } : null
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.payInstallment = async (req, res, next) => {
+  try {
+    const { customerId, rdId, installmentId, amountPaid, paymentMode, remarks, signatureBase64 } = req.body;
+    const User = require('../models/User');
+    const user = await User.findOne({ customerId });
+    if (!user) return res.status(404).json({ success: false, message: 'Customer ID not found' });
+
+    const rd = await RecurringDeposit.findById(rdId);
+    if (!rd) return res.status(404).json({ success: false, message: 'RD Account not found' });
+    if (rd.status !== 'Active') return res.status(400).json({ success: false, message: `RD Account is not Active (Current status: ${rd.status})` });
+
+    const installment = await RDInstallment.findById(installmentId);
+    if (!installment) return res.status(404).json({ success: false, message: 'Installment not found' });
+    if (installment.status === 'Paid') return res.status(400).json({ success: false, message: 'Installment is already paid' });
+
+    // Ensure they are not paying out of order
+    const priorPending = await RDInstallment.findOne({
+      rdId,
+      installmentNumber: { $lt: installment.installmentNumber },
+      status: { $ne: 'Paid' }
+    });
+    if (priorPending) {
+      return res.status(400).json({ success: false, message: 'Cannot pay this installment. Please clear previous outstanding installments first.' });
+    }
+
+    const today = new Date();
+    let penalty = 0;
+    if (new Date(installment.dueDate) < today) {
+      penalty = Math.round(installment.amount * 0.02);
+    }
+    const totalPayable = installment.amount + penalty;
+
+    if (amountPaid !== totalPayable) {
+      return res.status(400).json({ success: false, message: `Amount entered (₹${amountPaid}) must exactly match the Total Amount Payable (₹${totalPayable}).` });
+    }
+
+    if (!signatureBase64) {
+      return res.status(400).json({ success: false, message: 'Digital signature is required before submitting payment.' });
+    }
+
+    let transactionId = null;
+    let savingsAccount = null;
+
+    if (paymentMode === 'Transfer from Linked Savings Account') {
+      const SavingsAccount = require('../models/SavingsAccount');
+      savingsAccount = await SavingsAccount.findOne({ userId: user._id });
+      if (!savingsAccount) {
+        return res.status(400).json({ success: false, message: 'No linked Savings Account found for this user.' });
+      }
+      if (savingsAccount.balance < totalPayable) {
+        return res.status(400).json({ success: false, message: `Insufficient balance in linked Savings Account. Current balance: ₹${savingsAccount.balance}` });
+      }
+
+      savingsAccount.balance -= totalPayable;
+      savingsAccount.totalWithdrawals = (savingsAccount.totalWithdrawals || 0) + totalPayable;
+      await savingsAccount.save();
+
+      // Sync user model savingsBalance
+      user.savingsBalance = savingsAccount.balance;
+      await user.save();
+    }
+
+    // Generate Transaction ID and Ref
+    const paymentRef = 'REF-RD-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+    const receiptNum = 'RCPT-RD-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+
+    const transaction = await Transaction.create({
+      userId: user._id,
+      amount: totalPayable,
+      type: 'RD Installment',
+      status: 'Completed'
+    });
+    transactionId = transaction._id;
+
+    // Update Installment
+    installment.status = 'Paid';
+    installment.paidDate = today;
+    installment.penalty = penalty;
+    installment.transactionRef = transactionId;
+    installment.paymentMode = paymentMode;
+    installment.paymentReference = paymentRef;
+    installment.receiptNumber = receiptNum;
+    installment.signatureBase64 = signatureBase64;
+    installment.remarks = remarks;
+    installment.ipAddress = req.ip;
+    installment.userAgent = req.headers['user-agent'];
+    await installment.save();
+
+    // Update RD
+    rd.totalDeposited += installment.amount;
+    rd.consecutiveMissedInstallments = 0;
+    await rd.save();
+
+    // Log Audit Trail
+    await AuditLog.create({
+      action: 'RD Installment Paid',
+      performedBy: req.user.id || user._id,
+      targetUser: user._id,
+      details: `Paid installment #${installment.installmentNumber} of ₹${totalPayable} for RD ${rd.rdNumber || rd._id}. Mode: ${paymentMode}`
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Installment paid successfully!',
+      data: {
+        receiptNumber: receiptNum,
+        transactionId: transaction._id,
+        paymentReference: paymentRef,
+        customerName: user.fullName,
+        customerId: user.customerId,
+        rdNumber: rd.rdNumber || 'RD-' + rd._id.toString().slice(-6).toUpperCase(),
+        installmentNumber: installment.installmentNumber,
+        installmentAmount: installment.amount,
+        penaltyAmount: penalty,
+        totalAmountPaid: totalPayable,
+        paymentMode,
+        paymentDate: today,
+        signatureBase64
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.adminListInstallments = async (req, res, next) => {
+  try {
+    const { customerId, rdNumber, status } = req.query;
+    let query = {};
+
+    if (customerId) {
+      const User = require('../models/User');
+      const user = await User.findOne({ customerId: customerId.trim() });
+      if (user) {
+        const rds = await RecurringDeposit.find({ userId: user._id });
+        query.rdId = { $in: rds.map(r => r._id) };
+      } else {
+        return res.status(200).json({ success: true, data: [] });
+      }
+    }
+
+    if (rdNumber) {
+      const rd = await RecurringDeposit.findOne({ rdNumber: rdNumber.trim() });
+      if (rd) {
+        query.rdId = rd._id;
+      } else {
+        return res.status(200).json({ success: true, data: [] });
+      }
+    }
+
+    if (status) {
+      query.status = status;
+    }
+
+    const installments = await RDInstallment.find(query)
+      .populate({
+        path: 'rdId',
+        populate: { path: 'userId', select: 'fullName customerId phone email' }
+      })
+      .sort({ updatedAt: -1 });
+
+    res.status(200).json({ success: true, data: installments });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.adminReverseInstallment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const installment = await RDInstallment.findById(id).populate('rdId');
+    if (!installment) return res.status(404).json({ success: false, message: 'Installment not found' });
+    if (installment.status !== 'Paid') return res.status(400).json({ success: false, message: 'Installment is not paid' });
+    if (installment.reversed) return res.status(400).json({ success: false, message: 'Installment is already reversed' });
+
+    const rd = installment.rdId;
+    const totalRefund = installment.amount + (installment.penalty || 0);
+
+    // Rollback balance if Transfer from Linked Savings Account
+    if (installment.paymentMode === 'Transfer from Linked Savings Account') {
+      const SavingsAccount = require('../models/SavingsAccount');
+      const savingsAccount = await SavingsAccount.findOne({ userId: rd.userId });
+      if (savingsAccount) {
+        savingsAccount.balance += totalRefund;
+        savingsAccount.totalWithdrawals = Math.max(0, (savingsAccount.totalWithdrawals || 0) - totalRefund);
+        await savingsAccount.save();
+
+        const User = require('../models/User');
+        const user = await User.findById(rd.userId);
+        if (user) {
+          user.savingsBalance = savingsAccount.balance;
+          await user.save();
+        }
+      }
+    }
+
+    // Mark as Reversed
+    installment.status = 'Pending';
+    installment.reversed = true;
+    installment.reversedAt = new Date();
+    installment.reversedBy = req.user.id;
+    await installment.save();
+
+    // Deduct deposited amount from RD
+    rd.totalDeposited = Math.max(0, rd.totalDeposited - installment.amount);
+    await rd.save();
+
+    // Create standard reversal transaction log
+    await Transaction.create({
+      userId: rd.userId,
+      amount: totalRefund,
+      type: 'RD Installment',
+      status: 'Failed',
+      createdAt: new Date()
+    });
+
+    await AuditLog.create({
+      action: 'RD Installment Reversed',
+      performedBy: req.user.id,
+      targetUser: rd.userId,
+      details: `Reversed installment #${installment.installmentNumber} of ₹${totalRefund} for RD ${rd.rdNumber || rd._id}. Refunded to savings if applicable.`
+    });
+
+    res.status(200).json({ success: true, message: 'Installment payment reversed successfully.' });
+  } catch (error) {
+    next(error);
   }
 };

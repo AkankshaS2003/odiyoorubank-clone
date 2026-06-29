@@ -17,7 +17,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const [dob, setDob] = useState(user?.dob || '');
   const [customerId, setCustomerId] = useState('');
   const [fullName, setFullName] = useState(user?.fullName || '');
-  const [accountNumber, setAccountNumber] = useState('');
+  const [accountNumber, setAccountNumber] = useState(user?.accountNumber || '');
   const [isVerified, setIsVerified] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyError, setVerifyError] = useState('');
@@ -28,10 +28,17 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const [showPaymentGateway, setShowPaymentGateway] = useState(false);
 
   React.useEffect(() => {
-    if (isOpen && user?.membershipStatus === 'pending') {
-      setIsSubmitted(true);
+    if (isOpen && user) {
+      setAddress(user.address || '');
+      setDob(user.dob || '');
+      setFullName(user.fullName || '');
+      setAccountNumber(user.accountNumber || '');
+      setProfileImage(user.profileImageBase64 || '');
+      if (user.membershipStatus === 'pending') {
+        setIsSubmitted(true);
+      }
     }
-  }, [isOpen, user?.membershipStatus]);
+  }, [isOpen, user]);
 
   if (!isOpen || !user) return null;
 

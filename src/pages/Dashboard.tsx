@@ -12,13 +12,15 @@ import {
   User,
   CreditCard,
   PiggyBank,
-  BookOpen
+  BookOpen,
+  ArrowRightLeft
 } from 'lucide-react';
 import { IdCard } from '../components/IdCard';
 import { SavingsSummaryCard } from '../components/SavingsSummaryCard';
 import { SavingsHistory } from './SavingsHistory';
 import { PaymentModal } from '../components/PaymentModal';
 import { DepositApplicationModal } from '../components/DepositApplicationModal';
+import { RDInstallmentPayment } from './RD/RDInstallmentPayment';
 
 interface DashboardProps {
   setCurrentTab: (tab: string) => void;
@@ -28,7 +30,7 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceiptData }) => {
   const { user, isAuthenticated, getUserServiceApplications } = useAuth();
   
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'account' | 'membership' | 'transactions' | 'loans' | 'deposits'>('account');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'account' | 'membership' | 'transactions' | 'loans' | 'deposits' | 'rd-installment'>('account');
   const [serviceApps, setServiceApps] = useState<any[]>([]);
   const [showCard, setShowCard] = useState(false);
   const [savedReport, setSavedReport] = useState<any>(null);
@@ -190,6 +192,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
       case 'membership':
         return (
           <div className="space-y-8">
+            {(!user.membershipStatus || user.membershipStatus === 'none') && (
+              <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col items-center">
+                <div className="w-full text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-100 text-slate-500 rounded-full mb-4">
+                    <Award className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Not a Member Yet</h3>
+                  <p className="text-sm text-slate-500 mb-6">You haven't applied for a society membership yet. Become a member to unlock voting rights and dividends!</p>
+                  <button
+                    onClick={() => setCurrentTab('membership')}
+                    className="px-6 py-3 bg-[#0A315C] hover:bg-[#051C36] text-white rounded-xl font-bold shadow-md transition-colors inline-block"
+                  >
+                    Apply for Membership
+                  </button>
+                </div>
+              </div>
+            )}
+
             {user.membershipStatus === 'pending' && (
               <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col items-center">
                 <div className="w-full text-center">
@@ -428,6 +448,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
             )}
           </div>
         );
+
+      case 'rd-installment':
+        return <RDInstallmentPayment />;
     }
   };
 
@@ -437,6 +460,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
     { id: 'transactions', label: 'Transaction History', icon: History },
     { id: 'loans', label: 'Loan Applications', icon: Briefcase },
     { id: 'deposits', label: 'Deposits Section', icon: PiggyBank },
+    { id: 'rd-installment', label: 'RD Installment Payment', icon: ArrowRightLeft },
   ];
 
   return (
@@ -480,10 +504,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
         </div>
       </div>
       
-      {showPaymentModal && <PaymentModal amount={500} onSuccess={() => {
+      {showPaymentModal && <PaymentModal type="Initial Deposit" amount={500} onSuccess={() => {
         setShowPaymentModal(false);
         window.location.reload();
-      }} onCancel={() => setShowPaymentModal(false)} />}
+      }} onClose={() => setShowPaymentModal(false)} />}
       
       {selectedDepositApp && (
         <DepositApplicationModal 

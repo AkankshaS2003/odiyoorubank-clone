@@ -30,13 +30,10 @@ const chatRateLimiter = (maxRequests = 30, windowMs = 60 * 1000) => {
   };
 };
 
-// All RAG operations require user authentication
-router.use(protect);
-
 // Chat endpoint (rate limited)
 router.post('/', chatRateLimiter(20, 60 * 1000), handleChat);
 
 // Chat history retrieval
-router.get('/history', getChatHistory);
+router.get('/history', protect, getChatHistory);
 
 module.exports = router;

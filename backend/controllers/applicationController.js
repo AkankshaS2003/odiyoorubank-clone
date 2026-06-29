@@ -17,6 +17,28 @@ exports.submitApplication = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'You already have a pending or approved application' });
     }
 
+    // Validate Aadhar uniqueness
+    const duplicateAadhar = await AccountApplication.findOne({ aadharNumber, status: { $ne: 'Rejected' } });
+    if (duplicateAadhar && duplicateAadhar.userId.toString() !== req.user.id) {
+      return res.status(400).json({ success: false, error: 'Aadhar number is already in use by another application' });
+    }
+    const duplicateAadharUser = await User.findOne({ aadharNumber });
+    if (duplicateAadharUser && duplicateAadharUser._id.toString() !== req.user.id) {
+      return res.status(400).json({ success: false, error: 'Aadhar number is already registered to another user' });
+    }
+
+    // Validate PAN uniqueness
+    if (panNumber) {
+      const duplicatePan = await AccountApplication.findOne({ panNumber, status: { $ne: 'Rejected' } });
+      if (duplicatePan && duplicatePan.userId.toString() !== req.user.id) {
+        return res.status(400).json({ success: false, error: 'PAN number is already in use by another application' });
+      }
+      const duplicatePanUser = await User.findOne({ panNumber });
+      if (duplicatePanUser && duplicatePanUser._id.toString() !== req.user.id) {
+        return res.status(400).json({ success: false, error: 'PAN number is already registered to another user' });
+      }
+    }
+
     const application = await AccountApplication.create({
       userId: req.user.id,
       nameAsAadhar,

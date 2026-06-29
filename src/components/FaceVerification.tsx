@@ -58,10 +58,13 @@ export const FaceVerification: React.FC<FaceVerificationProps> = ({ onVerificati
     const box = detection.box;
     // Add some padding to the box
     const padding = 20;
+    const intrinsicWidth = imgElement instanceof HTMLVideoElement ? imgElement.videoWidth : (imgElement as HTMLImageElement).naturalWidth;
+    const intrinsicHeight = imgElement instanceof HTMLVideoElement ? imgElement.videoHeight : (imgElement as HTMLImageElement).naturalHeight;
+    
     const x = Math.max(0, box.x - padding);
     const y = Math.max(0, box.y - padding);
-    const width = Math.min(imgElement.width - x, box.width + padding * 2);
-    const height = Math.min(imgElement.height - y, box.height + padding * 2);
+    const width = Math.min(intrinsicWidth - x, box.width + padding * 2);
+    const height = Math.min(intrinsicHeight - y, box.height + padding * 2);
     
     canvas.width = width;
     canvas.height = height;

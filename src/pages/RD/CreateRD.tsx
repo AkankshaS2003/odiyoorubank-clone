@@ -122,7 +122,7 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
     try {
       await api.post('/auth/send-otp');
       setOtpSent(true);
-      setOtpTimer(300); // 5 mins
+      setOtpTimer(60); // 60 seconds
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to send OTP.');
     }

@@ -11,7 +11,7 @@ const SystemSettingsSchema = new mongoose.Schema({
   housingLoanRate: { type: Number, default: 8.25 },
   mortgageLoanRate: { type: Number, default: 9.50 },
   agriculturalLoanRate: { type: Number, default: 8.50 },
-  faceVerificationThreshold: { type: Number, default: 0.45 },
+  faceVerificationThreshold: { type: Number, default: 0.60 },
   marqueeText: { 
     type: String, 
     default: '• State Best Souharda Cooperative Society Award in the 69th All India Cooperative Week • Cooperative Fixed Deposit Rates Increased to 8.50% • New Digital Doorstep Banking Service Sanctioned' 

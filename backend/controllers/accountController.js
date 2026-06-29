@@ -148,15 +148,18 @@ const verifyFace = async (req, res, next) => {
         await user.save();
 
         const SavingsAccount = require('../models/SavingsAccount');
-        const accountNumber = '10' + crypto.randomInt(10000000, 99999999).toString();
-        
-        await SavingsAccount.create({
-          userId: user._id,
-          accountNumber,
-          balance: 0,
-          totalDeposits: 0,
-          totalWithdrawals: 0
-        });
+        const existingAccount = await SavingsAccount.findOne({ userId: user._id });
+        if (!existingAccount) {
+          const accountNumber = '10' + crypto.randomInt(10000000, 99999999).toString();
+          
+          await SavingsAccount.create({
+            userId: user._id,
+            accountNumber,
+            balance: 0,
+            totalDeposits: 0,
+            totalWithdrawals: 0
+          });
+        }
       }
     }
 
@@ -259,5 +262,6 @@ module.exports = {
   applyMembership,
   makeDeposit,
   verifyCustomer,
-  getCustomerByCustomerId
+  getCustomerByCustomerId,
+  verifyFace
 };

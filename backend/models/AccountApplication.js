@@ -52,6 +52,14 @@ const AccountApplicationSchema = new mongoose.Schema({
   },
   applicantPhotoBase64: {
     type: String
+  },
+  formData: {
+    type: Object,
+    default: {}
+  },
+  images: {
+    type: Object,
+    default: {}
   }
 });
 

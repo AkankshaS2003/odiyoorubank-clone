@@ -72,6 +72,7 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
       <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
       <input
         type={type}
+        max={type === 'date' ? "9999-12-31" : undefined}
         name={name}
         value={displayValue}
         onChange={internalOnChange}

@@ -16,7 +16,8 @@ const {
   createEmployee,
   replyToMessage,
   getMemberships,
-  updateMembershipStatus
+  updateMembershipStatus,
+  getCustomerByCustId
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
@@ -48,6 +49,7 @@ router.put('/settings', updateSettings);
 
 // User & Employee Management
 router.get('/users', getUsers);
+router.get('/customer/:custId', getCustomerByCustId);
 router.post('/users', createEmployee);
 router.put('/user/:id/role', updateUserRole);
 router.put('/user/:id/status', updateUserStatus);

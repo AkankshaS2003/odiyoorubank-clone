@@ -1,28 +1,117 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Printer } from 'lucide-react';
+import { Printer, CheckCircle, Clock, AlertTriangle, FileText, CreditCard } from 'lucide-react';
+import api from '../services/api';
 
 export const LoanDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurrentTab: (tab: string) => void }) => {
-  const { getUserServiceApplications, systemSettings, user } = useAuth();
+  const { user } = useAuth();
   const [loanData, setLoanData] = useState<any>(null);
+  const [emis, setEmis] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [signature, setSignature] = useState(false);
+  
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  const fetchLoan = async () => {
+    try {
+      const res = await api.get(`/loans/details/${appId}`);
+      if (res.data.success) {
+        setLoanData(res.data.data.loan);
+        setEmis(res.data.data.emis);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchApp = async () => {
-      try {
-        const apps = await getUserServiceApplications();
-        const found = apps.find(a => a._id === appId);
-        if (found) {
-          setLoanData(found);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+    fetchLoan();
+  }, [appId]);
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = '#0F4C81';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    const rect = canvas.getBoundingClientRect();
+    let x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    let y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    let x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    let y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setSignature(true);
+  };
+
+  const stopDrawing = () => setIsDrawing(false);
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignature(false);
+  };
+
+  const handleAcceptOffer = async (accepted: boolean) => {
+    if (accepted && !signature) {
+      alert("Please provide your digital signature to accept the loan offer.");
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const payload = {
+        action: accepted ? 'accept' : 'decline',
+        digitalSignature: accepted ? canvasRef.current?.toDataURL() : undefined
+      };
+      const res = await api.post(`/loans/accept/${loanData._id}`, payload);
+      if (res.data.success) {
+        alert(`Loan offer ${accepted ? 'accepted' : 'declined'} successfully!`);
+        fetchLoan();
       }
-    };
-    fetchApp();
-  }, [appId, getUserServiceApplications]);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to process request.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handlePayEmi = async (emiId: string) => {
+    if (window.confirm("Pay this EMI from your linked Savings Account?")) {
+      setActionLoading(true);
+      try {
+        const res = await api.post(`/loans/pay-emi/${emiId}`, { paymentMode: 'Transfer from Linked Savings Account' });
+        if (res.data.success) {
+          alert("EMI Paid Successfully!");
+          fetchLoan();
+        }
+      } catch (err: any) {
+        alert(err.response?.data?.message || 'Failed to pay EMI.');
+      } finally {
+        setActionLoading(false);
+      }
+    }
+  };
 
   if (loading) {
     return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-[#0F4C81]">Loading Loan Details...</div>;
@@ -35,235 +124,160 @@ export const LoanDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCu
     </div>;
   }
 
-  const transactionRef = `TXN${Math.floor(100000000 + Math.random() * 900000000)}`;
-  const receiptNumber = `LN-RCPT-${Math.floor(100000 + Math.random() * 900000)}`;
-  
-  // Extract loan amount safely
-  let principalAmount = 0;
-  const parseAmt = (val: any) => {
-    if (!val) return null;
-    const parsed = parseInt(String(val).replace(/,/g, ''), 10);
-    return isNaN(parsed) ? null : parsed;
-  };
-  principalAmount = parseAmt(loanData.formData?.requestedAmount) || 
-                    parseAmt(loanData.formData?.loanAmountRequired) || 
-                    parseAmt(loanData.formData?.amount) || 
-                    parseAmt(loanData.formData?.loanAmount) || 0;
-
-  // Base logic for rates and tenure
-  let interestRate = 10.50; // default for loans
-  if (loanData.applicationType.includes('Personal')) interestRate = systemSettings?.personalLoanRate || 12.5;
-  if (loanData.applicationType.includes('Educational')) interestRate = systemSettings?.educationLoanRate || 10.5;
-  if (loanData.applicationType.includes('Vehicle')) interestRate = systemSettings?.vehicleLoanRate || 9.5;
-  if (loanData.applicationType.includes('Mortgage')) interestRate = systemSettings?.mortgageLoanRate || 8.5;
-  if (loanData.applicationType.includes('Gold')) interestRate = systemSettings?.goldLoanRate || 11.5;
-
-  // Extract tenure safely
-  let tenureMonths = 12;
-  const parseTenure = (val: any) => {
-    if (!val) return null;
-    const strVal = String(val);
-    const match = strVal.match(/(\d+)/);
-    if (!match) return null;
-    let num = parseInt(match[1], 10);
-    if (strVal.toLowerCase().includes('year') || strVal.toLowerCase().includes('yr')) {
-      num = num * 12;
+  const renderStatusBanner = () => {
+    switch (loanData.status) {
+      case 'Pending Review':
+        return <div className="bg-amber-100 text-amber-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><Clock className="w-6 h-6" /> Your loan application is currently under review by our team.</div>;
+      case 'Rejected':
+        return <div className="bg-red-100 text-red-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><AlertTriangle className="w-6 h-6" /> Your loan application was rejected. Reason: {loanData.rejectionReason}</div>;
+      case 'Sanctioned':
+        return <div className="bg-emerald-100 text-emerald-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><CheckCircle className="w-6 h-6" /> Congratulations! Your loan has been sanctioned. Please review and accept the offer below.</div>;
+      case 'Loan Accepted':
+      case 'Ready for Disbursement':
+        return <div className="bg-blue-100 text-blue-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><Clock className="w-6 h-6" /> You have accepted the loan offer. Waiting for final disbursement from the admin team.</div>;
+      case 'Active Loan':
+        return <div className="bg-emerald-100 text-emerald-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><CheckCircle className="w-6 h-6" /> Your loan is active. Please track your EMI schedule below.</div>;
+      case 'Closed':
+        return <div className="bg-slate-200 text-slate-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><CheckCircle className="w-6 h-6" /> This loan account has been successfully closed.</div>;
+      default:
+        return null;
     }
-    return num;
   };
-  
-  const t1 = parseTenure(loanData.formData?.loanTenure);
-  const t2 = parseTenure(loanData.formData?.tenure);
-  const t3 = parseTenure(loanData.formData?.courseDuration);
-  
-  if (t1) tenureMonths = t1;
-  else if (t2) tenureMonths = t2;
-  else if (t3) tenureMonths = t3 * 12; // course duration is usually purely in years
-
-  const validDateString = loanData.processedAt || loanData.submittedAt;
-  const startDateObj = validDateString ? new Date(validDateString) : new Date();
-  const startDateStr = startDateObj.toLocaleDateString('en-IN');
-  
-  const endDateObj = new Date(startDateObj);
-  endDateObj.setMonth(endDateObj.getMonth() + tenureMonths);
-  const maturityDateStr = endDateObj.toLocaleDateString('en-IN');
-  
-  const firstEmiDate = new Date(startDateObj);
-  firstEmiDate.setMonth(firstEmiDate.getMonth() + 1);
-
-  // EMI calculation
-  const r = interestRate / 12 / 100;
-  const n = tenureMonths;
-  const emi = Math.round((principalAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)) || 0;
-  const totalAmountPayable = emi * n;
-
-  // Prioritize DB user details
-  const userFromDb = loanData.userId && typeof loanData.userId === 'object' ? loanData.userId : user;
-
-  const applicantName = loanData.formData?.fullName || userFromDb?.fullName || 'N/A';
-  const emailAddress = loanData.formData?.email || userFromDb?.email || 'N/A';
-  const mobileNumber = loanData.formData?.mobile || userFromDb?.phone || 'N/A';
-  const panNumber = loanData.formData?.pan || userFromDb?.panNumber || 'N/A';
-  const aadharNumber = loanData.formData?.aadhar || userFromDb?.aadharNumber || 'N/A';
-  const customerId = loanData.formData?.customerId || userFromDb?.customerId || 'N/A';
-  const disbursementAccount = loanData.formData?.accNumber || userFromDb?.accountNumber || 'N/A';
 
   return (
-    <div className="bg-slate-50 min-h-screen py-8 print:py-0 print:bg-white text-slate-900">
-      <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none">
+    <div className="bg-slate-50 min-h-screen py-8 text-slate-900">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Controls */}
-        <div className="flex justify-between items-center mb-6 print:hidden">
+        <div className="flex justify-between items-center mb-6">
           <button onClick={() => setCurrentTab('dashboard')} className="text-sm font-bold text-slate-500 hover:text-[#0F4C81]">← Back to Dashboard</button>
-          <div className="flex gap-3">
-            <button onClick={() => window.print()} className="flex items-center gap-2 px-5 py-2.5 bg-[#0F4C81] text-white rounded-lg text-sm font-bold hover:bg-[#0A315C] transition-colors shadow-sm">
-              <Printer className="w-4 h-4" /> Print Document
-            </button>
-          </div>
+          <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-[#0F4C81] text-white rounded-lg text-sm font-bold hover:bg-[#0A315C] transition-colors">
+            <Printer className="w-4 h-4" /> Print Details
+          </button>
         </div>
 
-        {/* Professional Document Container */}
-        <div className="bg-white p-10 md:p-14 shadow-lg border border-slate-300 print:shadow-none print:border-none print:p-0 relative">
-          
-          {/* WATERMARK */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none z-0">
-            <img src="/logo-bg.png" alt="Watermark" className="w-[30rem] h-[30rem] object-contain" />
+        {renderStatusBanner()}
+
+        <div className="bg-white p-8 shadow-lg border border-slate-200 rounded-3xl mb-8">
+          <div className="flex justify-between items-start border-b-2 border-[#0F4C81] pb-4 mb-6">
+            <div>
+              <h1 className="text-2xl font-black uppercase tracking-wide text-[#0F4C81]">{loanData.loanType}</h1>
+              <p className="text-sm font-semibold text-slate-500">App ID: {loanData.loanApplicationId}</p>
+            </div>
+            <div className="text-right">
+              <span className="px-3 py-1 bg-slate-100 border border-slate-300 text-slate-700 text-xs font-bold uppercase rounded-full">{loanData.status}</span>
+            </div>
           </div>
 
-          <div className="relative z-10">
-            {/* HEADER */}
-            <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end border-b-2 border-[#0F4C81] pb-4 mb-6">
-              <div className="flex items-center gap-4 mb-4 sm:mb-0">
-                <img src="/logo-bg.png" alt="Logo" className="w-16 h-16 object-contain" />
-                <div>
-                  <h1 className="text-xl font-black uppercase tracking-wide text-[#0F4C81]">Odiyooru Souharda Cooperative Society Ltd</h1>
-                  <p className="text-sm font-semibold text-slate-700">Head Office: Main Branch</p>
-                  <p className="text-xs text-slate-500">Reg No: DRP:S.9:88:RGN:520:2010-11</p>
-                </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase">Requested Amount</p>
+              <p className="font-bold text-slate-800">₹{loanData.requestedAmount?.toLocaleString('en-IN')}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase">Requested Tenure</p>
+              <p className="font-bold text-slate-800">{loanData.requestedTenure} Months</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase">Applied Date</p>
+              <p className="font-bold text-slate-800">{new Date(loanData.appliedDate).toLocaleDateString()}</p>
+            </div>
+            {loanData.loanAccountNumber && (
+              <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase">Loan Account No</p>
+                <p className="font-black text-[#0F4C81]">{loanData.loanAccountNumber}</p>
               </div>
-              <div className="sm:text-right">
-                <p className="text-sm text-slate-700"><strong>Date:</strong> {startDateStr}</p>
-                <p className="text-sm text-slate-700"><strong>Receipt No:</strong> {receiptNumber}</p>
+            )}
+          </div>
+
+          {(loanData.status === 'Sanctioned' || loanData.status === 'Loan Accepted' || loanData.status === 'Ready for Disbursement' || loanData.status === 'Active Loan' || loanData.status === 'Closed') && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8">
+              <h3 className="text-sm font-black uppercase text-[#0F4C81] mb-4 flex items-center gap-2"><FileText className="w-4 h-4"/> Sanction & Offer Details</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
+                <div><span className="text-slate-500 text-xs block">Sanctioned Amount</span><span className="font-black text-slate-900">₹{loanData.sanctionedAmount?.toLocaleString('en-IN')}</span></div>
+                <div><span className="text-slate-500 text-xs block">Interest Rate</span><span className="font-black text-slate-900">{loanData.interestRate}% p.a.</span></div>
+                <div><span className="text-slate-500 text-xs block">Tenure</span><span className="font-black text-slate-900">{loanData.loanTenure} Months</span></div>
+                <div><span className="text-slate-500 text-xs block">Processing Fee</span><span className="font-black text-slate-900">₹{loanData.processingFee?.toLocaleString('en-IN')}</span></div>
+                <div><span className="text-slate-500 text-xs block">Monthly EMI</span><span className="font-black text-[#0F4C81] text-lg">₹{loanData.emiAmount?.toLocaleString('en-IN')}</span></div>
+                <div><span className="text-slate-500 text-xs block">Total Interest</span><span className="font-black text-slate-900">₹{loanData.totalInterest?.toLocaleString('en-IN')}</span></div>
+                <div><span className="text-slate-500 text-xs block">Total Repayment</span><span className="font-black text-slate-900">₹{loanData.totalRepaymentAmount?.toLocaleString('en-IN')}</span></div>
               </div>
             </div>
+          )}
 
-            <h3 className="text-sm font-black uppercase bg-[#0F4C81]/10 text-[#0F4C81] border border-[#0F4C81] p-1.5 px-3 mb-0">1. Applicant Details</h3>
-            <table className="w-full border-collapse border border-[#0F4C81] text-sm mb-6">
-              <tbody>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold w-1/4 bg-slate-50 text-slate-700">Applicant Name</td>
-                  <td className="border border-[#0F4C81] p-2 w-1/4 font-semibold text-slate-900">{applicantName}</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold w-1/4 bg-slate-50 text-slate-700">Customer ID</td>
-                  <td className="border border-[#0F4C81] p-2 w-1/4 font-mono font-bold text-slate-900">{customerId}</td>
-                </tr>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Mobile Number</td>
-                  <td className="border border-[#0F4C81] p-2 font-mono text-slate-900">{mobileNumber}</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Email Address</td>
-                  <td className="border border-[#0F4C81] p-2 text-slate-900">{emailAddress}</td>
-                </tr>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">PAN Number</td>
-                  <td className="border border-[#0F4C81] p-2 font-mono uppercase text-slate-900">{panNumber}</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Aadhaar Number</td>
-                  <td className="border border-[#0F4C81] p-2 font-mono text-slate-900">{aadharNumber}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3 className="text-sm font-black uppercase bg-[#0F4C81]/10 text-[#0F4C81] border border-[#0F4C81] p-1.5 px-3 mb-0 border-t-0">2. Loan & Disbursement Details</h3>
-            <table className="w-full border-collapse border border-[#0F4C81] text-sm mb-6">
-              <tbody>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold w-1/4 bg-slate-50 text-slate-700">Application No</td>
-                  <td className="border border-[#0F4C81] p-2 w-1/4 font-mono text-slate-900">{loanData.formData?.applicationNo || loanData.applicationNo || 'N/A'}</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold w-1/4 bg-slate-50 text-slate-700">Disbursed To A/C</td>
-                  <td className="border border-[#0F4C81] p-2 w-1/4 font-mono font-bold text-slate-900">{disbursementAccount}</td>
-                </tr>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Loan Type</td>
-                  <td className="border border-[#0F4C81] p-2 font-black uppercase text-[#0F4C81]">{loanData.applicationType}</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Principal Amount</td>
-                  <td className="border border-[#0F4C81] p-2 font-black text-base text-slate-900">₹{principalAmount.toLocaleString('en-IN')}</td>
-                </tr>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Interest Rate</td>
-                  <td className="border border-[#0F4C81] p-2 font-semibold text-slate-900">{interestRate}% p.a.</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Tenure</td>
-                  <td className="border border-[#0F4C81] p-2 font-semibold text-slate-900">
-                    {tenureMonths >= 12 && tenureMonths % 12 === 0 ? `${tenureMonths / 12} Year${tenureMonths / 12 > 1 ? 's' : ''}` : `${tenureMonths} Months`}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3 className="text-sm font-black uppercase bg-[#0F4C81]/10 text-[#0F4C81] border border-[#0F4C81] p-1.5 px-3 mb-0 border-t-0">3. Repayment Schedule</h3>
-            <table className="w-full border-collapse border border-[#0F4C81] text-sm mb-6">
-              <tbody>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold w-1/4 bg-slate-50 text-slate-700">Estimated EMI</td>
-                  <td className="border border-[#0F4C81] p-2 w-1/4 font-black text-slate-900">₹{emi.toLocaleString('en-IN')} / month</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold w-1/4 bg-slate-50 text-slate-700">Total Payable</td>
-                  <td className="border border-[#0F4C81] p-2 w-1/4 font-black text-slate-900">₹{totalAmountPayable.toLocaleString('en-IN')}</td>
-                </tr>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">First EMI Date</td>
-                  <td className="border border-[#0F4C81] p-2 font-semibold text-slate-900">{firstEmiDate.toLocaleDateString('en-IN')}</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Maturity Date</td>
-                  <td className="border border-[#0F4C81] p-2 font-semibold text-slate-900">{maturityDateStr}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h3 className="text-sm font-black uppercase bg-[#0F4C81]/10 text-[#0F4C81] border border-[#0F4C81] p-1.5 px-3 mb-0 border-t-0">4. Nominee Details</h3>
-            <table className="w-full border-collapse border border-[#0F4C81] text-sm mb-10">
-              <tbody>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold w-1/4 bg-slate-50 text-slate-700">Nominee Name</td>
-                  <td className="border border-[#0F4C81] p-2 w-1/4 font-semibold text-slate-900">{loanData.formData?.nomName || loanData.formData?.nomineeName || 'N/A'}</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold w-1/4 bg-slate-50 text-slate-700">Relationship</td>
-                  <td className="border border-[#0F4C81] p-2 w-1/4 font-semibold text-slate-900">{loanData.formData?.nomRel || loanData.formData?.nomineeRelationship || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Nominee Mobile</td>
-                  <td className="border border-[#0F4C81] p-2 font-mono text-slate-900">{loanData.formData?.nomMobile || loanData.formData?.nomineeMobile || 'N/A'}</td>
-                  <td className="border border-[#0F4C81] p-2 font-bold bg-slate-50 text-slate-700">Nominee Address</td>
-                  <td className="border border-[#0F4C81] p-2 text-slate-900">{loanData.formData?.nomAddress || loanData.formData?.nomineeAddress || 'N/A'}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            {/* SIGNATURES */}
-            <div className="flex justify-between items-end mt-16 text-center print:mt-16">
-              <div>
-                <div className="h-16 mb-2 flex items-end justify-center">
-                  {loanData.images?.studentSignature || loanData.images?.applicantSignature ? (
-                    <img src={loanData.images.studentSignature || loanData.images.applicantSignature} alt="Applicant Signature" className="max-h-14 object-contain" />
-                  ) : (
-                    <span className="italic text-slate-400 text-sm">e-Signed by Applicant</span>
-                  )}
-                </div>
-                <div className="border-t-2 border-[#0F4C81] w-48 mx-auto pt-1.5 font-bold text-sm uppercase text-[#0F4C81]">Applicant Signature</div>
-              </div>
+          {loanData.status === 'Sanctioned' && (
+            <div className="border border-[#0F4C81] rounded-2xl p-6 bg-blue-50/30">
+              <h3 className="text-sm font-black uppercase text-[#0F4C81] mb-4">Accept Loan Offer</h3>
+              <p className="text-xs text-slate-600 mb-4 font-semibold italic">I have read the terms and conditions and I accept the loan offer details presented above. I authorize Odiyooru Souharda to process this loan and deduct EMIs from my linked savings account.</p>
               
-              <div>
-                <div className="h-16 mb-2 flex flex-col items-center justify-end relative">
-                  <img src="/logo-bg.png" className="w-12 h-12 opacity-20 absolute top-0" alt="Seal" />
-                  <span className="font-bold relative z-10 text-sm uppercase text-[#0F4C81]">System Approved</span>
-                  <span className="font-mono text-[10px] relative z-10 text-slate-500">{transactionRef}</span>
+              <div className="mb-6">
+                <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Provide Digital Signature</p>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="border-2 border-slate-300 rounded-xl overflow-hidden bg-white">
+                    <canvas ref={canvasRef} width={300} height={100} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing} className="cursor-crosshair block" />
+                  </div>
+                  <button onClick={clearSignature} className="text-xs font-bold text-slate-500 underline hover:text-[#0F4C81]">Clear Signature</button>
                 </div>
-                <div className="border-t-2 border-[#0F4C81] w-48 mx-auto pt-1.5 font-bold text-sm uppercase text-[#0F4C81]">Authorized Signatory</div>
+              </div>
+
+              <div className="flex gap-4">
+                <button onClick={() => handleAcceptOffer(true)} disabled={actionLoading} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-lg transition-colors">Accept Offer & Sign</button>
+                <button onClick={() => handleAcceptOffer(false)} disabled={actionLoading} className="px-6 py-2.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-xl font-bold text-sm transition-colors">Decline Offer</button>
               </div>
             </div>
+          )}
 
-            <div className="mt-14 border-t border-slate-200 pt-4 text-[10px] text-justify text-slate-500">
-              <p><strong>Disclaimer:</strong> This is a computer-generated document and is valid without a physical signature if digitally approved and e-Signed. 
-              The loan is sanctioned subject to the bylaws and policies of Odiyooru Souharda Cooperative Society Ltd. 
-              Interest rates and EMI schedules are subject to change as per society regulations. 
-              For any queries, please contact your home branch.</p>
+          {(loanData.status === 'Active Loan' || loanData.status === 'Closed') && emis.length > 0 && (
+            <div>
+              <div className="flex justify-between items-center mb-4 mt-8">
+                <h3 className="text-sm font-black uppercase text-[#0F4C81] flex items-center gap-2"><CreditCard className="w-4 h-4"/> Repayment Schedule</h3>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-slate-500 uppercase block">Outstanding Balance</span>
+                  <span className="text-lg font-black text-red-600">₹{loanData.outstandingBalance?.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-600 border-b border-slate-200">
+                      <th className="p-3 font-bold uppercase">EMI No</th>
+                      <th className="p-3 font-bold uppercase">Due Date</th>
+                      <th className="p-3 font-bold uppercase">Amount</th>
+                      <th className="p-3 font-bold uppercase">Principal</th>
+                      <th className="p-3 font-bold uppercase">Interest</th>
+                      <th className="p-3 font-bold uppercase">Penalty</th>
+                      <th className="p-3 font-bold uppercase">Status</th>
+                      <th className="p-3 font-bold uppercase">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emis.map((emi: any, idx: number) => (
+                      <tr key={emi._id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                        <td className="p-3 font-bold">#{emi.emiNumber}</td>
+                        <td className="p-3 font-semibold">{new Date(emi.dueDate).toLocaleDateString()}</td>
+                        <td className="p-3 font-black text-[#0F4C81]">₹{emi.emiAmount.toLocaleString('en-IN')}</td>
+                        <td className="p-3 text-slate-600">₹{emi.principalComponent.toLocaleString('en-IN')}</td>
+                        <td className="p-3 text-slate-600">₹{emi.interestComponent.toLocaleString('en-IN')}</td>
+                        <td className="p-3 text-red-500 font-bold">₹{emi.latePenalty}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${emi.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700' : emi.paymentStatus === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                            {emi.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          {emi.paymentStatus !== 'Paid' && loanData.status === 'Active Loan' && (
+                            <button onClick={() => handlePayEmi(emi._id)} disabled={actionLoading} className="px-3 py-1.5 bg-[#0F4C81] text-white rounded text-[10px] font-bold hover:bg-[#0A315C] transition-colors">Pay Now</button>
+                          )}
+                          {emi.paymentStatus === 'Paid' && <span className="text-[10px] font-bold text-slate-400">Paid on {new Date(emi.paidDate).toLocaleDateString()}</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          )}
 
-          </div>
         </div>
       </div>
     </div>

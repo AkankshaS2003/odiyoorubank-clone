@@ -41,6 +41,7 @@ app.use('/api/rd', require('./routes/rdRoutes'));
 
 // Initialize Cron Jobs
 require('./cron/rdCron');
+require('./cron/loanCron');
 
 // Error handler middleware
 app.use(errorHandler);

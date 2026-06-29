@@ -6,7 +6,9 @@ const {
   forgotPassword,
   resetPassword,
   googleLogin,
-  sendTransactionOtp
+  sendTransactionOtp,
+  sendRegistrationOtp,
+  verifyRegistrationOtp
 } = require('../controllers/authController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -14,6 +16,8 @@ const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.post('/register', registerUser);
+router.post('/register/send-otp', sendRegistrationOtp);
+router.post('/register/verify-otp', verifyRegistrationOtp);
 router.post('/login', loginUser);
 router.get('/me', protect, getMe);
 router.post('/forgotpassword', forgotPassword);

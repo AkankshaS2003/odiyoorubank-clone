@@ -355,6 +355,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const submitServiceApplication = async (applicationType: string, formData: any, images: any): Promise<boolean> => {
     try {
+      const loanTypes = ['Personal Loan', 'Home Loan', 'Educational Loan', 'Education Loan', 'Gold Loan', 'Vehicle Loan', 'Agricultural Loan', 'Mortgage Loan', 'Business Loan'];
+      
+      if (loanTypes.includes(applicationType)) {
+        const payload = {
+           loanType: applicationType === 'Educational Loan' ? 'Education Loan' : applicationType,
+           amount: formData.requestedAmount || formData.reqAmount || formData.loanAmount || 0,
+           tenure: formData.tenure || formData.repayMonths || formData.months || 12,
+           income: formData.income || formData.monthlyIncome || formData.annualIncome || 0,
+           ...formData,
+           uploadedDocuments: Object.keys(images).map(key => ({ documentName: key, documentUrl: images[key] }))
+        };
+        const res = await api.post('/loans/apply', payload);
+        return res.data.success;
+      }
+
       const res = await api.post('/service-applications', { applicationType, formData, images });
       return res.data.success;
     } catch (error) {

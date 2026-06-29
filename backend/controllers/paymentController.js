@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const Transaction = require('../models/Transaction');
 const Account = require('../models/Account');
+const SavingsAccount = require('../models/SavingsAccount');
 const User = require('../models/User');
 
 const razorpay = new Razorpay({
@@ -65,6 +66,7 @@ exports.verifyPayment = async (req, res, next) => {
 
     const user = await User.findById(req.user.id);
     const account = await Account.findOne({ userId: req.user.id });
+    const savingsAccount = await SavingsAccount.findOne({ userId: req.user.id });
 
     if (type === 'Initial Deposit') {
       user.minimumBalancePaid = true;
@@ -73,12 +75,22 @@ exports.verifyPayment = async (req, res, next) => {
         account.balance = (account.balance || 0) + amount;
         await account.save();
       }
+      if (savingsAccount) {
+        savingsAccount.balance = (savingsAccount.balance || 0) + amount;
+        savingsAccount.totalDeposits = (savingsAccount.totalDeposits || 0) + amount;
+        await savingsAccount.save();
+      }
       await user.save();
     } else if (type === 'Account Deposit') {
       user.savingsBalance = (user.savingsBalance || 0) + amount;
       if (account) {
         account.balance = (account.balance || 0) + amount;
         await account.save();
+      }
+      if (savingsAccount) {
+        savingsAccount.balance = (savingsAccount.balance || 0) + amount;
+        savingsAccount.totalDeposits = (savingsAccount.totalDeposits || 0) + amount;
+        await savingsAccount.save();
       }
       await user.save();
     } else if (type === 'Fixed Deposit') {

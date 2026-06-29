@@ -96,11 +96,20 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [memberships, setMemberships] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [isAppModalOpen, setIsAppModalOpen] = useState(false);
   const [savingsDeposits, setSavingsDeposits] = useState<any[]>([]);
   const [serviceApplications, setServiceApplications] = useState<any[]>([]);
   const [selectedServiceApp, setSelectedServiceApp] = useState<any>(null);
   const [adminFds, setAdminFds] = useState<any[]>([]);
   const [adminRds, setAdminRds] = useState<any[]>([]);
+
+  // Customer 360 States
+  const [searchCustId, setSearchCustId] = useState('');
+  const [customer360Data, setCustomer360Data] = useState<any>(null);
+  const [cust360Loading, setCust360Loading] = useState(false);
+  const [selectedCustomerProduct, setSelectedCustomerProduct] = useState<any>(null);
+  const [isCustomerProductModalOpen, setIsCustomerProductModalOpen] = useState(false);
 
   // Announcements States
   const announcements = systemSettings?.announcements?.length > 0 ? systemSettings.announcements : [
@@ -187,6 +196,23 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
       }
     } catch (err) {
       console.error('Failed to fetch admin FDs', err);
+    }
+  };
+
+  const fetchCustomer360 = async () => {
+    if (!searchCustId) return;
+    setCust360Loading(true);
+    setError(null);
+    setCustomer360Data(null);
+    try {
+      const res = await api.get(`/admin/customer/${searchCustId.trim()}`);
+      if (res.data.success) {
+        setCustomer360Data(res.data.data);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to fetch customer data');
+    } finally {
+      setCust360Loading(false);
     }
   };
 
@@ -721,6 +747,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'applications', label: 'Account Applications', icon: Briefcase },
     { id: 'service_applications', label: 'Loan & Deposit Apps', icon: FileText },
+    { id: 'customer_360', label: 'Customer 360', icon: Search },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'memberships', label: 'Memberships', icon: ShieldCheck },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
@@ -1111,9 +1138,15 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               <p className="font-semibold text-slate-800">PAN: {app.panNumber}</p>
                             </td>
                             <td className="p-4 text-xs font-medium text-slate-600">
-                              <a href={app.aadharDocumentUrl?.includes('example.com') ? '/dummy-aadhar.png' : app.aadharDocumentUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                                <Eye className="h-4 w-4" /> View Aadhar
-                              </a>
+                              <button 
+                                onClick={() => {
+                                  setSelectedApplication(app);
+                                  setIsAppModalOpen(true);
+                                }} 
+                                className="text-blue-600 hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer"
+                              >
+                                <Eye className="h-4 w-4" /> View Details
+                              </button>
                             </td>
                             <td className="p-4">
                               <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
@@ -1153,6 +1186,207 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'customer_360' && (
+              <div className="space-y-6">
+                <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-black text-slate-900 uppercase">Customer 360 View</h2>
+                      <p className="text-xs text-slate-400 font-bold mt-1">Look up complete profile and product holdings by Customer ID.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="Enter Customer ID (e.g. CUST123)" 
+                        value={searchCustId} 
+                        onChange={(e) => setSearchCustId(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && fetchCustomer360()}
+                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#ED7F1E] w-64"
+                      />
+                      <button 
+                        onClick={fetchCustomer360}
+                        disabled={cust360Loading || !searchCustId}
+                        className="px-6 py-2 bg-[#0A315C] hover:bg-[#051C36] text-white rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {cust360Loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                        Fetch
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {customer360Data && (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Personal Details Column */}
+                    <div className="lg:col-span-1 space-y-6">
+                      <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
+                          {customer360Data.user.profileImageBase64 ? (
+                            <img 
+                              src={customer360Data.user.profileImageBase64} 
+                              alt="Profile" 
+                              className="h-16 w-16 rounded-2xl object-cover shadow-sm border border-slate-200"
+                            />
+                          ) : (
+                            <div className="h-16 w-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-700 font-black text-2xl uppercase shadow-inner">
+                              {customer360Data.user.fullName?.charAt(0)}
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="text-xl font-black text-slate-900">{customer360Data.user.fullName}</h3>
+                            <p className="text-sm font-bold text-blue-600">{customer360Data.user.customerId}</p>
+                            <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${customer360Data.user.isKycVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {customer360Data.user.isKycVerified ? 'KYC Verified' : 'KYC Pending'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Membership ID</p>
+                              <p className="text-sm font-semibold text-slate-800">{customer360Data.user.memberId || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Member Status</p>
+                              <p className="text-sm font-semibold text-slate-800 capitalize">{customer360Data.user.membershipStatus || 'N/A'}</p>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Contact</p>
+                            <p className="text-sm font-semibold text-slate-800">{customer360Data.user.email}</p>
+                            <p className="text-sm font-semibold text-slate-800">{customer360Data.user.phone}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Identity</p>
+                            <p className="text-sm font-semibold text-slate-800">Aadhaar: {customer360Data.user.aadharNumber || 'N/A'}</p>
+                            <p className="text-sm font-semibold text-slate-800">PAN: {customer360Data.user.panNumber || 'N/A'}</p>
+                            <p className="text-sm font-semibold text-slate-800">DOB: {customer360Data.user.dob || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Address</p>
+                            <p className="text-sm font-semibold text-slate-800">{customer360Data.user.address || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Products Column */}
+                    <div className="lg:col-span-2 space-y-6">
+                      
+                      {/* Savings & Accounts */}
+                      <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Savings & Accounts</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl">
+                            <p className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Total Savings Balance</p>
+                            <p className="text-2xl font-black text-emerald-700 mt-1">₹{customer360Data.user.savingsBalance?.toLocaleString('en-IN') || '0'}</p>
+                          </div>
+                          {customer360Data.legacyAccounts?.map((acc: any) => (
+                            <div key={acc._id} className="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                              <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{acc.accountType} - {acc.accountNumber}</p>
+                              <p className="text-xl font-black text-slate-800 mt-1">₹{acc.balance?.toLocaleString('en-IN') || '0'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Active Products List */}
+                      <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Active Products (FD / RD / Loans)</h3>
+                        
+                        {(customer360Data.fixedDeposits?.length === 0 && customer360Data.recurringDeposits?.length === 0 && customer360Data.loans?.length === 0) ? (
+                          <p className="text-xs font-semibold text-slate-500 italic">No active products found.</p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm whitespace-nowrap">
+                              <thead>
+                                <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                                  <th className="p-4 rounded-l-xl">Type</th>
+                                  <th className="p-4">Amount</th>
+                                  <th className="p-4">Maturity Date</th>
+                                  <th className="p-4">Status</th>
+                                  <th className="p-4 text-center rounded-r-xl">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {/* Render FDs */}
+                                {customer360Data.fixedDeposits?.map((fd: any) => (
+                                  <tr key={fd._id} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="p-4 font-bold text-slate-800">FD</td>
+                                    <td className="p-4 font-black text-[#0A315C]">₹{fd.principalAmount?.toLocaleString('en-IN')}</td>
+                                    <td className="p-4 text-xs font-bold text-slate-600">{new Date(fd.maturityDate).toLocaleDateString()}</td>
+                                    <td className="p-4">
+                                      <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase ${fd.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
+                                        {fd.status}
+                                      </span>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                      <button 
+                                        onClick={() => { setSelectedCustomerProduct({ type: 'FD', data: fd }); setIsCustomerProductModalOpen(true); }}
+                                        className="text-blue-600 hover:underline font-bold text-xs"
+                                      >
+                                        View Details
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+
+                                {/* Render RDs */}
+                                {customer360Data.recurringDeposits?.map((rd: any) => (
+                                  <tr key={rd._id} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="p-4 font-bold text-slate-800">RD</td>
+                                    <td className="p-4 font-black text-[#0A315C]">₹{rd.monthlyAmount?.toLocaleString('en-IN')} / mo</td>
+                                    <td className="p-4 text-xs font-bold text-slate-600">{rd.maturityDate ? new Date(rd.maturityDate).toLocaleDateString() : 'N/A'}</td>
+                                    <td className="p-4">
+                                      <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase ${rd.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : rd.status === 'Pending Approval' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-700'}`}>
+                                        {rd.status}
+                                      </span>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                      <button 
+                                        onClick={() => { setSelectedCustomerProduct({ type: 'RD', data: rd }); setIsCustomerProductModalOpen(true); }}
+                                        className="text-blue-600 hover:underline font-bold text-xs"
+                                      >
+                                        View Details
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+
+                                {/* Render Loans */}
+                                {customer360Data.loans?.map((loan: any) => (
+                                  <tr key={loan._id} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="p-4 font-bold text-slate-800">Loan</td>
+                                    <td className="p-4 font-black text-[#0A315C]">₹{loan.principalAmount?.toLocaleString('en-IN')}</td>
+                                    <td className="p-4 text-xs font-bold text-slate-600">{loan.loanType}</td>
+                                    <td className="p-4">
+                                      <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase ${loan.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
+                                        {loan.status}
+                                      </span>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                      <button 
+                                        onClick={() => { setSelectedCustomerProduct({ type: 'Loan', data: loan }); setIsCustomerProductModalOpen(true); }}
+                                        className="text-blue-600 hover:underline font-bold text-xs"
+                                      >
+                                        View Details
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -2767,6 +3001,217 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   This application has already been {selectedServiceApp.status.toLowerCase()}.
                 </span>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+    {isAppModalOpen && selectedApplication && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 flex justify-center items-start">
+          <div className="bg-white w-full max-w-4xl mt-10 mb-10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50 shrink-0">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-wider">Account Application Details</h3>
+                <p className="text-xs text-slate-500 font-bold mt-1">Submitted on {new Date(selectedApplication.createdAt).toLocaleString()}</p>
+              </div>
+              <button onClick={() => { setIsAppModalOpen(false); setSelectedApplication(null); }} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-8 flex-grow">
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                <h4 className="font-bold text-blue-900 text-sm mb-3 border-b border-blue-200 pb-2">Application Form Data</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Always show primary details */}
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Name (As per Aadhaar)</span>
+                    <span className="text-sm font-semibold text-slate-800">{selectedApplication.nameAsAadhar}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Account Type</span>
+                    <span className="text-sm font-semibold text-slate-800">{selectedApplication.accountType}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Aadhaar Number</span>
+                    <span className="text-sm font-semibold text-slate-800">{selectedApplication.aadharNumber}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">PAN Number</span>
+                    <span className="text-sm font-semibold text-slate-800">{selectedApplication.panNumber}</span>
+                  </div>
+
+                  {/* Dynamically show the rest from formData */}
+                  {selectedApplication.formData && Object.entries(selectedApplication.formData)
+                    .filter(([key, value]) => {
+                      if (['applicantFullName', 'aadhaarNumber', 'panNumber'].includes(key)) return false;
+                      if (value === '' || value === null || value === undefined || value === '-') return false;
+                      return true;
+                    })
+                    .map(([key, value]: any) => (
+                    <div key={key} className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      <span className="text-sm font-semibold text-slate-800 break-words">
+                        {typeof value === 'object' ? JSON.stringify(value) : (value?.toString() || '-')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {selectedApplication.images && Object.keys(selectedApplication.images).length > 0 && (
+                <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                  <h4 className="font-bold text-slate-800 text-sm mb-4 border-b border-slate-200 pb-2">Attached Documents & Signatures</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {Object.entries(selectedApplication.images).map(([key, base64Url]: any) => (
+                      <div key={key} className="flex flex-col items-center p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                        <span className="text-xs uppercase font-bold text-slate-600 tracking-wider mb-3 w-full text-center border-b border-slate-100 pb-2">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        {base64Url && typeof base64Url === 'string' && base64Url.startsWith('data:image') ? (
+                          <img src={base64Url} alt={key} className="max-w-full h-auto max-h-48 object-contain rounded" />
+                        ) : base64Url && typeof base64Url === 'string' && base64Url.startsWith('data:application/pdf') ? (
+                          <a href={base64Url} download={`${key}.pdf`} className="text-blue-600 hover:underline font-bold text-sm flex items-center gap-2">
+                            <FileText className="w-5 h-5" /> Download PDF
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400">No Document / Unsupported format</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-4 shrink-0">
+              {selectedApplication.status === 'Pending' ? (
+                <>
+                  <button 
+                    onClick={() => {
+                      handleApplicationStatusChange(selectedApplication._id, 'Rejected');
+                      setIsAppModalOpen(false);
+                      setSelectedApplication(null);
+                    }}
+                    disabled={actionLoading}
+                    className="px-6 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-xl transition-colors"
+                  >
+                    Reject Application
+                  </button>
+                  <button 
+                    onClick={() => {
+                      handleApplicationStatusChange(selectedApplication._id, 'Approved');
+                      setIsAppModalOpen(false);
+                      setSelectedApplication(null);
+                    }}
+                    disabled={actionLoading}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-colors"
+                  >
+                    Approve Application
+                  </button>
+                </>
+              ) : (
+                <span className="text-sm font-bold text-slate-500">
+                  This application has already been {selectedApplication.status.toLowerCase()}.
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {isCustomerProductModalOpen && selectedCustomerProduct && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 flex justify-center items-start">
+          <div className="bg-white w-full max-w-3xl mt-10 mb-10 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            
+            {/* Premium Header - Bank Theme */}
+            <div className="p-8 shrink-0 relative overflow-hidden bg-gradient-to-br from-[#0A315C] to-[#051C36]">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <span className="text-9xl font-black text-white">{selectedCustomerProduct.type}</span>
+              </div>
+              <div className="relative z-10 flex justify-between items-start">
+                <div className="text-white">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-black tracking-widest uppercase shadow-sm">
+                      {selectedCustomerProduct.data.status}
+                    </span>
+                    <span className="text-white/80 text-xs font-semibold tracking-wider font-mono">
+                      ID: {selectedCustomerProduct.data._id}
+                    </span>
+                  </div>
+                  <h3 className="text-3xl font-black tracking-tight">{selectedCustomerProduct.type} Product Details</h3>
+                </div>
+                <button onClick={() => { setIsCustomerProductModalOpen(false); setSelectedCustomerProduct(null); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white backdrop-blur-sm">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-8 overflow-y-auto space-y-8 flex-grow bg-slate-50">
+              
+              {/* Highlight Cards Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                    {selectedCustomerProduct.type === 'RD' ? 'Monthly Deposit' : 'Principal Amount'}
+                  </span>
+                  <span className="text-2xl font-black text-slate-800">
+                    ₹{Number(selectedCustomerProduct.data.monthlyAmount || selectedCustomerProduct.data.principalAmount || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                    {selectedCustomerProduct.type === 'Loan' ? 'Total Interest' : 'Interest Earned'}
+                  </span>
+                  <span className={`text-2xl font-black ${selectedCustomerProduct.type === 'Loan' ? 'text-rose-600' : 'text-emerald-600'}`}>
+                    ₹{Number(selectedCustomerProduct.data.totalInterest || selectedCustomerProduct.data.interestEarned || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                    {selectedCustomerProduct.type === 'Loan' ? 'Outstanding Balance' : 'Maturity Amount'}
+                  </span>
+                  <span className="text-2xl font-black text-slate-800">
+                    ₹{Number(selectedCustomerProduct.data.outstandingBalance || selectedCustomerProduct.data.maturityAmount || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Comprehensive Details Section */}
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                  <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Comprehensive Details</h4>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
+                    {Object.entries(selectedCustomerProduct.data)
+                      .filter(([key, value]) => !['userId', '__v', 'applicationId', 'linkedSavingsAccount', '_id', 'status'].includes(key) && value !== null && value !== '')
+                      .map(([key, value]: any) => (
+                      <div key={key} className="flex flex-col border-b border-slate-100 pb-3">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        <div className="text-sm font-semibold text-slate-800 break-words">
+                          {typeof value === 'object' ? (
+                            <div className="flex flex-col gap-1 mt-1">
+                              {Object.entries(value).map(([subKey, subVal]: any) => (
+                                <div key={subKey} className="flex justify-between items-center text-xs">
+                                  <span className="text-slate-500 capitalize">{subKey.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                                  <span className="font-bold">{subVal?.toString()}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : typeof value === 'boolean' ? (
+                            <span className={`inline-flex px-2 py-0.5 rounded text-xs font-black uppercase tracking-wider ${value ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {value ? 'Yes' : 'No'}
+                            </span>
+                          ) : (
+                            (key.toLowerCase().includes('date') || key === 'createdAt' || key === 'updatedAt') ? new Date(value).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 
+                            key.toLowerCase().includes('amount') || key.toLowerCase().includes('balance') || key.toLowerCase().includes('deposited') || key === 'interestEarned' || key === 'totalInterest' ? `₹${Number(value).toLocaleString('en-IN')}` :
+                            key.toLowerCase().includes('rate') ? `${value}%` :
+                            value.toString()
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
