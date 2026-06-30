@@ -3,7 +3,9 @@ const {
   getMyFDs,
   transferToSavings,
   renewFD,
-  renewPrincipal
+  renewPrincipal,
+  createFD,
+  getFDById
 } = require('../controllers/fdController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -11,7 +13,9 @@ const router = express.Router();
 
 router.use(protect);
 
+router.post('/', createFD);
 router.get('/my', getMyFDs);
+router.get('/:id', getFDById);
 router.post('/:id/transfer', transferToSavings);
 router.post('/:id/renew', renewFD);
 router.post('/:id/renew-principal', renewPrincipal);

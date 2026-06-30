@@ -32,21 +32,38 @@ exports.settleFD = async (req, res, next) => {
 
     const amountToSettle = fd.maturityAmount;
     
-    // Credit to savings
-    await User.updateOne({ _id: fd.userId }, { $inc: { savingsBalance: amountToSettle, fdBalance: -fd.principalAmount } });
+    const TransferService = require('../services/TransferService');
+    const SavingsAccount = require('../models/SavingsAccount');
     
+    // Find linked account or default to user's main savings account
+    let savingsAcc = null;
     if (fd.linkedSavingsAccount) {
-      await Account.updateOne({ _id: fd.linkedSavingsAccount }, { $inc: { balance: amountToSettle } });
-      
-      const transaction = await Transaction.create({
-        userId: fd.userId,
-        accountId: fd.linkedSavingsAccount,
+      savingsAcc = await SavingsAccount.findById(fd.linkedSavingsAccount);
+    } 
+    if (!savingsAcc) {
+      savingsAcc = await SavingsAccount.findOne({ userId: fd.userId });
+    }
+
+    if (savingsAcc) {
+      const transferResult = await TransferService.executeTransfer({
+        transferType: 'Fixed Deposit Maturity',
         amount: amountToSettle,
-        type: 'Fixed Deposit', // Or FD Maturity Credit
-        status: 'Completed'
+        senderAccount: null,
+        receiverAccount: savingsAcc.accountNumber,
+        userId: fd.userId,
+        paymentChannel: 'System',
+        remarks: `FD Maturity Settlement for ${fd.fdNumber}`
       });
-      
-      fd.settlementDetails.transactionRef = transaction._id;
+
+      fd.settlementDetails.transactionRef = transferResult.transactionId;
+
+      // Update User summary balances locally
+      const user = await User.findById(fd.userId);
+      if (user) {
+        user.savingsBalance = savingsAcc.balance + amountToSettle; // Since TransferService already updated savingsAcc, we just update summary
+        user.fdBalance = (user.fdBalance || 0) - fd.principalAmount;
+        await user.save();
+      }
     }
 
     fd.status = 'Closed';

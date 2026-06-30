@@ -56,15 +56,12 @@ const registerUser = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Email has not been verified' });
     }
 
-    const memberId = await getNextMemberId();
-
     // Create user
     const user = await User.create({
       fullName,
       email: cleanEmail,
       phone: cleanPhone,
       password,
-      memberId,
       role: role || 'customer'
     });
 
@@ -256,12 +253,13 @@ const googleLogin = async (req, res, next) => {
 
     if (!user) {
       // Auto register the user via Google
-      const memberId = await getNextMemberId();
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      // Create user
       user = await User.create({
         fullName: name || 'Google User',
         email: cleanEmail,
+        password: randomPassword,
         provider: 'google',
-        memberId,
         role: 'customer'
       });
     } else {

@@ -106,7 +106,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurrentTab }) => {
-  const { user, openNewDeposit, submitServiceApplication, getCustomerByCustomerId } = useAuth();
+  const { user, openNewDeposit, submitServiceApplication, getCustomerByCustomerId, createFixedDeposit, requestTpin, fetchUserProfile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [signatureFile, setSignatureFile] = useState<File | null>(null);
@@ -135,8 +135,10 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
     amount: '',
     amountWords: '',
     depositPeriod: '',
+    interestPayout: '',
     accountType: 'Single Applicant',
     
+    app1Classification: 'Standard',
     app1MemberNo: '',
     app1Name: '',
     app1Address: '',
@@ -197,6 +199,24 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
     }
   }, [formData?.amount]);
 
+  useEffect(() => {
+    if (formData?.app1Dob) {
+      const today = new Date();
+      const dob = new Date(formData.app1Dob);
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      let classification = 'Standard';
+      if (age >= 60) classification = 'Senior Citizen';
+      else if (age < 18) classification = 'Minor';
+      
+      if (formData.app1Classification !== classification) {
+        setFormData((prev: any) => ({ ...prev, app1Classification: classification }));
+      }
+    }
+  }, [formData?.app1Dob]);
 
   useEffect(() => {
     const draft = localStorage.getItem('draft_DepositApplication');
@@ -247,8 +267,8 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.amount || !formData.depositPeriod || !formData.depositType) {
-      alert("Please fill in Deposit Type, Amount, and Period");
+    if (!formData.amount || !formData.depositPeriod || !formData.depositType || !formData.interestPayout) {
+      alert("Please fill in Deposit Type, Amount, Period, and Interest Payout Instruction");
       return;
     }
 
@@ -310,6 +330,34 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
         }
       } catch (err: any) {
         alert(err.response?.data?.message || 'Failed to apply for RD');
+        successStatus = false;
+      }
+    } else if (formData.depositType === 'Fixed Deposit') {
+      try {
+        const tpin = await requestTpin();
+        const fdPayload = {
+          amount: parseInt(formData.amount, 10),
+          tenureMonths: parseInt(formData.depositPeriod) || 12,
+          interestRate: 8.50, // Default FD rate
+          nomineeDetails: {
+            name: formData.nomineeName,
+            relation: formData.nomineeRelationship
+          },
+          interestPayout: formData.interestPayout,
+          formData: formData,
+          signatureBase64: signatureBase64
+        };
+        const res = await createFixedDeposit(fdPayload, tpin);
+        if (res.success) {
+          successStatus = true;
+          fetchUserProfile();
+        }
+      } catch (err: any) {
+        if (err.message === 'TPIN verification cancelled') {
+          setIsSubmitting(false);
+          return;
+        }
+        alert(err.response?.data?.error || err.message || 'Failed to create Fixed Deposit');
         successStatus = false;
       }
     } else {
@@ -435,7 +483,7 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
           <div className="flex justify-center gap-8 mb-6 p-3 bg-[#EAF6FF] rounded-lg print:bg-transparent print:border print:border-slate-300">
             {['Fixed Deposit', 'Recurring Deposit'].map(type => (
               <label key={type} className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={formData.depositType === type} onChange={() => handleDepositTypeChange(type)} className="w-4 h-4 text-[#0F4C81] focus:ring-[#0F4C81] print:appearance-none print:border-2 print:border-[#0F4C81] print:w-4 print:h-4"/>
+                <input type="radio" name="depositType" checked={formData.depositType === type} onChange={() => handleDepositTypeChange(type)} className="w-4 h-4 text-[#0F4C81] focus:ring-[#0F4C81] print:appearance-none print:border-2 print:border-[#0F4C81] print:w-4 print:h-4"/>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#0F4C81]">{type}</span>
               </label>
             ))}
@@ -450,8 +498,22 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
                 <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Period of Deposit</label>
                 <select name="depositPeriod" value={formData.depositPeriod} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-slate-800 bg-white">
                   <option value="">Select Period</option>
+                  <option value="2 Days">2 Days</option>
                   <option value="6 Months">6 Months</option>
                   <option value="12 Months">12 Months</option>
+                </select>
+              </div>
+            </div>
+            {/* New Interest Payout Instructions */}
+            <div className="md:col-span-2">
+              <div className="w-full mb-3">
+                <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Interest Payout / Maturity Instruction <span className="text-rose-500">*</span></label>
+                <select name="interestPayout" value={formData.interestPayout} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-slate-800 bg-white">
+                  <option value="">Select Instruction</option>
+                  <option value="Reinvest (Cumulative)">Reinvest (Cumulative)</option>
+                  <option value="Pay out Monthly">Pay out Monthly</option>
+                  <option value="Pay out Quarterly">Pay out Quarterly</option>
+                  <option value="Credit to Linked Account at Maturity">Credit to Linked Account at Maturity</option>
                 </select>
               </div>
             </div>
@@ -486,11 +548,23 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
                   <CheckboxField label="Yes" name="app1SmsAlert" checked={formData.app1SmsAlert} onChange={handleChange} />
                   <CheckboxField label="No" name="app1SmsAlertNo" checked={!formData.app1SmsAlert} onChange={() => setFormData(prev => ({ ...prev, app1SmsAlert: false }))} />
                 </div>
-                <InputField label="Date of Birth" name="app1Dob" type="date" value={formData.app1Dob} onChange={handleChange} />
+                <div className="flex gap-4 items-start">
+                  <div className="flex-grow">
+                    <InputField label="Date of Birth" name="app1Dob" type="date" value={formData.app1Dob} onChange={handleChange} />
+                  </div>
+                  {formData.app1Classification && formData.app1Classification !== 'Standard' && (
+                    <div className="mt-[22px]">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-3 py-2.5 bg-amber-100 text-amber-800 rounded-lg border border-amber-200 shadow-sm whitespace-nowrap">
+                        {formData.app1Classification}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <div className="flex gap-4 items-center">
                   <span className="text-[10px] font-bold text-[#0F4C81] uppercase">Sex:</span>
                   <label className="text-xs font-bold flex items-center gap-1"><input type="radio" name="app1Sex" value="Male" onChange={handleChange} className="print:appearance-none print:border-2 print:border-slate-800 print:w-3 print:h-3"/> Male</label>
                   <label className="text-xs font-bold flex items-center gap-1"><input type="radio" name="app1Sex" value="Female" onChange={handleChange} className="print:appearance-none print:border-2 print:border-slate-800 print:w-3 print:h-3"/> Female</label>
+                  <label className="text-xs font-bold flex items-center gap-1"><input type="radio" name="app1Sex" value="Other" onChange={handleChange} className="print:appearance-none print:border-2 print:border-slate-800 print:w-3 print:h-3"/> Other</label>
                 </div>
               </div>
             </div>
@@ -516,6 +590,7 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
                     <span className="text-[10px] font-bold text-[#0F4C81] uppercase">Sex:</span>
                     <label className="text-xs font-bold flex items-center gap-1"><input type="radio" name="app2Sex" value="Male" onChange={handleChange} className="print:appearance-none print:border-2 print:border-slate-800 print:w-3 print:h-3"/> Male</label>
                     <label className="text-xs font-bold flex items-center gap-1"><input type="radio" name="app2Sex" value="Female" onChange={handleChange} className="print:appearance-none print:border-2 print:border-slate-800 print:w-3 print:h-3"/> Female</label>
+                    <label className="text-xs font-bold flex items-center gap-1"><input type="radio" name="app2Sex" value="Other" onChange={handleChange} className="print:appearance-none print:border-2 print:border-slate-800 print:w-3 print:h-3"/> Other</label>
                   </div>
                 </div>
               </div>

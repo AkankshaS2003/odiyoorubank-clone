@@ -55,7 +55,7 @@ const loadRazorpayScript = () => {
 };
 
 export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) => void }> = ({ setCurrentTab }) => {
-  const { user, getCustomerByCustomerId } = useAuth();
+  const { user, getCustomerByCustomerId, fetchUserProfile } = useAuth();
   
   const [customerIdInput, setCustomerIdInput] = useState('');
   const [customerInfo, setCustomerInfo] = useState<any>(null);
@@ -137,6 +137,7 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
               if (verifyRes.success) {
                 setSuccess(true);
                 setReceiptNo(verifyRes.transaction?.referenceNumber || depositRes.depositId);
+                fetchUserProfile();
               } else {
                 setError('Payment verification failed');
               }

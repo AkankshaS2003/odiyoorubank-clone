@@ -3,7 +3,7 @@ import api from '../services/api';
 
 import { auth, googleProvider } from '../firebase';
 import { signInWithPopup } from 'firebase/auth';
-
+import { TpinPromptModal } from '../components/TpinPromptModal';
 export interface Deposit {
   id: string;
   type: 'Savings' | 'Fixed' | 'Recurring' | 'Daily';
@@ -84,7 +84,7 @@ interface AuthContextType {
   payEmi: (loanId: string) => boolean;
   uploadKyc: (documentType: string, filePlaceholder: string) => boolean;
   addSavingsMoney: (amount: number) => void;
-  becomeMember: (address: string, dob: string) => Promise<boolean>;
+  becomeMember: (address: string, dob: string, tpin: string) => Promise<boolean>;
   systemSettings: SystemSettings;
   updateSystemSettings: (newSettings: Partial<SystemSettings>) => Promise<boolean>;
   submitServiceApplication: (applicationType: string, formData: any, images: any) => Promise<boolean>;
@@ -93,6 +93,9 @@ interface AuthContextType {
   updateServiceApplicationStatus: (id: string, status: string) => Promise<boolean>;
   getCustomerByCustomerId: (customerId: string) => Promise<any>;
   submitAccountApplication: (formData: any) => Promise<boolean>;
+  fetchUserProfile: () => Promise<void>;
+  createFixedDeposit: (data: any, tpin: string) => Promise<any>;
+  requestTpin: () => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -101,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [tpinPromise, setTpinPromise] = useState<{ resolve: (tpin: string) => void; reject: (reason?: any) => void } | null>(null);
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({
     fdRate: 8.50,
     goldLoanRate: 8.50,
@@ -128,32 +132,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     fetchSettings();
   }, []);
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const res = await api.get('/auth/me');
-          if (res.data.success) {
-            setUser({ 
-              ...res.data.data, 
-              savingsBalance: res.data.data.savingsBalance || 0, 
-              deposits: res.data.data.deposits || [], 
-              loans: res.data.data.loans || [], 
-              kycStatus: res.data.data.isKycVerified ? 'Verified' : 'Pending',
-              accountNumber: res.data.data.accountNumber,
-              ifscCode: res.data.data.ifscCode
-            });
-            setIsAuthenticated(true);
-          }
-        } catch (error) {
-          console.error('Failed to fetch profile', error);
-          localStorage.removeItem('token');
-          setIsAuthenticated(false);
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const res = await api.get('/auth/me');
+        if (res.data.success) {
+          setUser({ 
+            ...res.data.data, 
+            savingsBalance: res.data.data.savingsBalance || 0, 
+            deposits: res.data.data.deposits || [], 
+            loans: res.data.data.loans || [], 
+            kycStatus: res.data.data.isKycVerified ? 'Verified' : 'Pending',
+            accountNumber: res.data.data.accountNumber,
+            ifscCode: res.data.data.ifscCode
+          });
+          setIsAuthenticated(true);
         }
+      } catch (error) {
+        console.error('Failed to fetch profile', error);
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
       }
-    };
-    fetchUser();
+    }
+  };
+
+  useEffect(() => {
+    fetchUserProfile();
   }, []);
 
   const login = async (identifier: string, pass: string): Promise<string | null> => {
@@ -319,18 +324,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const becomeMember = async (address: string, dob: string): Promise<boolean> => {
+  const becomeMember = async (address: string, dob: string, tpin: string): Promise<boolean> => {
     if (!user) return false;
     try {
-      const res = await api.post('/account/membership/apply', { address, dob });
+      const res = await api.post('/account/membership/apply', { address, dob, tpin });
       if (res.data.success) {
         saveUser(res.data.data);
         return true;
       }
       return false;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to apply for membership', error);
-      return false;
+      throw error; // Re-throw to let the frontend show the error (e.g. invalid TPIN)
     }
   };
 
@@ -355,6 +360,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const submitServiceApplication = async (applicationType: string, formData: any, images: any): Promise<boolean> => {
     try {
+      // Require TPIN for all service applications
+      let tpin = '';
+      try {
+        tpin = await new Promise<string>((resolve, reject) => {
+          setTpinPromise({ resolve, reject });
+        });
+      } catch (err) {
+        console.log('TPIN verification cancelled');
+        return false;
+      }
+
       const loanTypes = ['Personal Loan', 'Home Loan', 'Educational Loan', 'Education Loan', 'Gold Loan', 'Vehicle Loan', 'Agricultural Loan', 'Mortgage Loan', 'Business Loan'];
       
       if (loanTypes.includes(applicationType)) {
@@ -364,16 +380,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
            tenure: formData.tenure || formData.repayMonths || formData.months || 12,
            income: formData.income || formData.monthlyIncome || formData.annualIncome || 0,
            ...formData,
+           tpin,
            uploadedDocuments: Object.keys(images).map(key => ({ documentName: key, documentUrl: images[key] }))
         };
         const res = await api.post('/loans/apply', payload);
         return res.data.success;
       }
 
-      const res = await api.post('/service-applications', { applicationType, formData, images });
+      const res = await api.post('/service-applications', { applicationType, formData, images, tpin });
       return res.data.success;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to submit application', error);
+      if (error.response?.data?.error) {
+        alert(error.response.data.error);
+      }
       return false;
     }
   };
@@ -428,6 +448,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const createFixedDeposit = async (data: any, tpin: string): Promise<any> => {
+    try {
+      const res = await api.post('/fd', { ...data, tpin });
+      return res.data;
+    } catch (error: any) {
+      console.error('Failed to create FD', error);
+      throw error;
+    }
+  };
+
+  const requestTpin = (): Promise<string> => {
+    return new Promise<string>((resolve, reject) => {
+      setTpinPromise({ resolve, reject });
+    });
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -452,9 +488,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       getAllServiceApplications,
       updateServiceApplicationStatus,
       getCustomerByCustomerId,
-      submitAccountApplication
+      submitAccountApplication,
+      fetchUserProfile,
+      createFixedDeposit,
+      requestTpin
     }}>
       {children}
+      <TpinPromptModal
+        isOpen={!!tpinPromise}
+        onClose={() => {
+          if (tpinPromise) {
+            tpinPromise.reject(new Error('TPIN verification cancelled'));
+            setTpinPromise(null);
+          }
+        }}
+        onSubmit={async (tpin) => {
+          if (tpinPromise) {
+            tpinPromise.resolve(tpin);
+            setTpinPromise(null);
+          }
+        }}
+        title="Authorize Action"
+        description="Enter your 6-digit TPIN to securely submit this application."
+      />
     </AuthContext.Provider>
   );
 };

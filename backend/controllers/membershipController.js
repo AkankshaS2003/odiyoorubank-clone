@@ -1,83 +1,165 @@
-const Membership = require('../models/Membership');
+const mongoose = require('mongoose');
 const User = require('../models/User');
-const sendEmail = require('../services/emailService');
+const SavingsAccount = require('../models/SavingsAccount');
+const SavingsTransaction = require('../models/SavingsTransaction');
+const SystemSettings = require('../models/SystemSettings');
+const LedgerEntry = require('../models/LedgerEntry');
+const AuditLog = require('../models/AuditLog');
+const crypto = require('crypto');
+const { verifyTpin } = require('./tpinController');
+const sendEmail = require('../services/emailService'); 
 
-// @desc    Apply for membership
-// @route   POST /api/memberships
-// @access  Private
-exports.applyMembership = async (req, res, next) => {
+const generateRef = () => 'MBR-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+const generateTxnId = () => 'TXN-' + Date.now() + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
+
+exports.getFeeDetails = async (req, res, next) => {
   try {
-    const { customerId } = req.body;
-    
-    if (req.user.customerId !== customerId) {
-      return res.status(400).json({ success: false, error: 'Invalid Customer ID for this user' });
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    const existingMembership = await Membership.findOne({ userId: req.user.id, status: { $ne: 'Rejected' } });
-    if (existingMembership) {
-      return res.status(400).json({ success: false, error: 'Membership application already exists' });
+    const account = await SavingsAccount.findOne({ userId: user._id });
+    const settings = await SystemSettings.findOne();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        customerId: user.customerId,
+        fullName: user.fullName,
+        accountNumber: account ? account.accountNumber : 'N/A',
+        branch: account ? account.branch : 'Main Branch',
+        membershipFee: settings ? settings.membershipFee : 500,
+        membershipPaymentStatus: user.membershipPaymentStatus || 'Pending',
+        savingsBalance: user.savingsBalance || 0
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.payFee = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { tpin } = req.body;
+
+    const tpinResult = await verifyTpin(req.user, tpin);
+    if (!tpinResult.success) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(401).json({ success: false, error: tpinResult.error });
     }
 
-    const membership = await Membership.create({
-      userId: req.user.id,
-      customerId
+    const user = await User.findById(req.user.id).session(session);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.membershipPaymentStatus === 'Paid') {
+      throw new Error('Membership fee has already been paid.');
+    }
+
+    const account = await SavingsAccount.findOne({ userId: user._id, status: 'Active' }).session(session);
+    if (!account) {
+      throw new Error('Active savings account required to pay membership fee.');
+    }
+
+    const settings = await SystemSettings.findOne().session(session);
+    const feeAmount = settings ? settings.membershipFee : 500;
+    const minBalance = settings ? settings.minimumSavingsBalance : 500;
+
+    if (account.balance - feeAmount < minBalance) {
+      throw new Error(`Insufficient balance. A minimum balance of ₹${minBalance} must be maintained after debiting ₹${feeAmount}.`);
+    }
+
+    // Process internal debit
+    account.balance -= feeAmount;
+    account.totalWithdrawals += feeAmount;
+    account.lastTransactionDate = Date.now();
+    await account.save({ session });
+
+    user.savingsBalance = account.balance;
+    user.membershipPaymentStatus = 'Paid';
+    user.membershipPaymentDate = Date.now();
+    const refNum = generateRef();
+    user.membershipPaymentRef = refNum;
+    await user.save({ session });
+
+    const txnId = generateTxnId();
+
+    const savingsTxn = new SavingsTransaction({
+      userId: user._id,
+      savingsAccountId: account._id,
+      type: 'Charge',
+      description: 'Membership Fee Debit',
+      debitAmount: feeAmount,
+      creditAmount: 0,
+      balanceAfter: account.balance,
+      status: 'Completed',
+      referenceNumber: refNum
+    });
+    await savingsTxn.save({ session });
+
+    // Internal Ledger Credit (Membership Fee Collection Account)
+    const ledger = new LedgerEntry({
+      transactionId: savingsTxn._id,
+      accountId: 'INT_MBR_FEE_COLLECTION',
+      amount: feeAmount,
+      entryType: 'Credit',
+      transferType: 'Internal Transfer'
+    });
+    await ledger.save({ session });
+
+    const audit = new AuditLog({
+      action: 'MEMBERSHIP_FEE_PAYMENT',
+      performedBy: user._id,
+      targetUser: user._id,
+      details: `Paid ₹${feeAmount} via Savings Debit. TPIN Verified. Ref: ${refNum}`,
+      ipAddress: req.ip
+    });
+    await audit.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // Send async email notification
+    try {
+      if (sendEmail) {
+        await sendEmail({
+          email: user.email,
+          subject: 'Membership Fee Payment Successful',
+          message: `Dear ${user.fullName},\n\nYour membership fee of ₹${feeAmount} has been successfully debited from your savings account. Welcome as a Cooperative Bank Member.\n\nTransaction Ref: ${refNum}\nDate: ${new Date().toLocaleString()}`
+        });
+      }
+    } catch (e) {
+      console.log('Failed to send email notification:', e.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Membership fee paid successfully',
+      receipt: {
+        receiptNo: refNum,
+        customerName: user.fullName,
+        customerId: user.customerId,
+        savingsAccount: account.accountNumber,
+        membershipFee: feeAmount,
+        totalPaid: feeAmount,
+        transactionId: txnId,
+        paymentDate: user.membershipPaymentDate
+      }
     });
 
-    req.user.membershipStatus = 'pending';
-    await req.user.save();
-
-    res.status(201).json({ success: true, data: membership });
   } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Get all membership applications
-// @route   GET /api/memberships
-// @access  Private/Admin
-exports.getMemberships = async (req, res, next) => {
-  try {
-    const memberships = await Membership.find().populate('userId', 'fullName email phone dob');
-    res.status(200).json({ success: true, data: memberships });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Approve or Reject membership
-// @route   PUT /api/memberships/:id/status
-// @access  Private/Admin
-exports.updateMembershipStatus = async (req, res, next) => {
-  try {
-    const { status, idCardUrl } = req.body;
-    
-    let membership = await Membership.findById(req.params.id).populate('userId');
-    if (!membership) {
-      return res.status(404).json({ success: false, error: 'Membership application not found' });
+    await session.abortTransaction();
+    session.endSession();
+    // Pass to error handler but return 400 for expected errors
+    if (error.message.includes('balance') || error.message.includes('found') || error.message.includes('paid')) {
+      return res.status(400).json({ success: false, error: error.message });
     }
-
-    membership.status = status;
-    membership.approvedBy = req.user.id;
-    if (idCardUrl) {
-      membership.idCardUrl = idCardUrl;
-    }
-    await membership.save();
-
-    const user = membership.userId;
-    user.membershipStatus = status === 'Approved' ? 'approved' : 'rejected';
-    await user.save();
-
-    if (status === 'Approved' && idCardUrl) {
-      await sendEmail({
-        email: user.email,
-        subject: 'Membership Approved - Your ID Card',
-        message: 'Your membership has been approved! Attached is your digital ID card.',
-        html: `<p>Your membership has been approved! You can view your digital ID card <a href="${idCardUrl}">here</a> or in your dashboard.</p>`
-      });
-    }
-
-    res.status(200).json({ success: true, data: membership });
-  } catch (error) {
     next(error);
   }
 };

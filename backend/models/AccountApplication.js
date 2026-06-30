@@ -10,7 +10,15 @@ const AccountApplicationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  addressAsAadhar: {
+  permanentAddress: {
+    type: String,
+    required: true
+  },
+  currentAddress: {
+    type: String,
+    required: true
+  },
+  occupation: {
     type: String,
     required: true
   },
@@ -34,6 +42,10 @@ const AccountApplicationSchema = new mongoose.Schema({
     required: true
   },
   aadharDocumentUrl: {
+    type: String,
+    required: true
+  },
+  panDocumentUrl: {
     type: String,
     required: true
   },

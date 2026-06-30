@@ -1,11 +1,17 @@
 const ServiceApplication = require('../models/ServiceApplication');
+const { verifyTpin } = require('./tpinController');
 
 // @desc    Submit service application
 // @route   POST /api/service-applications
 // @access  Private
 exports.submitApplication = async (req, res, next) => {
   try {
-    const { applicationType, formData, images } = req.body;
+    const { applicationType, formData, images, tpin } = req.body;
+    
+    const tpinResult = await verifyTpin(req.user, tpin);
+    if (!tpinResult.success) {
+      return res.status(401).json({ success: false, error: tpinResult.error });
+    }
 
     if (!applicationType || !formData) {
       return res.status(400).json({ success: false, error: 'Please provide all required fields' });

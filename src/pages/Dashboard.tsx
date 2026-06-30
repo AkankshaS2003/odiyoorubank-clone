@@ -21,6 +21,9 @@ import { SavingsHistory } from './SavingsHistory';
 import { PaymentModal } from '../components/PaymentModal';
 import { DepositApplicationModal } from '../components/DepositApplicationModal';
 import { RDInstallmentPayment } from './RD/RDInstallmentPayment';
+import { FundTransfers } from './FundTransfers';
+import { TpinSetupModal } from '../components/TpinSetupModal';
+import { KeyRound, Unlock, Lock } from 'lucide-react';
 
 interface DashboardProps {
   setCurrentTab: (tab: string) => void;
@@ -30,12 +33,14 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceiptData }) => {
   const { user, isAuthenticated, getUserServiceApplications } = useAuth();
   
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'account' | 'membership' | 'transactions' | 'loans' | 'deposits' | 'rd-installment'>('account');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'account' | 'membership' | 'transactions' | 'loans' | 'deposits' | 'rd-installment' | 'fund-transfers'>('account');
   const [serviceApps, setServiceApps] = useState<any[]>([]);
   const [showCard, setShowCard] = useState(false);
   const [savedReport, setSavedReport] = useState<any>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedDepositApp, setSelectedDepositApp] = useState<any>(null);
+  const [showTpinSetup, setShowTpinSetup] = useState(false);
+  const [isTpinChangeMode, setIsTpinChangeMode] = useState(false);
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -185,6 +190,80 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
               </div>
             )}
 
+            {user.membershipPaymentStatus === 'Pending' && user.accountNumber && (
+              <div className="bg-blue-50 border border-blue-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-6 mt-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                    <ShieldAlert className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-900 mb-1">Action Required: Membership Fee</h3>
+                    <p className="text-sm text-blue-700">Please pay your one-time membership fee to fully activate your cooperative bank membership.</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCurrentTab('membership-payment')}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition-colors shrink-0"
+                >
+                  Pay Membership Fee
+                </button>
+              </div>
+            )}
+
+            {/* Transaction PIN Security Section */}
+            <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm">
+              <h4 className="font-extrabold text-lg text-slate-900 flex items-center space-x-2 mb-6">
+                <KeyRound className="h-5 w-5 text-indigo-600" />
+                <span>Transaction PIN Security</span>
+              </h4>
+              
+              <div className={`p-5 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${user.tpinLocked ? 'bg-red-50 border-red-200' : (user.tpinActive ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200')}`}>
+                <div className="flex items-start gap-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${user.tpinLocked ? 'bg-red-100 text-red-600' : (user.tpinActive ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600')}`}>
+                    {user.tpinLocked ? <Lock className="w-6 h-6" /> : (user.tpinActive ? <ShieldAlert className="w-6 h-6" /> : <KeyRound className="w-6 h-6" />)}
+                  </div>
+                  <div>
+                    <h5 className={`font-bold text-lg ${user.tpinLocked ? 'text-red-900' : (user.tpinActive ? 'text-emerald-900' : 'text-amber-900')}`}>
+                      {user.tpinLocked ? 'Transaction PIN Locked' : (user.tpinActive ? 'Transaction PIN Active' : 'Transaction PIN Not Created')}
+                    </h5>
+                    <p className={`text-sm mt-1 max-w-md ${user.tpinLocked ? 'text-red-700' : (user.tpinActive ? 'text-emerald-700' : 'text-amber-700')}`}>
+                      {user.tpinLocked 
+                        ? 'Your TPIN has been locked due to multiple failed attempts. Please unlock it to resume transactions.'
+                        : (user.tpinActive 
+                            ? 'Your account is secured. You will need your 6-digit TPIN to authorize any financial transactions.' 
+                            : 'Before performing any financial transaction, you must create your 6-digit Transaction PIN.')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full md:w-auto">
+                  {!user.tpinActive && !user.tpinLocked && (
+                    <button
+                      onClick={() => { setIsTpinChangeMode(false); setShowTpinSetup(true); }}
+                      className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition-colors whitespace-nowrap"
+                    >
+                      Set Transaction PIN
+                    </button>
+                  )}
+                  {user.tpinActive && !user.tpinLocked && (
+                    <button
+                      onClick={() => { setIsTpinChangeMode(true); setShowTpinSetup(true); }}
+                      className="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold shadow-sm transition-colors whitespace-nowrap"
+                    >
+                      Change PIN
+                    </button>
+                  )}
+                  {user.tpinLocked && (
+                    <button
+                      onClick={() => { setIsTpinChangeMode(false); setShowTpinSetup(true); }}
+                      className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-2 rounded-xl font-bold shadow-md transition-colors whitespace-nowrap"
+                    >
+                      <Unlock className="w-4 h-4" /> Unlock PIN
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <SavingsSummaryCard setCurrentTab={setCurrentTab} />
           </div>
         );
@@ -218,6 +297,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Membership Application Pending</h3>
                   <p className="text-sm text-slate-500">Your membership application has been submitted and is currently pending admin approval. Please check back later.</p>
+                </div>
+              </div>
+            )}
+
+            {user.membershipStatus?.toLowerCase() === 'rejected' && (
+              <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col items-center">
+                <div className="w-full text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-rose-100 text-rose-600 rounded-full mb-4">
+                    <ShieldAlert className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Membership Application Rejected</h3>
+                  <p className="text-sm text-slate-500 mb-6">Unfortunately, your membership application was not approved by the admin. Please review your details and apply again.</p>
+                  <button
+                    onClick={() => setCurrentTab('membership')}
+                    className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-md transition-colors inline-block"
+                  >
+                    Apply Again
+                  </button>
                 </div>
               </div>
             )}
@@ -433,12 +530,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                           </span>
                         </td>
                         <td className="py-4 px-6 text-right">
-                          <button
-                            onClick={() => setSelectedDepositApp(app)}
-                            className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
-                          >
-                            View Application
-                          </button>
+                          {app.status === 'Approved' ? (
+                            <button
+                              onClick={() => setCurrentTab(app.applicationType === 'Fixed Deposit' ? `view-fd-details|${app._id}` : `view-rd-details|${app._id}`)}
+                              className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
+                            >
+                              View Details
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setSelectedDepositApp(app)}
+                              className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
+                            >
+                              View Application
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -451,6 +557,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
 
       case 'rd-installment':
         return <RDInstallmentPayment />;
+
+      case 'fund-transfers':
+        return <FundTransfers />;
     }
   };
 
@@ -461,6 +570,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
     { id: 'loans', label: 'Loan Applications', icon: Briefcase },
     { id: 'deposits', label: 'Deposits Section', icon: PiggyBank },
     { id: 'rd-installment', label: 'RD Installment Payment', icon: ArrowRightLeft },
+    { id: 'fund-transfers', label: 'Fund Transfers', icon: ArrowRightLeft },
   ];
 
   return (
@@ -504,10 +614,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
         </div>
       </div>
       
-      {showPaymentModal && <PaymentModal type="Initial Deposit" amount={500} onSuccess={() => {
-        setShowPaymentModal(false);
-        window.location.reload();
-      }} onClose={() => setShowPaymentModal(false)} />}
+      {showPaymentModal && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          purpose="Initial Deposit"
+          amount={500}
+        />
+      )}
+
+      <TpinSetupModal 
+        isOpen={showTpinSetup} 
+        onClose={() => setShowTpinSetup(false)} 
+        isChangeMode={isTpinChangeMode} 
+      />
       
       {selectedDepositApp && (
         <DepositApplicationModal 

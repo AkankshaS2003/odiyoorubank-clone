@@ -7,6 +7,7 @@ const AuditLog = require('../models/AuditLog');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer'); // Assuming standard nodemailer setup
 const sendEmail = require('../services/emailService');
+const { verifyTpin } = require('./tpinController');
 
 // Mock email sender if not configured in utils
 const sendNotification = async (email, subject, message) => {
@@ -37,7 +38,12 @@ const createAudit = async (action, userId, details) => {
 // 1. applyLoan
 exports.applyLoan = async (req, res, next) => {
   try {
-    const { loanType, amount, tenure, income, ...applicationDetails } = req.body;
+    const { loanType, amount, tenure, income, tpin, ...applicationDetails } = req.body;
+    
+    const tpinResult = await verifyTpin(req.user, tpin);
+    if (!tpinResult.success) {
+      return res.status(401).json({ success: false, message: tpinResult.error, error: tpinResult.error });
+    }
 
     const loan = await Loan.create({
       userId: req.user._id,
@@ -242,27 +248,25 @@ exports.adminDisburseLoan = async (req, res, next) => {
     const savingsAccount = await SavingsAccount.findOne({ userId: loan.userId._id });
     if (!savingsAccount) return res.status(400).json({ success: false, message: 'No linked Savings Account found' });
 
-    // Credit Amount
     const disburseAmount = loan.sanctionedAmount - (loan.processingFee || 0);
-    savingsAccount.balance += disburseAmount;
-    savingsAccount.totalDeposits = (savingsAccount.totalDeposits || 0) + disburseAmount;
-    await savingsAccount.save();
-
-    const user = loan.userId;
-    user.savingsBalance = savingsAccount.balance;
-    await user.save();
-
-    const refNum = 'DISB-' + crypto.randomBytes(4).toString('hex').toUpperCase();
     const loanAccNum = 'LN-' + Date.now().toString().slice(-6) + crypto.randomBytes(2).toString('hex').toUpperCase();
-    
-    // Create Transaction
-    const transaction = await Transaction.create({
-      userId: user._id,
+
+    const TransferService = require('../services/TransferService');
+    const transferResult = await TransferService.executeTransfer({
+      transferType: 'Loan Disbursement',
       amount: disburseAmount,
-      type: 'Loan Disbursement',
-      status: 'Completed',
-      description: `Disbursement for Loan ${loanAccNum}`
+      senderAccount: null, // From System
+      receiverAccount: savingsAccount.accountNumber,
+      userId: user._id,
+      paymentChannel: 'System',
+      remarks: `Disbursement for Loan ${loanAccNum}`
     });
+
+    const userObj = loan.userId;
+    userObj.savingsBalance = savingsAccount.balance + disburseAmount; // Since transfer service does this directly, we update locally for the user obj
+    await userObj.save();
+
+    const refNum = transferResult.referenceNumber;
 
     // 7. Activate EMI Schedule
     const emiRecords = [];

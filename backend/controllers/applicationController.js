@@ -9,7 +9,7 @@ const crypto = require('crypto');
 // @access  Private
 exports.submitApplication = async (req, res, next) => {
   try {
-    const { nameAsAadhar, addressAsAadhar, dob, aadharNumber, panNumber, accountType, aadharDocumentUrl, applicantPhotoBase64 } = req.body;
+    const { nameAsAadhar, permanentAddress, currentAddress, occupation, dob, aadharNumber, panNumber, accountType, aadharDocumentUrl, panDocumentUrl, applicantPhotoBase64, formData, images } = req.body;
 
     // Check if user already has a pending or approved application
     const existingApp = await AccountApplication.findOne({ userId: req.user.id, status: { $ne: 'Rejected' } });
@@ -42,13 +42,18 @@ exports.submitApplication = async (req, res, next) => {
     const application = await AccountApplication.create({
       userId: req.user.id,
       nameAsAadhar,
-      addressAsAadhar,
+      permanentAddress,
+      currentAddress,
+      occupation,
       dob,
       aadharNumber,
       panNumber,
       accountType,
       aadharDocumentUrl,
-      applicantPhotoBase64
+      panDocumentUrl,
+      applicantPhotoBase64,
+      formData,
+      images
     });
 
     res.status(201).json({ success: true, data: application });
@@ -100,7 +105,7 @@ exports.updateApplicationStatus = async (req, res, next) => {
       user.aadharNumber = application.aadharNumber;
       user.aadharUrl = application.aadharDocumentUrl;
       user.dob = application.dob;
-      user.address = application.addressAsAadhar;
+      user.address = application.permanentAddress;
       if (application.applicantPhotoBase64) {
         user.profileImageBase64 = application.applicantPhotoBase64;
       }
@@ -115,6 +120,15 @@ exports.updateApplicationStatus = async (req, res, next) => {
         accountType: application.accountType,
         accountNumber,
         branch: 'Main Branch'
+      });
+
+      const SavingsAccount = require('../models/SavingsAccount');
+      await SavingsAccount.create({
+        userId: user._id,
+        accountNumber,
+        balance: 0,
+        totalDeposits: 0,
+        totalWithdrawals: 0
       });
 
       // 3. Send Email

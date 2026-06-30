@@ -366,21 +366,35 @@ exports.adminApproveSettlement = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Invalid RD for settlement approval' });
     }
 
-    if (rd.settlementDetails.settlementMode === 'Transfer to Savings') {
-      const account = await Account.findById(rd.linkedSavingsAccount);
-      account.balance += rd.maturityAmount;
-      await account.save();
+    const TransferService = require('../services/TransferService');
+    const SavingsAccount = require('../models/SavingsAccount');
+    
+    // Find linked account or default to user's main savings account
+    let savingsAcc = null;
+    if (rd.linkedSavingsAccount) {
+      savingsAcc = await SavingsAccount.findById(rd.linkedSavingsAccount);
+    } 
+    if (!savingsAcc) {
+      savingsAcc = await SavingsAccount.findOne({ userId: rd.userId });
+    }
 
-      const transaction = await Transaction.create({
-        userId: rd.userId,
-        accountId: account._id,
+    if (!savingsAcc) {
+      return res.status(400).json({ success: false, message: 'No Savings Account found to transfer maturity amount' });
+    }
+
+    if (rd.settlementDetails.settlementMode === 'Transfer to Savings') {
+      const transferResult = await TransferService.executeTransfer({
+        transferType: 'RD Maturity Credit',
         amount: rd.maturityAmount,
-        type: 'RD Maturity Credit',
-        status: 'Completed'
+        senderAccount: null,
+        receiverAccount: savingsAcc.accountNumber,
+        userId: rd.userId,
+        paymentChannel: 'System',
+        remarks: `RD Maturity Settlement for ${rd.rdNumber}`
       });
 
       rd.status = 'Closed';
-      rd.settlementDetails.transactionRef = transaction._id;
+      rd.settlementDetails.transactionRef = transferResult.transactionId;
       rd.settlementDetails.processedBy = req.user.id;
       await rd.save();
       
@@ -398,7 +412,7 @@ exports.adminApproveSettlement = async (req, res, next) => {
       const newRD = await RecurringDeposit.create({
         rdNumber: newRdNumber,
         userId: rd.userId,
-        monthlyAmount: rd.monthlyAmount, // Could let user choose new amount
+        monthlyAmount: rd.monthlyAmount,
         tenureMonths: rd.tenureMonths,
         interestRate: rd.interestRate,
         linkedSavingsAccount: rd.linkedSavingsAccount,
@@ -408,12 +422,10 @@ exports.adminApproveSettlement = async (req, res, next) => {
         depositDate: new Date()
       });
       
-      // Calculate new maturity etc. logic similar to approve
       const maturityDate = new Date();
       maturityDate.setMonth(maturityDate.getMonth() + newRD.tenureMonths);
       newRD.maturityDate = maturityDate;
       
-      // Generate schedule
       const installments = [];
       for (let i = 1; i <= newRD.tenureMonths; i++) {
         const dueDate = new Date();
@@ -427,25 +439,21 @@ exports.adminApproveSettlement = async (req, res, next) => {
       }
       await RDInstallment.insertMany(installments);
       
-      // First installment considered paid via maturity amount? Actually maturity amount is usually larger.
-      // Usually "Renew RD" for RD implies moving maturity amount to Savings and starting a new RD. Let's do that for simplicity.
-      const account = await Account.findById(rd.linkedSavingsAccount);
-      account.balance += rd.maturityAmount;
-      await account.save();
-      
-      const transaction = await Transaction.create({
-        userId: rd.userId,
-        accountId: account._id,
+      const transferResult = await TransferService.executeTransfer({
+        transferType: 'RD Maturity Credit',
         amount: rd.maturityAmount,
-        type: 'RD Maturity Credit',
-        status: 'Completed'
+        senderAccount: null,
+        receiverAccount: savingsAcc.accountNumber,
+        userId: rd.userId,
+        paymentChannel: 'System',
+        remarks: `RD Maturity (Renewed) Settlement for ${rd.rdNumber}`
       });
       
-      newRD.totalDeposited = 0; // Fresh RD
+      newRD.totalDeposited = 0;
       await newRD.save();
 
       rd.status = 'Renewed';
-      rd.settlementDetails.transactionRef = transaction._id;
+      rd.settlementDetails.transactionRef = transferResult.transactionId;
       rd.settlementDetails.processedBy = req.user.id;
       await rd.save();
     }

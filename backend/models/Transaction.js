@@ -23,8 +23,29 @@ const TransactionSchema = new mongoose.Schema({
   razorpayPaymentId: String,
   status: {
     type: String,
-    enum: ['Pending', 'Completed', 'Failed'],
+    enum: ['Pending', 'Completed', 'Failed', 'Processing'],
     default: 'Pending'
+  },
+  referenceNumber: {
+    type: String
+  },
+  senderAccount: {
+    type: String
+  },
+  receiverAccount: {
+    type: String
+  },
+  paymentChannel: {
+    type: String,
+    enum: ['Internal', 'NEFT', 'IMPS', 'RTGS', 'System'],
+    default: 'System'
+  },
+  charges: {
+    type: Number,
+    default: 0
+  },
+  remarks: {
+    type: String
   },
   createdAt: {
     type: Date,

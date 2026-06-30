@@ -50,6 +50,15 @@ const UserSchema = new mongoose.Schema({
   address: String,
   dob: String,
 
+  // Membership Details
+  membershipPaymentStatus: {
+    type: String,
+    enum: ['Pending', 'Paid'],
+    default: 'Pending'
+  },
+  membershipPaymentDate: Date,
+  membershipPaymentRef: String,
+
   // New fields for real-world banking flow
   customerId: {
     type: String,
@@ -60,6 +69,28 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  
+  // TPIN Fields
+  tpinHash: {
+    type: String,
+    select: false
+  },
+  tpinActive: {
+    type: Boolean,
+    default: false
+  },
+  tpinLocked: {
+    type: Boolean,
+    default: false
+  },
+  failedTpinAttempts: {
+    type: Number,
+    default: 0
+  },
+  tpinCreatedAt: Date,
+  tpinUpdatedAt: Date,
+  tpinLastFailed: Date,
+
   panNumber: String,
   aadharNumber: String,
   aadharUrl: String,
@@ -123,6 +154,7 @@ UserSchema.pre('save', async function () {
 
 // Match user entered password to hashed password in database
 UserSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password || !enteredPassword) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

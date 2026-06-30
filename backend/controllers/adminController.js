@@ -12,6 +12,7 @@ const { getEmbedding } = require('../services/embeddingService');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 const nodemailer = require('nodemailer');
+const Transaction = require('../models/Transaction');
 
 // @desc    Get dashboard stats
 // @route   GET /api/admin/stats
@@ -531,7 +532,12 @@ const updateMembershipStatus = async (req, res, next) => {
     if (status === 'approved') {
       const user = await User.findById(req.params.id);
       if (!user.memberId) {
-        updateData.memberId = `ODI-M-${Math.floor(10000 + Math.random() * 90000)}`;
+        if (user.customerId) {
+          const custNum = user.customerId.replace('CUST', '');
+          updateData.memberId = `ODI-M-${custNum}-${Math.floor(100 + Math.random() * 900)}`;
+        } else {
+          updateData.memberId = `ODI-M-${Math.floor(10000 + Math.random() * 90000)}`;
+        }
       }
     }
 
@@ -577,6 +583,12 @@ const getCustomerByCustId = async (req, res, next) => {
     }
 
     const loans = await Loan.find({ userId });
+    
+    let loanEmis = [];
+    if (mongoose.models.LoanEMI) {
+      loanEmis = await mongoose.model('LoanEMI').find({ userId }).sort({ dueDate: 1 });
+    }
+    
     const serviceApplications = await ServiceApplication.find({ userId });
 
     // 3. Assemble 360-degree profile
@@ -587,10 +599,40 @@ const getCustomerByCustId = async (req, res, next) => {
       fixedDeposits,
       recurringDeposits,
       loans,
+      loanEmis,
       serviceApplications
     };
 
     res.status(200).json({ success: true, data: customerProfile });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all transfers
+// @route   GET /api/admin/transfers
+// @access  Private/Admin
+const getAllTransfers = async (req, res, next) => {
+  try {
+    const transfers = await Transaction.find()
+      .populate('userId', 'fullName email customerId')
+      .sort('-createdAt');
+    res.status(200).json({ success: true, count: transfers.length, data: transfers });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get ledger entries
+// @route   GET /api/admin/ledger
+// @access  Private/Admin
+const getLedgerEntries = async (req, res, next) => {
+  try {
+    const LedgerEntry = require('../models/LedgerEntry');
+    const entries = await LedgerEntry.find()
+      .populate('transactionId')
+      .sort('-createdAt');
+    res.status(200).json({ success: true, count: entries.length, data: entries });
   } catch (error) {
     next(error);
   }
@@ -614,6 +656,8 @@ module.exports = {
   replyToMessage,
   getMemberships,
   updateMembershipStatus,
-  getCustomerByCustId
+  getCustomerByCustId,
+  getAllTransfers,
+  getLedgerEntries
 };
 

@@ -1,19 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Printer, Download, CheckCircle, ShieldCheck, FileText, DownloadCloud, Landmark, User, FileImage, CreditCard } from 'lucide-react';
+import { Printer, Download, CheckCircle, ShieldCheck, FileText, ArrowLeft, Building2, User, Landmark } from 'lucide-react';
+import api from '../services/api';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurrentTab: (tab: string) => void }) => {
-  const { getUserServiceApplications, systemSettings, user } = useAuth();
-  const [fdData, setFdData] = useState<any>(null);
+  const { user: authUser } = useAuth();
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const certificateRef = useRef<HTMLDivElement>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchApp = async () => {
+    const fetchFD = async () => {
       try {
-        const apps = await getUserServiceApplications();
-        const found = apps.find(a => a._id === appId);
-        if (found) {
-          setFdData(found);
+        const res = await api.get(`/fd/${appId}`);
+        if (res.data.success) {
+          setData(res.data.data);
         }
       } catch (err) {
         console.error(err);
@@ -21,340 +25,407 @@ export const FDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
         setLoading(false);
       }
     };
-    fetchApp();
-  }, [appId, getUserServiceApplications]);
+    fetchFD();
+  }, [appId]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!pdfRef.current) return;
+    const element = pdfRef.current;
+    
+    // Make visible temporarily for capture
+    element.classList.remove('hidden');
+    
+    try {
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`FD_Certificate_${data?.fd?.fdNumber || 'Doc'}.pdf`);
+    } catch (err) {
+      console.error('Failed to generate PDF', err);
+      alert('Failed to generate PDF');
+    } finally {
+      element.classList.add('hidden');
+    }
+  };
 
   if (loading) {
     return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-[#0F4C81]">Loading FD Details...</div>;
   }
 
-  if (!fdData) {
-    return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <h2 className="text-xl font-bold text-slate-800 mb-4">FD Account not found</h2>
-      <button onClick={() => setCurrentTab('dashboard')} className="px-6 py-2 bg-[#0F4C81] text-white rounded-lg">Return to Dashboard</button>
-    </div>;
+  if (!data || !data.fd) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <h2 className="text-xl font-bold text-slate-800 mb-4">Fixed Deposit not found</h2>
+        <button onClick={() => setCurrentTab('my_fds')} className="px-6 py-2 bg-[#0F4C81] text-white rounded-lg">Return to FDs</button>
+      </div>
+    );
   }
 
-  // Simulated Computations
-  const fdAccountNumber = `FD-${fdData._id.substring(0, 8).toUpperCase()}`;
-  const transactionRef = `TXN${Math.floor(100000000 + Math.random() * 900000000)}`;
-  const receiptNumber = `RCPT-${Math.floor(100000 + Math.random() * 900000)}`;
-  const employeeId = `EMP${Math.floor(1000 + Math.random() * 9000)}`;
-  
-  const principalAmount = Number(fdData.formData?.amount) || 0;
-  const depositPeriod = Number(fdData.formData?.depositPeriod) || 12; // assuming months
-  
-  // Base logic for rates
-  const interestRate = systemSettings?.fdRate || 8.50;
+  const fd = data.fd;
+  const user = data.user;
+  const application = fd.applicationId || {};
+  const formData = application.formData || {};
+  const signature = application.images?.signature || null;
+  const transactions = data.transactions || [];
+  const mainTxn = transactions[0] || {};
 
-  const startDateStr = new Date(fdData.submittedAt).toLocaleDateString();
-  const maturityDateObj = new Date(fdData.submittedAt);
-  maturityDateObj.setMonth(maturityDateObj.getMonth() + depositPeriod);
-  const maturityDateStr = maturityDateObj.toLocaleDateString();
-
-  // Simple maturity calculation (compound interest annually, approximated for months)
-  const ratePerPeriod = interestRate / 100;
-  const maturityAmount = Math.round(principalAmount * Math.pow((1 + ratePerPeriod), depositPeriod / 12));
-  const interestEarned = maturityAmount - principalAmount;
-
-  // Today progress
-  const today = new Date();
-  const start = new Date(fdData.submittedAt);
-  const totalDays = Math.ceil((maturityDateObj.getTime() - start.getTime()) / (1000 * 3600 * 24));
-  const daysPassed = Math.max(0, Math.ceil((today.getTime() - start.getTime()) / (1000 * 3600 * 24)));
-  const remainingDays = Math.max(0, totalDays - daysPassed);
-  
-  const interestEarnedTillDate = Math.round((interestEarned * daysPassed) / totalDays) || 0;
-
-  const SectionTitle = ({ title, icon: Icon }: any) => (
-    <h3 className="text-xs font-black text-white bg-[#0F4C81] px-4 py-2 inline-flex items-center gap-2 rounded-t-lg mt-6 mb-0 uppercase tracking-wider print:text-[#0F4C81] print:bg-transparent print:border-b-2 print:border-[#0F4C81] w-full border-b-2 border-[#0F4C81]">
-      <Icon className="w-4 h-4 print:hidden" /> {title}
-    </h3>
-  );
-
-  const InfoRow = ({ label, value }: { label: string, value: any }) => (
-    <div className="flex flex-col sm:flex-row justify-between py-2.5 border-b border-slate-100 last:border-0">
-      <span className="text-xs font-bold text-slate-500 uppercase">{label}</span>
-      <span className="text-sm font-bold text-[#0F4C81] text-right">{value || 'N/A'}</span>
+  const LabelValue = ({ label, value }: { label: string, value: string | React.ReactNode }) => (
+    <div className="flex flex-col">
+      <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">{label}</span>
+      <span className="text-sm font-semibold text-slate-900 break-words">{value || 'N/A'}</span>
     </div>
   );
 
   return (
-    <div className="bg-slate-50 min-h-screen py-8 print:py-0 print:bg-white text-slate-800">
-      <div className="max-w-[850px] mx-auto px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none">
+    <div className="pb-24 pt-6 max-w-6xl mx-auto px-4 print:p-0 print:m-0 print:max-w-full">
+      {/* Action Buttons & Header (Hidden in Print) */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 print:hidden">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <button 
+            onClick={() => setCurrentTab('my_fds')} 
+            className="p-2 bg-white border border-slate-200 text-slate-500 rounded-full hover:bg-slate-50"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">FD Details</h1>
+            <p className="text-sm font-medium text-slate-500">{fd.fdNumber}</p>
+          </div>
+        </div>
         
-        {/* Controls */}
-        <div className="flex justify-between items-center mb-6 print:hidden">
-          <button onClick={() => setCurrentTab('dashboard')} className="text-sm font-bold text-slate-500 hover:text-[#0F4C81]">← Back to Dashboard</button>
-          <div className="flex gap-3">
-            <button onClick={() => window.print()} className="flex items-center gap-2 px-5 py-2.5 bg-white text-[#0F4C81] border border-[#0F4C81] rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm">
-              <Printer className="w-4 h-4" /> Print Details
+        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+          <button 
+            onClick={handlePrint}
+            className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold shadow-sm flex items-center justify-center gap-2"
+          >
+            <Printer className="w-4 h-4" /> Print
+          </button>
+          {fd.status === 'Active' && (
+            <button 
+              onClick={handleDownloadPdf}
+              className="flex-1 md:flex-none px-6 py-3 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-xl font-bold shadow-sm flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" /> Download PDF
             </button>
-            <button onClick={() => window.print()} className="flex items-center gap-2 px-5 py-2.5 bg-[#0F4C81] text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-colors shadow-lg shadow-[#0F4C81]/20">
-              <DownloadCloud className="w-4 h-4" /> Download Certificate
-            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-8 print:space-y-4">
+        
+        {/* SECTION 1: COMPLETE APPLICATION DETAILS */}
+        <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 print:rounded-none print:border-none print:shadow-none print:p-0">
+          <h2 className="text-lg font-black text-[#0F4C81] uppercase tracking-wider mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+            <User className="w-5 h-5" /> Complete FD Application Details
+          </h2>
+          
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 mb-4 bg-slate-50 p-2 rounded-lg inline-block px-4">Customer Information</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-2">
+                <LabelValue label="Customer ID" value={user.customerId} />
+                <LabelValue label="Customer Name" value={user.fullName} />
+                <LabelValue label="CIF Number" value={user.customerId} />
+                <LabelValue label="Branch Name" value="Main Branch" />
+                <LabelValue label="Account Status" value={user.kycStatus === 'Verified' ? 'Active' : 'Pending KYC'} />
+                <LabelValue label="Application No" value={application._id ? application._id.toString().substring(0, 10).toUpperCase() : 'N/A'} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 mb-4 bg-slate-50 p-2 rounded-lg inline-block px-4">Personal Information</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-2">
+                <LabelValue label="Full Name" value={formData.fullName} />
+                <LabelValue label="Father/Husband Name" value={formData.fatherHusbandName} />
+                <LabelValue label="Date of Birth" value={formData.dob} />
+                <LabelValue label="Gender" value={formData.gender} />
+                <LabelValue label="Marital Status" value={formData.maritalStatus} />
+                <LabelValue label="Nationality" value={formData.nationality} />
+                <LabelValue label="Aadhaar Number" value={formData.aadhaar} />
+                <LabelValue label="PAN Number" value={formData.pan} />
+                <LabelValue label="Mobile Number" value={formData.mobile} />
+                <LabelValue label="Email Address" value={formData.email} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 mb-4 bg-slate-50 p-2 rounded-lg inline-block px-4">Address Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-2">
+                <LabelValue label="Address Line 1" value={formData.address1} />
+                <LabelValue label="Address Line 2" value={formData.address2} />
+                <LabelValue label="Village/City" value={formData.villageCity} />
+                <LabelValue label="Taluk" value={formData.taluk} />
+                <LabelValue label="District" value={formData.district} />
+                <LabelValue label="State" value={formData.state} />
+                <LabelValue label="PIN Code" value={formData.pinCode} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 mb-4 bg-slate-50 p-2 rounded-lg inline-block px-4">Occupation Details</h3>
+                <div className="grid grid-cols-2 gap-6 px-2">
+                  <LabelValue label="Occupation" value={formData.occupation} />
+                  <LabelValue label="Employer Name" value={formData.employerName} />
+                  <LabelValue label="Monthly Income" value={formData.monthlyIncome} />
+                  <LabelValue label="Annual Income" value={formData.annualIncome} />
+                  <LabelValue label="Source of Income" value={formData.sourceOfIncome} />
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 mb-4 bg-slate-50 p-2 rounded-lg inline-block px-4">Nominee Details</h3>
+                <div className="grid grid-cols-2 gap-6 px-2">
+                  <LabelValue label="Nominee Name" value={fd.nomineeDetails?.name || formData.nomineeName} />
+                  <LabelValue label="Relationship" value={fd.nomineeDetails?.relation || formData.nomineeRelationship} />
+                  <LabelValue label="Date of Birth" value={formData.nomineeDob} />
+                  <LabelValue label="Mobile Number" value={formData.nomineeMobile} />
+                  <LabelValue label="Address" value={formData.nomineeAddress} />
+                  <LabelValue label="Nominee Percentage" value={formData.nomineePercentage ? `${formData.nomineePercentage}%` : '100%'} />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 mb-4 bg-slate-50 p-2 rounded-lg inline-block px-4">KYC Information</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6 px-2">
+                <LabelValue label="Aadhaar Verification" value={user.isKycVerified ? 'Verified' : 'Pending'} />
+                <LabelValue label="PAN Verification" value={user.isKycVerified ? 'Verified' : 'Pending'} />
+                <LabelValue label="Face Verification" value={user.isKycVerified ? 'Verified' : 'Pending'} />
+                <LabelValue label="KYC Status" value={user.kycStatus} />
+                <LabelValue label="Verification Date" value={user.isKycVerified ? new Date(application.processedAt || fd.depositDate).toLocaleDateString() : 'N/A'} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 2 & 3: FD & TRANSACTION DETAILS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:block print:space-y-4">
+          <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 print:rounded-none print:border-none print:shadow-none print:p-0">
+            <h2 className="text-lg font-black text-[#0F4C81] uppercase tracking-wider mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+              <Landmark className="w-5 h-5" /> Fixed Deposit Details
+            </h2>
+            <div className="grid grid-cols-2 gap-6">
+              <LabelValue label="FD Account Number" value={fd.fdNumber} />
+              <LabelValue label="Deposit Amount" value={`₹${fd.principalAmount?.toLocaleString('en-IN')}`} />
+              <LabelValue label="Deposit Date" value={new Date(fd.depositDate).toLocaleDateString()} />
+              <LabelValue label="Interest Rate" value={`${fd.interestRate}% p.a.`} />
+              <LabelValue label="Interest Type" value={fd.compoundingFrequency || 'Quarterly'} />
+              <LabelValue label="Tenure" value={`${fd.tenureMonths} Months`} />
+              <LabelValue label="Maturity Date" value={new Date(fd.maturityDate).toLocaleDateString()} />
+              <LabelValue label="Maturity Amount" value={`₹${fd.maturityAmount?.toLocaleString('en-IN')}`} />
+              <LabelValue label="Interest Earned" value={`₹${fd.interestEarned?.toLocaleString('en-IN')}`} />
+              <LabelValue label="Auto Renewal" value={fd.autoRenewal ? 'Yes' : 'No'} />
+              <LabelValue label="Maturity Instruction" value={formData.interestPayout || 'Credit to Account'} />
+              <LabelValue label="FD Status" value={fd.status} />
+            </div>
+          </section>
+
+          <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 print:rounded-none print:border-none print:shadow-none print:p-0">
+            <h2 className="text-lg font-black text-[#0F4C81] uppercase tracking-wider mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+              <FileText className="w-5 h-5" /> Transaction Details
+            </h2>
+            <div className="grid grid-cols-2 gap-6">
+              <LabelValue label="Transaction ID" value={mainTxn.referenceNumber || 'N/A'} />
+              <LabelValue label="Reference Number" value={fd.fdNumber} />
+              <LabelValue label="Payment Date" value={mainTxn.date ? new Date(mainTxn.date).toLocaleDateString() : new Date(fd.depositDate).toLocaleDateString()} />
+              <LabelValue label="Payment Time" value={mainTxn.date ? new Date(mainTxn.date).toLocaleTimeString() : new Date(fd.depositDate).toLocaleTimeString()} />
+              <LabelValue label="Amount Debited" value={`₹${fd.principalAmount?.toLocaleString('en-IN')}`} />
+              <LabelValue label="Transaction Status" value={mainTxn.status || 'Completed'} />
+            </div>
+            
+            <div className="mt-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-3">
+              <CheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-emerald-900">Application Approved</p>
+                <p className="text-xs text-emerald-700">Processed by Automated Banking System on {new Date(application.processedAt || fd.depositDate).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* SECTION 4: OFFICIAL CERTIFICATE */}
+        {fd.status === 'Active' && (
+          <section className="bg-white rounded-3xl p-6 md:p-12 shadow-sm border border-slate-200 mt-8 relative overflow-hidden print:p-0 print:border-none print:shadow-none">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#0F4C81]/5 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none"></div>
+            
+            <div ref={certificateRef} className="relative z-10">
+              <div className="flex flex-col md:flex-row items-center justify-between border-b-2 border-[#0F4C81] pb-6 mb-8 gap-4 text-center md:text-left">
+                <div className="flex items-center gap-4">
+                  <img src="/logo-bg.png" alt="Odiyooru Souharda" className="w-20 h-20 object-contain" />
+                  <div>
+                    <h1 className="text-2xl font-black text-[#0F4C81] uppercase tracking-tight">Odiyooru Souharda</h1>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Cooperative Society Ltd</p>
+                  </div>
+                </div>
+                <div className="text-center md:text-right">
+                  <h2 className="text-xl font-bold text-slate-800 uppercase tracking-widest">Fixed Deposit Certificate</h2>
+                  <p className="text-sm font-bold text-slate-500 mt-1">CERTIFICATE NO: <span className="text-slate-800">{fd.fdNumber}</span></p>
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <p className="text-sm leading-relaxed text-slate-700 font-medium text-justify">
+                  This is to certify that the below-mentioned customer has invested the specified amount under the Fixed Deposit Scheme of Odiyooru Souharda Cooperative Society Ltd. The deposit shall earn interest according to the applicable rate and shall mature on the maturity date mentioned below.
+                </p>
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden mb-12">
+                <table className="w-full text-left border-collapse">
+                  <tbody>
+                    {[
+                      ['Certificate Number', fd.fdNumber, 'Deposit Date', new Date(fd.depositDate).toLocaleDateString()],
+                      ['Customer Name', user.fullName, 'Interest Rate', `${fd.interestRate}% p.a.`],
+                      ['Customer ID', user.customerId, 'Interest Type', fd.compoundingFrequency || 'Quarterly'],
+                      ['FD Account Number', fd.fdNumber, 'Tenure', `${fd.tenureMonths} Months`],
+                      ['Savings Account', formData.savingsAccount || 'Linked', 'Maturity Date', new Date(fd.maturityDate).toLocaleDateString()],
+                      ['Deposit Amount', `₹${fd.principalAmount?.toLocaleString('en-IN')}`, 'Maturity Amount', `₹${fd.maturityAmount?.toLocaleString('en-IN')}`],
+                      ['Nominee Name', fd.nomineeDetails?.name || formData.nomineeName || 'N/A', 'Maturity Instr.', formData.interestPayout || 'Credit to Account'],
+                      ['Branch Name', 'Main Branch', 'Issue Date', new Date(fd.depositDate).toLocaleDateString()]
+                    ].map((row, i) => (
+                      <tr key={i} className="border-b border-slate-100 last:border-0">
+                        <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase bg-white/50 w-1/4">{row[0]}</th>
+                        <td className="py-3 px-4 text-sm font-bold text-slate-900 w-1/4 border-r border-slate-100">{row[1]}</td>
+                        <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase bg-white/50 w-1/4">{row[2]}</th>
+                        <td className="py-3 px-4 text-sm font-bold text-slate-900 w-1/4">{row[3]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Signatures */}
+              <div className="flex justify-between items-end mt-16 pt-8 border-t border-slate-100">
+                <div className="text-center w-48">
+                  {signature ? (
+                    <img src={signature} alt="Customer Signature" className="h-12 object-contain mx-auto mb-2" />
+                  ) : (
+                    <div className="h-12 border-b border-dashed border-slate-300 mb-2"></div>
+                  )}
+                  <p className="text-xs font-bold text-slate-800 uppercase border-t border-slate-200 pt-2">Customer Signature</p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-24 h-24 rounded-full border-2 border-indigo-200 flex items-center justify-center opacity-30 mx-auto mb-2 relative">
+                    <div className="absolute inset-2 border-2 border-dashed border-indigo-200 rounded-full flex items-center justify-center text-[8px] font-bold text-indigo-800 rotate-[-15deg] uppercase text-center leading-tight">
+                      Odiyooru<br/>Souharda<br/>Seal
+                    </div>
+                  </div>
+                  <p className="text-xs font-bold text-slate-800 uppercase pt-2">Official Bank Seal</p>
+                </div>
+
+                <div className="text-center w-48">
+                  <div className="h-12 flex items-end justify-center mb-2">
+                    <span className="font-['Brush_Script_MT',cursive] text-2xl text-blue-900">System Approved</span>
+                  </div>
+                  <p className="text-xs font-bold text-slate-800 uppercase border-t border-slate-200 pt-2">Authorized Signatory</p>
+                </div>
+              </div>
+
+              <div className="mt-8 text-center">
+                <p className="text-[10px] text-slate-400 font-medium italic">
+                  This certificate is computer generated and is issued subject to the rules and regulations of Odiyooru Souharda Cooperative Society Ltd.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+
+      {/* Hidden PDF Clone Element (Used by html2canvas so it renders perfectly without UI scrollbars) */}
+      <div ref={pdfRef} className="hidden w-[800px] p-8 bg-white" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <div className="text-center mb-8 border-b-4 border-[#0F4C81] pb-6">
+           <img src="/logo-bg.png" alt="Logo" className="h-20 mx-auto mb-4" />
+           <h1 className="text-3xl font-black text-[#0F4C81] uppercase tracking-tighter">Odiyooru Souharda</h1>
+           <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mt-1">Cooperative Society Ltd</p>
+           <h2 className="text-xl font-bold text-slate-800 uppercase tracking-widest mt-6">Fixed Deposit Certificate</h2>
+        </div>
+        
+        <div className="mb-6">
+          <p className="text-sm leading-relaxed text-slate-800 font-medium text-justify">
+            This is to certify that the below-mentioned customer has invested the specified amount under the Fixed Deposit Scheme of Odiyooru Souharda Cooperative Society Ltd. The deposit shall earn interest according to the applicable rate and shall mature on the maturity date mentioned below.
+          </p>
+        </div>
+
+        <div className="bg-slate-50 border border-slate-300 rounded-lg overflow-hidden mb-8">
+          <table className="w-full text-left border-collapse">
+            <tbody>
+              {[
+                ['Certificate Number', fd?.fdNumber, 'Deposit Date', fd?.depositDate ? new Date(fd.depositDate).toLocaleDateString() : ''],
+                ['Customer Name', user?.fullName, 'Interest Rate', `${fd?.interestRate}% p.a.`],
+                ['Customer ID', user?.customerId, 'Interest Type', fd?.compoundingFrequency || 'Quarterly'],
+                ['FD Account Number', fd?.fdNumber, 'Tenure', `${fd?.tenureMonths} Months`],
+                ['Savings Account', formData?.savingsAccount || 'Linked', 'Maturity Date', fd?.maturityDate ? new Date(fd.maturityDate).toLocaleDateString() : ''],
+                ['Deposit Amount', `Rs. ${fd?.principalAmount?.toLocaleString('en-IN')}`, 'Maturity Amount', `Rs. ${fd?.maturityAmount?.toLocaleString('en-IN')}`],
+                ['Nominee Name', fd?.nomineeDetails?.name || formData?.nomineeName || 'N/A', 'Maturity Instr.', formData?.interestPayout || 'Credit to Account'],
+                ['Branch Name', 'Main Branch', 'Issue Date', fd?.depositDate ? new Date(fd.depositDate).toLocaleDateString() : '']
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-slate-200 last:border-0">
+                  <th className="py-2 px-3 text-xs font-bold text-slate-600 bg-slate-100 w-1/4 border-r border-slate-200">{row[0]}</th>
+                  <td className="py-2 px-3 text-sm font-bold text-slate-900 w-1/4 border-r border-slate-200">{row[1]}</td>
+                  <th className="py-2 px-3 text-xs font-bold text-slate-600 bg-slate-100 w-1/4 border-r border-slate-200">{row[2]}</th>
+                  <td className="py-2 px-3 text-sm font-bold text-slate-900 w-1/4">{row[3]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mb-8">
+          <h3 className="text-sm font-bold text-slate-800 bg-slate-100 p-2 border border-slate-300 rounded-t-lg">Personal Details</h3>
+          <div className="border border-t-0 border-slate-300 rounded-b-lg p-4 grid grid-cols-2 gap-4">
+            <div className="text-xs"><span className="font-bold text-slate-600">Father/Husband Name:</span> {formData?.fatherHusbandName || 'N/A'}</div>
+            <div className="text-xs"><span className="font-bold text-slate-600">Date of Birth:</span> {formData?.dob || 'N/A'}</div>
+            <div className="text-xs"><span className="font-bold text-slate-600">Aadhaar Number:</span> {formData?.aadhaar || 'N/A'}</div>
+            <div className="text-xs"><span className="font-bold text-slate-600">PAN Number:</span> {formData?.pan || 'N/A'}</div>
+            <div className="text-xs"><span className="font-bold text-slate-600">Address:</span> {formData?.address1}, {formData?.villageCity}, {formData?.state} - {formData?.pinCode}</div>
+            <div className="text-xs"><span className="font-bold text-slate-600">Occupation:</span> {formData?.occupation || 'N/A'}</div>
           </div>
         </div>
 
-        {/* Paper Document Container */}
-        <div className="bg-white p-8 md:p-12 shadow-2xl shadow-slate-200 border border-slate-100 rounded-3xl print:rounded-none print:shadow-none print:border-none print:p-2">
-          
-                                                            {/* HEADER SECTION */}
-          <div className="bg-[#ED7F1E] rounded-t-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 -mt-8 md:-mt-12 -mx-8 md:-mx-12 print:m-0 print:p-4 print:rounded-none gap-4 md:gap-0">
-            <div className="flex-grow flex items-center justify-center md:justify-start space-x-4 md:space-x-6 mx-auto md:mx-0 w-full md:w-auto">
-              <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain shrink-0" />
-              <div className="text-white leading-tight text-left">
-                <span className="text-xl md:text-3xl font-black tracking-tight uppercase block leading-none font-heading">
-                  Odiyooru Souharda
-                </span>
-                <span className="text-sm md:text-lg font-bold uppercase tracking-widest leading-none block mt-1 md:mt-2">
-                  Cooperative Society Ltd
-                </span>
-                <span className="text-[10px] md:text-xs font-bold block mt-1 md:mt-2 font-mono leading-none text-white/90">
-                  DRP:S.9:88:RGN:520:2010-11
-                </span>
-              </div>
-            </div>
-            
-            <div className="text-white text-[10px] md:text-xs font-bold w-full md:w-auto shrink-0 mt-4 md:mt-0">
-              <table className="ml-auto">
-                <tbody>
-                  <tr>
-                    <td className="text-right pr-3 opacity-90 pb-2">Branch:</td>
-                    <td className="text-left pb-2">
-                      <input type="text" value="Main Branch" readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors opacity-90" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="text-right pr-3 opacity-90 pb-2">Customer ID:</td>
-                    <td className="text-left pb-2">
-                      <input 
-                        type="text" 
-                        value={fdData.formData?.app1MemberNo || 'CUST-XXXX'} 
-                        readOnly
-                        className="w-32 bg-white/20 rounded px-2 py-1 outline-none text-center text-white border border-white/10 placeholder-white/60 font-bold tracking-wide transition-colors focus:bg-white/30" 
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="text-right pr-3 opacity-90">Application No:</td>
-                    <td className="text-left">
-                      <input type="text" value={fdData.formData?.applicationNo || '— — — —'} readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors tracking-widest font-bold" />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <div className="flex justify-between items-end mt-24 pt-8">
+          <div className="text-center w-48">
+            {signature ? (
+              <img src={signature} alt="Customer Signature" className="h-12 object-contain mx-auto mb-2" />
+            ) : (
+              <div className="h-12 border-b border-dashed border-slate-400 mb-2"></div>
+            )}
+            <p className="text-xs font-bold text-slate-800 uppercase border-t border-slate-400 pt-2">Customer Signature</p>
           </div>
-
-          {/* FD SUMMARY CARD */}
-          <div className="bg-[#EAF6FF] rounded-2xl p-6 border border-blue-100 mb-8 print:border-slate-300 print:bg-transparent">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">FD Account Number</p>
-                <p className="text-lg font-black text-[#0F4C81]">{fdAccountNumber}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Application No</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{fdData.formData?.applicationNo || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Customer ID</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{fdData.formData?.app1MemberNo || 'CUST-XXXX'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Deposit Date</p>
-                <p className="text-sm font-bold text-slate-800 mt-1">{startDateStr}</p>
+          <div className="text-center">
+            <div className="w-24 h-24 rounded-full border-2 border-indigo-200 flex items-center justify-center opacity-30 mx-auto mb-2 relative">
+              <div className="absolute inset-2 border-2 border-dashed border-indigo-200 rounded-full flex items-center justify-center text-[8px] font-bold text-indigo-800 rotate-[-15deg] uppercase text-center leading-tight">
+                Odiyooru<br/>Souharda<br/>Seal
               </div>
             </div>
+            <p className="text-xs font-bold text-slate-800 uppercase pt-2">Official Bank Seal</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* DEPOSITOR DETAILS */}
-            <div>
-              <SectionTitle title="Depositor Details" icon={User} />
-              <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1">
-                <InfoRow label="Full Name" value={fdData.formData?.app1Name} />
-                <InfoRow label="Mobile Number" value={fdData.formData?.app1Mobile} />
-                <InfoRow label="Aadhaar Number" value={(fdData.formData?.app1Aadhaar || user?.aadharNumber) ? 'XXXX XXXX ' + String(fdData.formData?.app1Aadhaar || user?.aadharNumber).slice(-4) : 'XXXX XXXX 1234'} />
-                <InfoRow label="PAN Number" value={(fdData.formData?.app1Pan || user?.panNumber) ? 'XXXXXX' + String(fdData.formData?.app1Pan || user?.panNumber).slice(-4) : 'XXXXXX1234'} />
-                <InfoRow label="Address" value={fdData.formData?.app1Address} />
-              </div>
+          <div className="text-center w-48">
+            <div className="h-12 flex items-end justify-center mb-2">
+              <span className="font-['Brush_Script_MT',cursive] text-2xl text-blue-900">System Approved</span>
             </div>
-
-            {/* FD DETAILS */}
-            <div>
-              <SectionTitle title="Deposit Information" icon={FileText} />
-              <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1 bg-slate-50/50">
-                <InfoRow label="Deposit Type" value={fdData.applicationType} />
-                <InfoRow label="Principal Amount" value={`₹${principalAmount.toLocaleString('en-IN')}`} />
-                <InfoRow label="Interest Rate" value={`${interestRate}% p.a.`} />
-                <InfoRow label="Tenure" value={`${depositPeriod} Months`} />
-                <InfoRow label="Maturity Date" value={maturityDateStr} />
-                <InfoRow label="Maturity Amount" value={`₹${maturityAmount.toLocaleString('en-IN')}`} />
-              </div>
-            </div>
-
-            {/* NOMINEE DETAILS */}
-            <div>
-              <SectionTitle title="Nominee Details" icon={ShieldCheck} />
-              <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1">
-                <InfoRow label="Nominee Name" value={fdData.formData?.nomineeName} />
-                <InfoRow label="Relationship" value={fdData.formData?.nomineeRelationship} />
-                <InfoRow label="Date of Birth" value={fdData.formData?.minorDob || 'Not Specified'} />
-                <InfoRow label="Address" value={fdData.formData?.nomineeAddress} />
-              </div>
-            </div>
-
-            {/* PAYMENT & OPERATIONS */}
-            <div>
-              <SectionTitle title="Payment & Operation" icon={CreditCard} />
-              <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg space-y-1">
-                <InfoRow label="Mode of Operation" value={fdData.formData?.modeOfOperation || 'Self'} />
-                <InfoRow label="Auto Renewal" value={fdData.formData?.standingInstructions ? 'Yes' : 'No'} />
-                <InfoRow label="Transaction Ref" value={transactionRef} />
-                <InfoRow label="Receipt Number" value={receiptNumber} />
-              </div>
-            </div>
+            <p className="text-xs font-bold text-slate-800 uppercase border-t border-slate-400 pt-2">Authorized Signatory</p>
           </div>
+        </div>
 
-          {/* INTEREST INFORMATION CARD */}
-          <SectionTitle title="Interest & Growth Tracking" icon={Landmark} />
-          <div className="border border-t-0 border-[#0F4C81] p-6 rounded-b-lg bg-gradient-to-br from-[#0F4C81] to-blue-900 text-white print:border-slate-300 print:bg-white print:text-slate-800">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-              <div>
-                <p className="text-[10px] text-blue-200 font-bold uppercase mb-1 print:text-slate-500">Principal</p>
-                <p className="text-xl font-black">₹{principalAmount.toLocaleString('en-IN')}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-blue-200 font-bold uppercase mb-1 print:text-slate-500">Earned Till Date</p>
-                <p className="text-xl font-black text-emerald-400 print:text-slate-800">+₹{interestEarnedTillDate.toLocaleString('en-IN')}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-blue-200 font-bold uppercase mb-1 print:text-slate-500">Days Remaining</p>
-                <p className="text-xl font-black">{remainingDays} Days</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-blue-200 font-bold uppercase mb-1 print:text-slate-500">Maturity Value</p>
-                <p className="text-xl font-black">₹{maturityAmount.toLocaleString('en-IN')}</p>
-              </div>
-            </div>
-            {/* Progress Bar */}
-            <div className="mt-6 bg-slate-800/50 h-2 rounded-full overflow-hidden print:bg-slate-200">
-              <div className="bg-emerald-400 h-full rounded-full print:bg-[#0F4C81]" style={{ width: `${Math.min(100, (daysPassed / totalDays) * 100)}%` }}></div>
-            </div>
-          </div>
-
-          {/* DOCUMENTS SECTION */}
-          {fdData.images && Object.keys(fdData.images).length > 0 && (
-            <>
-              <SectionTitle title="Attached Documents" icon={FileImage} />
-              <div className="border border-t-0 border-[#0F4C81] p-5 rounded-b-lg grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {Object.keys(fdData.images).map(key => (
-                  <div key={key} className="border border-slate-200 rounded-lg p-3 text-center hover:bg-slate-50 transition-colors cursor-pointer group">
-                    <FileImage className="w-8 h-8 text-slate-400 mx-auto mb-2 group-hover:text-[#0F4C81] transition-colors" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">{key}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* FD CERTIFICATE VISUAL RENDERING */}
-          <div className="mt-16 mb-8 p-8 border-[12px] border-double border-[#0F4C81]/20 bg-[#fffdf5] rounded-xl relative overflow-hidden print:break-inside-avoid shadow-inner">
-            <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
-              <Landmark className="w-96 h-96 text-[#0F4C81]" />
-            </div>
-            
-            <div className="text-center relative z-10">
-              <div className="flex items-center justify-center space-x-3 md:space-x-4 mx-auto mb-8 text-[#ED7F1E]">
-                <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="h-20 w-20 md:h-24 md:w-24 object-contain shrink-0" />
-                <div className="leading-tight text-left">
-                  <span className="text-2xl md:text-3xl font-black tracking-tight uppercase block leading-none font-heading">
-                    Odiyooru Souharda
-                  </span>
-                  <span className="text-base md:text-lg font-bold uppercase tracking-widest leading-none block mt-1.5">
-                    Cooperative Society Ltd
-                  </span>
-                  <span className="text-xs font-bold block mt-1.5 font-mono leading-none">
-                    DRP:S.9:88:RGN:520:2010-11 <span className="mx-2 text-slate-300">|</span> <span className="text-slate-500">Certificate of Fixed Deposit</span>
-                  </span>
-                </div>
-              </div>
-              
-              <div className="text-sm font-medium text-slate-800 leading-loose max-w-2xl mx-auto mb-12 text-justify italic">
-                This is to certify that a sum of <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">₹{principalAmount.toLocaleString('en-IN')}</span> has been received from 
-                <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{fdData.formData?.app1Name?.toUpperCase()}</span> 
-                on <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{startDateStr}</span> as a Fixed Deposit 
-                bearing Account Number <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{fdAccountNumber}</span>. 
-                The deposit will earn interest at the rate of <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{interestRate}% p.a.</span> 
-                and will mature on <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">{maturityDateStr}</span> 
-                with a maturity value of <span className="font-bold text-[#0F4C81] border-b border-slate-400 px-2 not-italic">₹{maturityAmount.toLocaleString('en-IN')}</span>.
-              </div>
-
-                            <div className="flex justify-between items-end mt-16 px-12">
-                {/* Depositor Signature */}
-                <div className="text-center w-40">
-                  <div className="h-16 flex items-end justify-center mb-1">
-                    {fdData.images?.signature ? (
-                      <img src={fdData.images.signature} alt="Depositor Signature" className="max-h-16 object-contain mix-blend-multiply" />
-                    ) : (
-                      <div className="h-8"></div>
-                    )}
-                  </div>
-                  <div className="w-40 border-b border-slate-800 mb-2 mx-auto"></div>
-                  <p className="text-[10px] font-bold text-slate-600 uppercase">Depositor Signature</p>
-                </div>
-                
-                {/* Bank Seal */}
-                <div className="text-center relative">
-                  <div className="w-28 h-28 border-2 border-indigo-200 rounded-full flex items-center justify-center mx-auto mb-2 relative overflow-hidden bg-indigo-50/20 mix-blend-multiply">
-                    <div className="absolute inset-[3px] border border-dashed border-indigo-200 rounded-full"></div>
-                    <svg viewBox="0 0 100 100" className="w-full h-full absolute inset-0 text-indigo-700/40" style={{ transform: 'rotate(-20deg)' }}>
-                      <path id="curve" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="transparent" />
-                      <text className="text-[9px] font-bold uppercase tracking-widest" fill="currentColor">
-                        <textPath href="#curve" startOffset="0%">
-                          ODIYOORU SOUHARDA COOPERATIVE SOCIETY LTD •
-                        </textPath>
-                      </text>
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-indigo-700/40 font-bold rotate-[-15deg] leading-tight">
-                      <span className="text-[10px]">BANK</span>
-                      <span className="text-[10px]">SEAL</span>
-                      <span className="text-[6px] mt-0.5">HEAD OFFICE</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Manager Signature */}
-                <div className="text-center w-40">
-                  <div className="h-16 flex items-end justify-center mb-1">
-                    <span className="text-[2.5rem] text-indigo-900/80 block" style={{ fontFamily: "'Brush Script MT', 'Caveat', 'Dancing Script', cursive", letterSpacing: "-4px", transform: "rotate(-8deg) skewX(-25deg) scaleY(1.3)", opacity: 0.85, filter: "blur(0.4px)" }}>Manoj</span>
-                  </div>
-                  <div className="w-40 border-b border-slate-800 mb-2 mx-auto"></div>
-                  <p className="text-[10px] font-bold text-slate-600 uppercase">Manager / Secretary</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* APPROVAL DETAILS */}
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex justify-between items-center print:hidden">
-            <div className="text-xs text-slate-500 font-medium">
-              <p>Approved By: <span className="font-bold text-slate-800">Admin</span> (Emp ID: {employeeId})</p>
-              <p>Approval Date: <span className="font-bold text-slate-800">{new Date(fdData.updatedAt || fdData.submittedAt).toLocaleDateString()}</span></p>
-            </div>
-            <div className="text-right text-xs text-slate-500 font-medium">
-              <p>Remarks: <span className="font-bold text-slate-800 italic">"Verified and Approved"</span></p>
-            </div>
-          </div>
-
-          {/* FUTURE ENHANCEMENTS PLACEHOLDER */}
-          <div className="mt-8 pt-8 border-t border-slate-200 flex flex-wrap gap-4 justify-center print:hidden">
-            <button onClick={() => alert('FD Renewal History will be available soon.')} className="px-4 py-2 border border-slate-300 rounded text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">FD Renewal History</button>
-            <button onClick={() => alert('Premature Closure requests will be available soon.')} className="px-4 py-2 bg-rose-50 border border-rose-200 rounded text-xs font-bold text-rose-600 hover:bg-rose-100 transition-colors">Request Premature Closure</button>
-          </div>
-
+        <div className="mt-12 text-center border-t border-slate-300 pt-4">
+          <p className="text-[10px] text-slate-500 font-medium italic">
+            This certificate is computer generated and is issued subject to the rules and regulations of Odiyooru Souharda Cooperative Society Ltd.
+          </p>
         </div>
       </div>
     </div>

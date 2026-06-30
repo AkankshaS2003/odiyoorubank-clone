@@ -35,12 +35,21 @@ import { FDDetailsPage } from './pages/FDDetailsPage';
 import { RDDetailsPage } from './pages/RDDetailsPage';
 import { MyFixedDeposits } from './pages/MyFixedDeposits';
 import { FDDashboardReceipt } from './pages/FDDashboardReceipt';
+import { MembershipPayment } from './pages/MembershipPayment';
 import { RDDashboard } from './pages/RD/RDDashboard';
 import { LoanDetailsPage } from './pages/LoanDetailsPage';
 
 const AppContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const [history, setHistory] = useState<string[]>(['home']);
+  const [history, setHistory] = useState<string[]>(() => {
+    const savedHistory = sessionStorage.getItem('app_history');
+    return savedHistory ? JSON.parse(savedHistory) : ['home'];
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('app_history', JSON.stringify(history));
+  }, [history]);
+
   const [fdReceiptData, setFdReceiptData] = useState<any>(null);
   const currentTab = history[history.length - 1] || 'home';
 
@@ -82,6 +91,11 @@ const AppContent: React.FC = () => {
           return <ProductsPage setCurrentTab={setCurrentTab} />;
         case 'membership':
           return <MembershipPage setCurrentTab={setCurrentTab} />;
+        case 'membership-payment':
+          if (!isAuthenticated) {
+            return <Home setCurrentTab={setCurrentTab} />;
+          }
+          return <MembershipPayment setCurrentTab={setCurrentTab} />;
         case 'contact':
         case 'calculators':
           return <ContactPage />;

@@ -8,8 +8,8 @@ async function updateThreshold() {
 
   const settings = await SystemSettings.findOne();
   if (settings) {
-    if (settings.faceVerificationThreshold < 0.60) {
-      settings.faceVerificationThreshold = 0.60;
+    if (settings.faceVerificationThreshold > 0.45) {
+      settings.faceVerificationThreshold = 0.45;
       await settings.save();
       console.log("Updated existing settings face verification threshold to 0.60");
     } else {

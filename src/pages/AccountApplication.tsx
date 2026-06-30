@@ -97,7 +97,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     selfieImage: string | null
   } | null>(null);
 
-  const [threshold, setThreshold] = useState(0.60);
+  const [threshold, setThreshold] = useState(0.45);
 
   useEffect(() => {
     // Fetch threshold from settings
@@ -112,7 +112,10 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     date: new Date().toISOString().split('T')[0],
     branch: '',
     applicantFullName: user?.fullName || '',
-    residentialAddress: user?.address || '',
+    permanentAddress: user?.address || '',
+    currentAddress: '',
+    sameAsPermanent: false,
+    occupation: '',
     occupationAddress: '',
     mobileNumber: user?.phone || '',
     emailId: user?.email || '',
@@ -154,6 +157,16 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     initialDepositAmount: '500'
   };
 
+  const parseDateString = (dateStr: string) => {
+    if (!dateStr) return new Date('');
+    if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3 && parts[0].length === 2) {
+        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+      }
+    }
+    return new Date(dateStr);
+  };
   
   const fetchCustomerDetails = async (id: string) => {
     if (!id) return;
@@ -163,7 +176,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
         ...prev,
         memberNo: customer.memberId || (prev as any).memberNo,
         applicantFullName: customer.fullName || prev.applicantFullName,
-        residentialAddress: customer.address || prev.residentialAddress,
+        permanentAddress: customer.address || prev.permanentAddress,
         mobileNumber: customer.phone || prev.mobileNumber,
         dob: customer.dob || prev.dob,
         aadhaarNumber: customer.aadharNumber || prev.aadhaarNumber,
@@ -180,6 +193,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   const [uploads, setUploads] = useState<{ [key: string]: string | null }>({
     applicantPhoto: null,
     aadhaarDocument: null,
+    panDocument: null,
     jointPhoto: null,
     jointAadhaar: null,
     nomineePhoto: null,
@@ -224,6 +238,11 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       }
     }
     
+    // Restrict Mobile to 10 digits numeric only
+    if (name === 'mobileNumber' || name === 'jointMobileNumber') {
+      finalValue = value.replace(/\D/g, '').slice(0, 10);
+    }
+
     // Restrict Aadhaar to 12 digits max
     if (name === 'aadhaarNumber' || name === 'jointAadhaarNumber') {
       finalValue = value.replace(/\D/g, '').slice(0, 12);
@@ -233,7 +252,16 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: finalValue }));
+      let extraState = {};
+      if (name === 'dob' && finalValue) {
+        const dobDate = parseDateString(finalValue);
+        if (!isNaN(dobDate.getTime())) {
+          const ageDate = new Date(Date.now() - dobDate.getTime());
+          const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+          extraState = { seniorCitizen: age >= 60 ? 'Yes' : 'No', minor: age < 18 ? 'Yes' : 'No' };
+        }
+      }
+      setFormData(prev => ({ ...prev, [name]: finalValue, ...extraState }));
     }
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
@@ -244,7 +272,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     const { name, value } = e.target;
     let errorStr: string | undefined = undefined;
     
-    const requiredFields = ['applicantFullName', 'mobileNumber', 'panNumber', 'aadhaarNumber', 'dob', 'residentialAddress', 'occupationAddress'];
+    const requiredFields = ['applicantFullName', 'mobileNumber', 'panNumber', 'aadhaarNumber', 'dob', 'permanentAddress', 'occupation', 'occupationAddress'];
     if (formData.hasJointApplicant) {
       requiredFields.push('jointApplicantName', 'jointMobileNumber', 'jointPanNumber', 'jointDob', 'jointResidentialAddress');
     }
@@ -257,10 +285,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       } else if ((name === 'aadhaarNumber' || name === 'jointAadhaarNumber') && !/^\d{12}$/.test(value.replace(/\s/g, ''))) {
         errorStr = 'Invalid Aadhaar (12 digits required)';
       } else if (name === 'dob' || name === 'jointDob') {
-        const dobDate = new Date(value);
-        const ageDate = new Date(Date.now() - dobDate.getTime());
-        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        if (age < 10) errorStr = 'Please enter a valid date of birth';
+        const dobDate = parseDateString(value);
+        if (isNaN(dobDate.getTime())) {
+          errorStr = 'Please enter a valid date of birth';
+        } else {
+          const ageDate = new Date(Date.now() - dobDate.getTime());
+          const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+          if (age < 10) errorStr = 'Please enter a valid date of birth';
+        }
       }
     }
     
@@ -300,12 +332,18 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     if (!formData.dob) {
       newErrors.dob = 'Required';
     } else {
-      const dobDate = new Date(formData.dob);
-      const ageDate = new Date(Date.now() - dobDate.getTime());
-      const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-      if (age < 10) newErrors.dob = 'Must be at least 10 years old';
+      const dobDate = parseDateString(formData.dob);
+      if (isNaN(dobDate.getTime())) {
+        newErrors.dob = 'Please enter a valid date of birth';
+      } else {
+        const ageDate = new Date(Date.now() - dobDate.getTime());
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        if (age < 10) newErrors.dob = 'Must be at least 10 years old';
+      }
     }
-    if (!formData.residentialAddress) newErrors.residentialAddress = 'Required';
+    if (!formData.permanentAddress) newErrors.permanentAddress = 'Required';
+    if (!formData.sameAsPermanent && !formData.currentAddress) newErrors.currentAddress = 'Required';
+    if (!formData.occupation) newErrors.occupation = 'Required';
     if (!formData.occupationAddress) newErrors.occupationAddress = 'Required';
     
     if (formData.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formData.panNumber)) {
@@ -317,6 +355,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
 
     if (!uploads.applicantPhoto) newErrors.applicantPhoto = 'Photo required';
     if (!uploads.aadhaarDocument) newErrors.aadhaarDocument = 'Aadhaar required';
+    if (!uploads.panDocument) newErrors.panDocument = 'PAN required';
 
     if (formData.hasJointApplicant) {
       if (!formData.jointApplicantName) newErrors.jointApplicantName = 'Required';
@@ -325,10 +364,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       if (!formData.jointDob) {
         newErrors.jointDob = 'Required';
       } else {
-        const dobDate = new Date(formData.jointDob);
-        const ageDate = new Date(Date.now() - dobDate.getTime());
-        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        if (age < 10) newErrors.jointDob = 'Must be at least 10 years old';
+        const dobDate = parseDateString(formData.jointDob);
+        if (isNaN(dobDate.getTime())) {
+          newErrors.jointDob = 'Please enter a valid date of birth';
+        } else {
+          const ageDate = new Date(Date.now() - dobDate.getTime());
+          const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+          if (age < 10) newErrors.jointDob = 'Must be at least 10 years old';
+        }
       }
       if (!formData.jointResidentialAddress) newErrors.jointResidentialAddress = 'Required';
 
@@ -370,8 +413,14 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   };
 
   const nextStep = () => {
-    if (step === 1 && !validateStep1()) return;
-    if (step === 2 && !validateStep2()) return;
+    if (step === 1 && !validateStep1()) {
+      alert("Please fill all the mandatory fields and upload required documents before proceeding.");
+      return;
+    }
+    if (step === 2 && !validateStep2()) {
+      alert("Please fill all the mandatory fields and upload required documents before proceeding.");
+      return;
+    }
     setStep(prev => Math.min(prev + 1, 4));
     window.scrollTo(0, 0);
   };
@@ -417,12 +466,15 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
     // Submit to backend
     const payload = {
       nameAsAadhar: formData.applicantFullName,
-      addressAsAadhar: formData.residentialAddress,
+      permanentAddress: formData.permanentAddress,
+      currentAddress: formData.sameAsPermanent ? formData.permanentAddress : formData.currentAddress,
+      occupation: formData.occupation,
       dob: formData.dob,
       aadharNumber: (formData.aadhaarNumber || '').replace(/\s/g, ''),
       panNumber: formData.panNumber,
       accountType: 'Savings',
       aadharDocumentUrl: convertedImages.aadhaarDocument || '/dummy-aadhar.png',
+      panDocumentUrl: convertedImages.panDocument || '/dummy-pan.png',
       applicantPhotoBase64: convertedImages.applicantPhoto || null,
       formData: formData,
       images: convertedImages
@@ -562,27 +614,49 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                     <div className="flex gap-4">
                       <div className="flex-1">
                         <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Senior Citizen</label>
-                        <select name="seniorCitizen" value={formData.seniorCitizen} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white">
-                          <option>No</option><option>Yes</option>
-                        </select>
+                        <input type="text" value={formData.seniorCitizen} readOnly className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm outline-none cursor-not-allowed text-gray-500 font-medium" />
                       </div>
                       <div className="flex-1">
                         <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Minor</label>
-                        <select name="minor" value={formData.minor} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white">
-                          <option>No</option><option>Yes</option>
-                        </select>
+                        <input type="text" value={formData.minor} readOnly className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-sm outline-none cursor-not-allowed text-gray-500 font-medium" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 mt-4">
-                    <div>
-                      <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Residential Address</label>
-                      <textarea name="residentialAddress" value={formData.residentialAddress} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white resize-none"></textarea>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="col-span-1 md:col-span-2">
+                      <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Occupation</label>
+                      <select name="occupation" value={formData.occupation} onChange={handleChange} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white">
+                        <option value="">Select Occupation</option>
+                        <option value="Salaried">Salaried</option>
+                        <option value="Self-Employed">Self-Employed</option>
+                        <option value="Business">Business</option>
+                        <option value="Student">Student</option>
+                        <option value="Retired">Retired</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {errors['occupation'] && <p className="text-xs text-red-500 mt-1 font-semibold">{errors['occupation']}</p>}
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Occupation / Office Address</label>
+                      <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Permanent Address</label>
+                      <textarea name="permanentAddress" value={formData.permanentAddress} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white resize-none"></textarea>
+                      {errors['permanentAddress'] && <p className="text-xs text-red-500 mt-1 font-semibold">{errors['permanentAddress']}</p>}
+                    </div>
+                    <div>
+                      <label className="flex items-center justify-between text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
+                        <span>Current Address</span>
+                        <label className="flex items-center gap-1 normal-case font-medium ml-2 cursor-pointer text-xs">
+                          <input type="checkbox" name="sameAsPermanent" checked={formData.sameAsPermanent} onChange={handleChange} className="w-3 h-3" />
+                          Same as Permanent
+                        </label>
+                      </label>
+                      <textarea name="currentAddress" value={formData.sameAsPermanent ? formData.permanentAddress : formData.currentAddress} onChange={handleChange} disabled={formData.sameAsPermanent} rows={2} className={`w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm resize-none ${formData.sameAsPermanent ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}></textarea>
+                      {errors['currentAddress'] && <p className="text-xs text-red-500 mt-1 font-semibold">{errors['currentAddress']}</p>}
+                    </div>
+                    <div className="col-span-1 md:col-span-2">
+                      <label className="block text-xs font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Office / Work Location Address</label>
                       <textarea name="occupationAddress" value={formData.occupationAddress} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-4 focus:border-[#0F4C81] outline-none text-sm bg-white resize-none"></textarea>
+                      {errors['occupationAddress'] && <p className="text-xs text-red-500 mt-1 font-semibold">{errors['occupationAddress']}</p>}
                     </div>
                   </div>
                 </div>
@@ -596,6 +670,11 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                   <div className="h-40 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative">
                     <div className="absolute inset-0 flex items-center justify-center p-4">
                       <FileUploadBox label="Upload Aadhaar" field="aadhaarDocument" accept="image/*,application/pdf" uploads={uploads} handleFileUpload={handleFileUpload} error={errors['aadhaarDocument']} />
+                    </div>
+                  </div>
+                  <div className="h-40 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden relative mt-4">
+                    <div className="absolute inset-0 flex items-center justify-center p-4">
+                      <FileUploadBox label="Upload PAN" field="panDocument" accept="image/*,application/pdf" uploads={uploads} handleFileUpload={handleFileUpload} error={errors['panDocument']} />
                     </div>
                   </div>
                 </div>
@@ -726,15 +805,18 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
               </div>
 
               <div className="max-w-3xl mx-auto border-2 border-[#0F4C81] rounded-none print:border-4">
-                <div className="bg-[#0F4C81] p-4 text-white text-center print:bg-white print:text-[#0F4C81] print:border-b-4 print:border-[#0F4C81] flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <div className="w-12 h-12 flex items-center justify-center shrink-0">
-                    <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="w-10 h-10 object-contain" />
+                <div className="bg-[#ED7F1E] p-4 sm:p-6 text-white print:bg-white print:text-[#ED7F1E] print:border-b-4 print:border-[#ED7F1E] flex items-center justify-center gap-4 sm:gap-6">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0">
+                    <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="w-full h-full object-contain" />
                   </div>
-                  <div>
-                    <h2 className="text-lg font-black tracking-widest uppercase leading-tight text-center">ODIYOORU SOUHARDA<br/>COOPERATIVE SOCIETY LTD</h2>
-                    <p className="text-xs font-bold text-gray-500 mt-1 text-center">DRP:S.9:88:RGN:520:2010-11</p>
-                    <p className="text-xs tracking-widest mt-0.5 text-center">SPECIMEN SIGNATURE CARD</p>
+                  <div className="text-left flex flex-col justify-center">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-wider uppercase leading-none font-heading mb-1">ODIYOORU SOUHARDA</h2>
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold tracking-widest uppercase leading-none mb-1">COOPERATIVE SOCIETY LTD</h3>
+                    <p className="text-xs sm:text-sm font-bold tracking-widest uppercase font-mono leading-none">DRP:S.9:88:RGN:520:2010-11</p>
                   </div>
+                </div>
+                <div className="text-center py-2 border-b-2 border-[#ED7F1E] print:border-b-2 print:border-gray-300">
+                  <h3 className="text-sm font-bold tracking-widest uppercase">Specimen Signature Card</h3>
                 </div>
                 
                 <div className="p-6">

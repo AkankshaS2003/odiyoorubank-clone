@@ -4,6 +4,7 @@ const Transaction = require('../models/Transaction');
 const Account = require('../models/Account');
 const SavingsAccount = require('../models/SavingsAccount');
 const User = require('../models/User');
+const SavingsTransaction = require('../models/SavingsTransaction');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -79,6 +80,18 @@ exports.verifyPayment = async (req, res, next) => {
         savingsAccount.balance = (savingsAccount.balance || 0) + amount;
         savingsAccount.totalDeposits = (savingsAccount.totalDeposits || 0) + amount;
         await savingsAccount.save();
+
+        await SavingsTransaction.create({
+          userId: req.user.id,
+          savingsAccountId: savingsAccount._id,
+          type: 'Deposit',
+          description: `Initial Deposit via Online Payment (Mode: Online, Trans ID: ${razorpayPaymentId})`,
+          creditAmount: amount,
+          debitAmount: 0,
+          balanceAfter: savingsAccount.balance,
+          status: 'Completed',
+          referenceNumber: 'TXN' + crypto.randomInt(10000000, 99999999).toString()
+        });
       }
       await user.save();
     } else if (type === 'Account Deposit') {

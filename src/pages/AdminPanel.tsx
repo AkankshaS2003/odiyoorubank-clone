@@ -29,7 +29,8 @@ import {
   Search,
   Eye,
   FileCode,
-  DollarSign
+  DollarSign,
+  ArrowRightLeft
 } from 'lucide-react';
 import {
   AreaChart,
@@ -65,7 +66,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   // Tab State: matching all 14 specified modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'applications' | 'service_applications' | 'customers' | 'loans' | 'deposit_products' | 'fd_management' | 'rd_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships'
+    'dashboard' | 'applications' | 'service_applications' | 'customers' | 'loans' | 'deposit_products' | 'fd_management' | 'rd_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships' | 'fund_transfers'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -103,6 +104,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [selectedServiceApp, setSelectedServiceApp] = useState<any>(null);
   const [adminFds, setAdminFds] = useState<any[]>([]);
   const [adminRds, setAdminRds] = useState<any[]>([]);
+  const [adminTransfers, setAdminTransfers] = useState<any[]>([]);
+  const [adminLedgerEntries, setAdminLedgerEntries] = useState<any[]>([]);
 
   // Customer 360 States
   const [searchCustId, setSearchCustId] = useState('');
@@ -175,7 +178,27 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     fetchServiceApplications();
     fetchAdminFds();
     fetchAdminRds();
+    fetchTransfers();
+    fetchLedgerEntries();
   }, []);
+
+  const fetchTransfers = async () => {
+    try {
+      const res = await api.get('/admin/transfers');
+      if (res.data.success) setAdminTransfers(res.data.data);
+    } catch (err) {
+      console.error('Failed to fetch transfers', err);
+    }
+  };
+
+  const fetchLedgerEntries = async () => {
+    try {
+      const res = await api.get('/admin/ledger');
+      if (res.data.success) setAdminLedgerEntries(res.data.data);
+    } catch (err) {
+      console.error('Failed to fetch ledger entries', err);
+    }
+  };
 
   const fetchServiceApplications = async () => {
     try {
@@ -758,7 +781,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     { id: 'rag', label: 'RAG Knowledge Base', icon: Database },
     { id: 'users', label: 'User Management', icon: UserCheck },
     { id: 'employees', label: 'Employee Management', icon: Contact },
-    { id: 'audit', label: 'Audit Logs', icon: History }
+    { id: 'audit', label: 'Audit Logs', icon: History },
+    { id: 'fund_transfers', label: 'Fund Transfers & Ledger', icon: ArrowRightLeft }
   ] as const;
 
   // Filtered customer list
@@ -1384,6 +1408,48 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                         )}
                       </div>
 
+                      {/* Recent Service Applications */}
+                      <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Recent Applications</h3>
+                        <div className="space-y-4">
+                          {!customer360Data.serviceApplications || customer360Data.serviceApplications.length === 0 ? (
+                            <p className="text-xs font-bold text-slate-500">No recent applications found.</p>
+                          ) : (
+                            customer360Data.serviceApplications.map((app: any) => (
+                              <div key={app._id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+                                <div>
+                                  <div className="flex items-center gap-3 mb-1">
+                                    <span className="font-black text-slate-800 uppercase tracking-wider text-sm">{app.applicationType}</span>
+                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                                      app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                                      app.status === 'Rejected' ? 'bg-rose-100 text-rose-700' :
+                                      'bg-amber-100 text-amber-700'
+                                    }`}>
+                                      {app.status}
+                                    </span>
+                                  </div>
+                                  <div className="mt-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Applied: {new Date(app.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                  </div>
+                                </div>
+                                <button 
+                                  onClick={() => { 
+                                    setSelectedCustomerProduct({ 
+                                      type: app.applicationType, 
+                                      data: { ...app.formData, status: app.status, _id: app._id, submittedAt: app.submittedAt } 
+                                    }); 
+                                    setIsCustomerProductModalOpen(true); 
+                                  }}
+                                  className="text-blue-600 hover:underline font-bold text-xs"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 )}
@@ -1532,6 +1598,126 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       )}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================== */}
+            {/* TAB: FUND TRANSFERS & LEDGER */}
+            {/* ========================================== */}
+            {activeTab === 'fund_transfers' && (
+              <div className="space-y-8">
+                {/* Transfers Table */}
+                <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
+                    <div>
+                      <h2 className="text-lg font-black text-slate-900 uppercase">Fund Transfers</h2>
+                      <p className="text-xs text-slate-400 font-bold mt-1">Monitor all internal and external money transfers.</p>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                          <th className="p-4 rounded-l-xl">Ref No</th>
+                          <th className="p-4">Date</th>
+                          <th className="p-4">User</th>
+                          <th className="p-4">Type</th>
+                          <th className="p-4">Amount</th>
+                          <th className="p-4">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {adminTransfers.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
+                              No transfers found.
+                            </td>
+                          </tr>
+                        ) : (
+                          adminTransfers.map((t: any) => (
+                            <tr key={t._id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-4 font-mono text-[10px] text-slate-500 font-bold">{t.referenceNumber || t._id.substring(0,8)}</td>
+                              <td className="p-4 text-xs text-slate-600 font-medium">
+                                {new Date(t.createdAt).toLocaleString()}
+                              </td>
+                              <td className="p-4">
+                                <p className="font-bold text-slate-900 text-xs">{t.userId?.fullName || 'Unknown'}</p>
+                                <p className="text-[10px] text-slate-500 font-mono">{t.userId?.customerId}</p>
+                              </td>
+                              <td className="p-4 text-xs font-bold text-primary">{t.type}</td>
+                              <td className="p-4 text-xs font-black text-slate-800">₹{t.amount.toLocaleString()}</td>
+                              <td className="p-4">
+                                <span className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg ${
+                                  t.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                }`}>
+                                  {t.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Ledger Table */}
+                <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
+                    <div>
+                      <h2 className="text-lg font-black text-slate-900 uppercase">General Ledger (Double-Entry)</h2>
+                      <p className="text-xs text-slate-400 font-bold mt-1">Immutable double-entry accounting records.</p>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
+                          <th className="p-4 rounded-l-xl">Date</th>
+                          <th className="p-4">Account</th>
+                          <th className="p-4">Entry Type</th>
+                          <th className="p-4">Debit</th>
+                          <th className="p-4">Credit</th>
+                          <th className="p-4">Description</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {adminLedgerEntries.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
+                              No ledger entries found.
+                            </td>
+                          </tr>
+                        ) : (
+                          adminLedgerEntries.map((l: any) => (
+                            <tr key={l._id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="p-4 text-xs text-slate-600 font-medium">
+                                {new Date(l.createdAt).toLocaleString()}
+                              </td>
+                              <td className="p-4 font-mono text-[10px] font-bold text-slate-700">{l.account}</td>
+                              <td className="p-4">
+                                <span className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg ${
+                                  l.entryType === 'Debit' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+                                }`}>
+                                  {l.entryType}
+                                </span>
+                              </td>
+                              <td className="p-4 text-xs font-black text-rose-600">
+                                {l.entryType === 'Debit' ? `₹${l.amount.toLocaleString()}` : '-'}
+                              </td>
+                              <td className="p-4 text-xs font-black text-emerald-600">
+                                {l.entryType === 'Credit' ? `₹${l.amount.toLocaleString()}` : '-'}
+                              </td>
+                              <td className="p-4 text-xs text-slate-500 italic max-w-[200px] truncate" title={l.description}>
+                                {l.description}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -3122,9 +3308,6 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
             
             {/* Premium Header - Bank Theme */}
             <div className="p-8 shrink-0 relative overflow-hidden bg-gradient-to-br from-[#0A315C] to-[#051C36]">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                <span className="text-9xl font-black text-white">{selectedCustomerProduct.type}</span>
-              </div>
               <div className="relative z-10 flex justify-between items-start">
                 <div className="text-white">
                   <div className="flex items-center gap-3 mb-2">
@@ -3135,7 +3318,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       ID: {selectedCustomerProduct.data._id}
                     </span>
                   </div>
-                  <h3 className="text-3xl font-black tracking-tight">{selectedCustomerProduct.type} Product Details</h3>
+                  <h3 className="text-3xl font-black tracking-tight">{selectedCustomerProduct.type} Details</h3>
                 </div>
                 <button onClick={() => { setIsCustomerProductModalOpen(false); setSelectedCustomerProduct(null); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white backdrop-blur-sm">
                   <X className="h-6 w-6" />
@@ -3147,30 +3330,52 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
               
               {/* Highlight Cards Row */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                    {selectedCustomerProduct.type === 'RD' ? 'Monthly Deposit' : 'Principal Amount'}
-                  </span>
-                  <span className="text-2xl font-black text-slate-800">
-                    ₹{Number(selectedCustomerProduct.data.monthlyAmount || selectedCustomerProduct.data.principalAmount || 0).toLocaleString('en-IN')}
-                  </span>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                    {selectedCustomerProduct.type === 'Loan' ? 'Total Interest' : 'Interest Earned'}
-                  </span>
-                  <span className={`text-2xl font-black ${selectedCustomerProduct.type === 'Loan' ? 'text-rose-600' : 'text-emerald-600'}`}>
-                    ₹{Number(selectedCustomerProduct.data.totalInterest || selectedCustomerProduct.data.interestEarned || 0).toLocaleString('en-IN')}
-                  </span>
-                </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                    {selectedCustomerProduct.type === 'Loan' ? 'Outstanding Balance' : 'Maturity Amount'}
-                  </span>
-                  <span className="text-2xl font-black text-slate-800">
-                    ₹{Number(selectedCustomerProduct.data.outstandingBalance || selectedCustomerProduct.data.maturityAmount || 0).toLocaleString('en-IN')}
-                  </span>
-                </div>
+                {(() => {
+                  const isLoan = selectedCustomerProduct.type.toLowerCase().includes('loan');
+                  const p = Number(selectedCustomerProduct.data.monthlyAmount || selectedCustomerProduct.data.requestedAmount || selectedCustomerProduct.data.loanAmount || selectedCustomerProduct.data.principalAmount || 0);
+                  const rate = Number(selectedCustomerProduct.data.interestRate || 10);
+                  const tenure = Number(selectedCustomerProduct.data.tenure || selectedCustomerProduct.data.tenureMonths || 12);
+                  const calculatedInterest = Math.round((p * rate * tenure) / 1200);
+                  const calculatedTotal = p + calculatedInterest;
+
+                  if (isLoan) {
+                    return (
+                      <>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Loan Amount</span>
+                          <span className="text-2xl font-black text-slate-800">₹{p.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Interest Rate</span>
+                          <span className="text-2xl font-black text-rose-600">{rate}% p.a.</span>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Repayment Amount</span>
+                          <span className="text-2xl font-black text-slate-800">₹{Number(selectedCustomerProduct.data.totalAmount || selectedCustomerProduct.data.outstandingBalance || calculatedTotal).toLocaleString('en-IN')}</span>
+                        </div>
+                      </>
+                    );
+                  }
+
+                  return (
+                    <>
+                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                          {selectedCustomerProduct.type === 'RD' ? 'Monthly Deposit' : 'Principal Amount'}
+                        </span>
+                        <span className="text-2xl font-black text-slate-800">₹{p.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Interest Earned</span>
+                        <span className="text-2xl font-black text-emerald-600">₹{Number(selectedCustomerProduct.data.interestEarned || calculatedInterest).toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center items-center text-center">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Maturity Amount</span>
+                        <span className="text-2xl font-black text-slate-800">₹{Number(selectedCustomerProduct.data.maturityAmount || calculatedTotal).toLocaleString('en-IN')}</span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Comprehensive Details Section */}
@@ -3211,6 +3416,57 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Repayment Schedule & History */}
+              {(() => {
+                const isLoan = selectedCustomerProduct.type.toLowerCase().includes('loan');
+                if (isLoan && customer360Data?.loanEmis) {
+                  const emis = customer360Data.loanEmis.filter((emi: any) => emi.loanId === selectedCustomerProduct.data._id);
+                  if (emis.length > 0) {
+                    return (
+                      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                          <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">Repayment Schedule & History</h4>
+                          <span className="text-xs font-bold text-slate-500">{emis.filter((e: any) => e.paymentStatus === 'Paid').length} / {emis.length} Paid</span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-sm whitespace-nowrap">
+                            <thead>
+                              <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black border-b border-slate-100">
+                                <th className="p-4">EMI No</th>
+                                <th className="p-4">Due Date</th>
+                                <th className="p-4">Amount</th>
+                                <th className="p-4">Principal</th>
+                                <th className="p-4">Interest</th>
+                                <th className="p-4">Status</th>
+                                <th className="p-4">Paid On</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                              {emis.map((emi: any) => (
+                                <tr key={emi._id} className="hover:bg-slate-50/50 transition-colors">
+                                  <td className="p-4 font-bold text-slate-800">#{emi.emiNumber}</td>
+                                  <td className="p-4 font-semibold text-slate-600">{new Date(emi.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                                  <td className="p-4 font-black text-[#0A315C]">₹{emi.emiAmount?.toLocaleString('en-IN')}</td>
+                                  <td className="p-4 font-semibold text-slate-600">₹{emi.principalComponent?.toLocaleString('en-IN')}</td>
+                                  <td className="p-4 font-semibold text-rose-600">₹{emi.interestComponent?.toLocaleString('en-IN')}</td>
+                                  <td className="p-4">
+                                    <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase ${emi.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700' : emi.paymentStatus === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
+                                      {emi.paymentStatus}
+                                    </span>
+                                  </td>
+                                  <td className="p-4 text-xs font-bold text-slate-500">{emi.paidDate ? new Date(emi.paidDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                return null;
+              })()}
 
             </div>
           </div>

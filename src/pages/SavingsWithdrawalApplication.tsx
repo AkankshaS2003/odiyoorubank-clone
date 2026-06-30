@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { CheckCircle, AlertCircle, ArrowUpRight } from 'lucide-react';
 import { withdrawSavings } from '../services/savingsApi';
+import { TpinPromptModal } from '../components/TpinPromptModal';
 
 const numberToWords = (num: number): string => {
   if (!num) return '';
@@ -41,7 +42,7 @@ const numberToWords = (num: number): string => {
 };
 
 export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: string) => void }> = ({ setCurrentTab }) => {
-  const { user, getCustomerByCustomerId } = useAuth();
+  const { user, getCustomerByCustomerId, fetchUserProfile } = useAuth();
   
   const [customerIdInput, setCustomerIdInput] = useState('');
   const [customerInfo, setCustomerInfo] = useState<any>(null);
@@ -53,6 +54,7 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [receiptNo, setReceiptNo] = useState('');
+  const [showTpinModal, setShowTpinModal] = useState(false);
 
   const handleCustomerLookup = async () => {
     if (!customerIdInput) return;
@@ -74,26 +76,40 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
     }
   };
 
-  const handleWithdraw = async () => {
+  const initiateWithdrawal = () => {
     if (!amount || amount < 100) {
       setError('Minimum withdrawal amount is ₹100');
       return;
     }
-    
+    if (!user?.tpinActive) {
+      setError('You must set up your Transaction PIN before withdrawing funds. Please go to Dashboard > Account.');
+      return;
+    }
+    if (user?.tpinLocked) {
+      setError('Your Transaction PIN is locked. Please unlock it in the Dashboard > Account.');
+      return;
+    }
+    setShowTpinModal(true);
+  };
+
+  const handleVerifyTpin = async (tpin: string) => {
     setError('');
     setIsSubmitting(true);
     
     try {
       const targetUserId = customerInfo ? customerInfo._id : user?.id || user?._id;
-      const res = await withdrawSavings({ amount: Number(amount), targetUserId });
+      const res = await withdrawSavings({ amount: Number(amount), targetUserId, tpin });
       if (res.success) {
         setSuccess(true);
         setReceiptNo(res.transaction?.referenceNumber || 'SUCCESS');
+        fetchUserProfile();
       } else {
         setError(res.error || 'Failed to process withdrawal');
+        throw new Error(res.error || 'Failed to process withdrawal');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'An error occurred during withdrawal');
+      setError(err.response?.data?.error || err.message || 'An error occurred during withdrawal');
+      throw err;
     } finally {
       setIsSubmitting(false);
     }
@@ -123,8 +139,8 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-300">
         
-        {/* HEADER SECTION (Blue Theme) */}
-        <div className="bg-[#0F4C81] p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between border-b-[8px] border-[#ED7F1E]">
+        {/* HEADER SECTION (Orange Theme) */}
+        <div className="bg-[#ED7F1E] p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between border-b-[8px] border-[#0A315C]">
           <div className="flex-grow flex items-center justify-center md:justify-start space-x-4 md:space-x-6 mx-auto md:mx-0 w-full md:w-auto">
             <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain shrink-0" />
             <div className="text-white leading-tight text-left">
@@ -176,7 +192,7 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
             
             {/* Customer Details section */}
             <div className="space-y-6">
-              <h3 className="text-sm font-black text-[#0F4C81] uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">Customer Details</h3>
+              <h3 className="text-sm font-black text-[#ED7F1E] uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">Customer Details</h3>
               
               <div className="relative">
                 <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Customer ID <span className="text-rose-500">*</span></label>
@@ -186,11 +202,11 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
                     value={customerIdInput}
                     onChange={(e) => setCustomerIdInput(e.target.value)}
                     placeholder="Enter Customer ID"
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all" 
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-[#ED7F1E] outline-none transition-all" 
                   />
                   <button 
                     onClick={handleCustomerLookup}
-                    className="px-4 py-2 bg-[#ED7F1E] text-white rounded-xl text-xs font-bold hover:bg-[#d66b12] transition-colors"
+                    className="px-4 py-2 bg-[#0F4C81] text-white rounded-xl text-xs font-bold hover:bg-[#0A315C] transition-colors"
                   >
                     {isFetchingCustomer ? '...' : 'Fetch'}
                   </button>
@@ -215,7 +231,7 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
 
             {/* Withdrawal Details section */}
             <div className="space-y-6">
-              <h3 className="text-sm font-black text-[#0F4C81] uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">Withdrawal Details</h3>
+              <h3 className="text-sm font-black text-[#ED7F1E] uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">Withdrawal Details</h3>
               
               <div>
                 <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Withdrawal Amount (₹) <span className="text-rose-500">*</span></label>
@@ -224,7 +240,7 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
                   min="100" 
                   value={amount} 
                   onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : '')} 
-                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-lg font-black text-[#0A315C] focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all" 
+                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-lg font-black text-[#0A315C] focus:ring-2 focus:ring-[#ED7F1E] outline-none transition-all" 
                   placeholder="Min ₹100"
                 />
               </div>
@@ -247,25 +263,34 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
           <div className="bg-[#0A315C] text-white rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between shadow-xl mt-4">
             <div className="mb-6 md:mb-0">
               <h4 className="text-slate-300 text-xs font-bold uppercase tracking-widest mb-1">Total Withdrawal Amount</h4>
-              <div className="text-4xl font-black tracking-tight text-white">₹{amount || '0'}</div>
+              <div className="text-4xl font-black tracking-tight text-[#ED7F1E]">₹{amount || '0'}</div>
               <p className="text-slate-400 text-xs mt-2">Amount will be deducted from savings balance</p>
             </div>
             
             <button 
-              onClick={handleWithdraw}
-              disabled={isSubmitting || !amount || amount < 100 || (!customerIdInput && !user)}
+              type="button"
+              disabled={isSubmitting || !amount || amount < 100}
+              onClick={initiateWithdrawal}
               className="w-full md:w-auto px-12 py-5 bg-[#ED7F1E] hover:bg-[#d66b12] disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>Processing...</>
               ) : (
-                <>Withdraw Funds <ArrowUpRight className="w-5 h-5 ml-1" /></>
+                <>Withdraw Funds <span className="ml-2">→</span></>
               )}
             </button>
           </div>
 
         </div>
       </div>
+
+      <TpinPromptModal
+        isOpen={showTpinModal}
+        onClose={() => setShowTpinModal(false)}
+        onSubmit={handleVerifyTpin}
+        title="Authorize Withdrawal"
+        description={`Enter your 6-digit TPIN to securely withdraw ₹${amount} from your savings account.`}
+      />
     </div>
   );
 };

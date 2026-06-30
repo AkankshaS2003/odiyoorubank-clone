@@ -165,6 +165,12 @@ export const MyFixedDeposits: React.FC<{ setCurrentTab: (tab: string) => void, s
                       >
                         Renew Principal Only
                       </button>
+                      <button 
+                        onClick={() => setCurrentTab('view-fd-details|' + fd._id)}
+                        className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 mt-2"
+                      >
+                        <FileText className="w-4 h-4" /> View Details & Certificate
+                      </button>
                     </>
                   )}
                   {fd.status === 'Closed' && (
@@ -177,6 +183,12 @@ export const MyFixedDeposits: React.FC<{ setCurrentTab: (tab: string) => void, s
                   )}
                   {fd.status === 'Active' && (
                     <div className="text-center">
+                      <button 
+                        onClick={() => setCurrentTab('view-fd-details|' + fd._id)}
+                        className="w-full py-2.5 bg-[#0F4C81] hover:bg-blue-900 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center justify-center gap-2 mb-2"
+                      >
+                        <FileText className="w-4 h-4" /> View Details & Certificate
+                      </button>
                       <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-50 rounded-full mb-2">
                         <Clock className="w-6 h-6 text-slate-300" />
                       </div>

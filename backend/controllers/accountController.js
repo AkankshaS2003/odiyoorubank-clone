@@ -58,28 +58,112 @@ const getAccountDetails = async (req, res, next) => {
 // @route   POST /api/account/membership/apply
 // @access  Private
 const applyMembership = async (req, res, next) => {
-  try {
-    const { address, dob } = req.body;
+  const mongoose = require('mongoose');
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    const user = await req.user.constructor.findByIdAndUpdate(req.user._id, {
+  try {
+    const { address, dob, tpin } = req.body;
+    const bcrypt = require('bcryptjs');
+
+    // 1. Verify TPIN
+    if (!tpin) {
+      throw new Error('Transaction PIN is required');
+    }
+    const userObj = await req.user.constructor.findById(req.user._id).select('+tpin +tpinLocked +tpinFailedAttempts +tpinActive').session(session);
+    if (!userObj.tpinActive || !userObj.tpin) {
+      throw new Error('Transaction PIN is not set up');
+    }
+    if (userObj.tpinLocked) {
+      throw new Error('Transaction PIN is locked');
+    }
+    const isMatch = await bcrypt.compare(tpin, userObj.tpin);
+    if (!isMatch) {
+      userObj.tpinFailedAttempts += 1;
+      if (userObj.tpinFailedAttempts >= 3) {
+        userObj.tpinLocked = true;
+      }
+      await userObj.save({ session });
+      await session.commitTransaction();
+      session.endSession();
+      return res.status(401).json({ success: false, error: 'Invalid Transaction PIN' });
+    }
+    
+    // Reset attempts on success
+    userObj.tpinFailedAttempts = 0;
+    await userObj.save({ session });
+
+    // 2. Fetch Account and Validate Balance
+    const Account = require('../models/Account');
+    const account = await Account.findOne({ userId: req.user._id, accountType: 'Savings' }).session(session);
+    
+    if (!account) {
+      throw new Error('Savings account not found');
+    }
+    const APPLICATION_FEE = 200;
+    if (account.balance < APPLICATION_FEE) {
+      throw new Error(`Insufficient savings balance. Required: ₹${APPLICATION_FEE}`);
+    }
+
+    // 3. Debit Savings Account
+    account.balance -= APPLICATION_FEE;
+    await account.save({ session });
+
+    // 4. Create Savings Transaction Log
+    const SavingsTransaction = require('../models/SavingsTransaction');
+    const transactionId = 'TRX' + Date.now().toString().slice(-8) + Math.floor(Math.random() * 1000);
+    await SavingsTransaction.create([{
+      userId: req.user._id,
+      accountId: account._id,
+      type: 'Debit',
+      amount: APPLICATION_FEE,
+      description: 'Membership Application Fee',
+      status: 'Completed',
+      transactionId,
+      balanceAfter: account.balance
+    }], { session });
+
+    // 5. Create Audit Log
+    const AuditLog = require('../models/AuditLog');
+    await AuditLog.create([{
+      userId: req.user._id,
+      action: 'MEMBERSHIP_APPLICATION_FEE_PAID',
+      details: `Paid ₹${APPLICATION_FEE} for membership application from savings account.`,
+      ipAddress: req.ip || req.connection.remoteAddress
+    }], { session });
+
+    const customerId = req.user.customerId || ('CUST' + Math.floor(100000 + Math.random() * 900000));
+
+    // 6. Update User Profile
+    const updatedUser = await req.user.constructor.findByIdAndUpdate(req.user._id, {
       address,
       dob,
-      membershipStatus: 'pending'
-    }, { returnDocument: 'after' });
+      customerId,
+      membershipStatus: 'approved',
+      membershipPaymentStatus: 'Paid',
+      membershipPaymentDate: Date.now(),
+      membershipPaymentRef: transactionId
+    }, { new: true, session });
 
+    // 7. Create Membership Record
     const Membership = require('../models/Membership');
     await Membership.findOneAndUpdate(
       { userId: req.user._id },
-      { customerId: user.customerId || 'PENDING', status: 'Pending' },
-      { upsert: true, returnDocument: 'after' }
+      { customerId: updatedUser.customerId, status: 'Approved', approvalDate: Date.now() },
+      { upsert: true, returnDocument: 'after', session }
     );
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).json({
       success: true,
-      data: user
+      data: updatedUser
     });
   } catch (error) {
-    next(error);
+    await session.abortTransaction();
+    session.endSession();
+    res.status(400).json({ success: false, error: error.message || 'Failed to process application fee' });
   }
 };
 
@@ -122,46 +206,7 @@ const verifyFace = async (req, res, next) => {
       { upsert: true, returnDocument: 'after' }
     );
 
-    // Auto-approve AccountApplication if Face Verified securely
-    if (faceVerificationStatus === 'Face Verified') {
-      const AccountApplication = require('../models/AccountApplication');
-      const application = await AccountApplication.findOne({ userId: req.user._id, status: 'Pending' }).populate('userId');
-      
-      if (application) {
-        application.status = 'Approved';
-        await application.save();
-
-        const user = application.userId;
-        const crypto = require('crypto');
-        const customerId = 'CUST' + crypto.randomInt(100000, 999999).toString();
-        
-        user.customerId = customerId;
-        user.isKycVerified = true;
-        user.panNumber = application.panNumber;
-        user.aadharNumber = application.aadharNumber;
-        user.aadharUrl = application.aadharDocumentUrl;
-        user.dob = application.dob;
-        user.address = application.addressAsAadhar;
-        if (application.applicantPhotoBase64) {
-          user.profileImageBase64 = application.applicantPhotoBase64;
-        }
-        await user.save();
-
-        const SavingsAccount = require('../models/SavingsAccount');
-        const existingAccount = await SavingsAccount.findOne({ userId: user._id });
-        if (!existingAccount) {
-          const accountNumber = '10' + crypto.randomInt(10000000, 99999999).toString();
-          
-          await SavingsAccount.create({
-            userId: user._id,
-            accountNumber,
-            balance: 0,
-            totalDeposits: 0,
-            totalWithdrawals: 0
-          });
-        }
-      }
-    }
+    // Note: Auto-approval block removed to enforce manual admin review.
 
     res.status(200).json({
       success: true,
@@ -210,7 +255,7 @@ const verifyCustomer = async (req, res, next) => {
   try {
     const { customerId } = req.body;
     
-    if (req.user.customerId !== customerId) {
+    if (!req.user.customerId || req.user.customerId.trim().toLowerCase() !== customerId.trim().toLowerCase()) {
       return res.status(400).json({ success: false, error: 'Invalid Customer ID or does not match your account.' });
     }
 

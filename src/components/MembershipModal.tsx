@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { ShieldCheck, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { MembershipCard } from './MembershipCard';
-import { PaymentModal } from './PaymentModal';
+import { TpinPromptModal } from './TpinPromptModal';
 
 interface MembershipModalProps {
   isOpen: boolean;
@@ -25,7 +25,9 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const [hasPrefilledAddress, setHasPrefilledAddress] = useState(false);
   const [hasPrefilledDob, setHasPrefilledDob] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(user?.membershipStatus === 'pending');
-  const [showPaymentGateway, setShowPaymentGateway] = useState(false);
+  const [showTpinModal, setShowTpinModal] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   React.useEffect(() => {
     if (isOpen && user) {
@@ -78,13 +80,26 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isVerified && address && dob) {
-      setShowPaymentGateway(true);
+      if (!user?.tpinActive || user?.tpinLocked) {
+        setErrorMsg('You must set up your Transaction PIN and ensure it is unlocked before applying.');
+        return;
+      }
+      setShowTpinModal(true);
     }
   };
 
-  const handlePaymentSuccess = () => {
-    becomeMember(address, dob);
-    setIsSubmitted(true);
+  const handleTpinSubmit = async (tpin: string) => {
+    setProcessing(true);
+    setErrorMsg('');
+    try {
+      await becomeMember(address, dob, tpin);
+      setIsSubmitted(true);
+      setShowTpinModal(false);
+    } catch (err: any) {
+      throw err; // Allow TpinPromptModal to catch and display the error
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
@@ -120,11 +135,16 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
               onClick={onClose}
               className="p-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-500 rounded-full transition-colors"
             >
-              <X className="w-5 h-5" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
 
           <div className="p-6 md:p-8">
+            {errorMsg && (
+              <div className="bg-rose-50 text-rose-600 p-4 rounded-xl mb-6 font-bold flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5" /> {errorMsg}
+              </div>
+            )}
             {user.membershipStatus === 'approved' ? (
               <div className="flex flex-col items-center py-4">
                 <div className="w-full max-w-md mb-8 text-center">
@@ -289,10 +309,10 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
 
                 <button
                   type="submit"
-                  disabled={!isVerified}
+                  disabled={!isVerified || processing}
                   className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Pay ₹200 & Apply for Membership
+                  {processing ? 'Processing...' : 'Pay ₹200 & Apply for Membership'}
                 </button>
               </form>
             )}
@@ -300,14 +320,13 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
         </motion.div>
       </motion.div>
       
-      {showPaymentGateway && (
-        <PaymentModal 
-          amount={200}
-          type="Membership Application Fee"
-          onClose={() => setShowPaymentGateway(false)}
-          onSuccess={handlePaymentSuccess}
-        />
-      )}
+      <TpinPromptModal
+        isOpen={showTpinModal}
+        onClose={() => setShowTpinModal(false)}
+        onSubmit={handleTpinSubmit}
+        title="Authorize Application Fee"
+        description="Enter your 6-digit TPIN to securely debit ₹200 from your savings account."
+      />
     </AnimatePresence>
   );
 };

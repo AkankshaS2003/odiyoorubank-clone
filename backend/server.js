@@ -32,12 +32,14 @@ app.use('/api/branches', require('./routes/branchRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/service-applications', require('./routes/serviceApplicationRoutes'));
 app.use('/api/savings', require('./routes/savingsRoutes'));
+app.use('/api/tpin', require('./routes/tpinRoutes'));
 app.use('/api/admin/savings', require('./routes/adminSavingsRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/memberships', require('./routes/membershipRoutes'));
 app.use('/api/fd', require('./routes/fdRoutes'));
 app.use('/api/admin/fd', require('./routes/adminFdRoutes'));
 app.use('/api/rd', require('./routes/rdRoutes'));
+app.use('/api/transfers', require('./routes/transferRoutes'));
 
 // Initialize Cron Jobs
 require('./cron/rdCron');

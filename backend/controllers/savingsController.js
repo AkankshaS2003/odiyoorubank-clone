@@ -6,6 +6,7 @@ const SavingsDeposit = require('../models/SavingsDeposit');
 const SavingsTransaction = require('../models/SavingsTransaction');
 const PaymentRecord = require('../models/PaymentRecord');
 const AuditLog = require('../models/AuditLog');
+const { verifyTpin } = require('./tpinController');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -24,20 +25,9 @@ const generateTransactionRef = () => {
   return 'TXN-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 };
 
-// Ensure savings account exists for user
-const ensureSavingsAccount = async (userId) => {
-  let account = await SavingsAccount.findOne({ userId });
-  if (!account) {
-    account = new SavingsAccount({
-      userId,
-      accountNumber: generateAccountNumber(),
-      balance: 0,
-      totalDeposits: 0,
-      totalWithdrawals: 0
-    });
-    await account.save();
-  }
-  return account;
+// Get savings account for user
+const getSavingsAccount = async (userId) => {
+  return await SavingsAccount.findOne({ userId });
 };
 
 // @desc    Get Savings Profile Summary
@@ -45,7 +35,7 @@ const ensureSavingsAccount = async (userId) => {
 // @access  Private
 exports.getSavingsProfile = async (req, res) => {
   try {
-    const account = await ensureSavingsAccount(req.user.id);
+    const account = await getSavingsAccount(req.user.id);
     const user = await User.findById(req.user.id).select('fullName email phone');
     res.json({ success: true, account, user });
   } catch (error) {
@@ -59,7 +49,10 @@ exports.getSavingsProfile = async (req, res) => {
 // @access  Private
 exports.getSavingsBalance = async (req, res) => {
   try {
-    const account = await ensureSavingsAccount(req.user.id);
+    const account = await getSavingsAccount(req.user.id);
+    if (!account) {
+      return res.json({ success: true, balance: 0 });
+    }
     res.json({ success: true, balance: account.balance });
   } catch (error) {
     console.error(error);
@@ -78,7 +71,10 @@ exports.createDepositOrder = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid deposit data' });
     }
 
-    const account = await ensureSavingsAccount(req.user.id);
+    const account = await getSavingsAccount(req.user.id);
+    if (!account) {
+      return res.status(400).json({ success: false, error: 'Savings account not found or not active' });
+    }
 
     // Create Razorpay Order
     const options = {
@@ -196,7 +192,12 @@ exports.verifyDepositPayment = async (req, res) => {
 // @access  Private
 exports.withdrawFunds = async (req, res) => {
   try {
-    const { amount, targetUserId } = req.body;
+    const { amount, targetUserId, tpin } = req.body;
+
+    const tpinResult = await verifyTpin(req.user, tpin);
+    if (!tpinResult.success) {
+      return res.status(401).json({ success: false, error: tpinResult.error });
+    }
 
     // Determine target user
     let userIdForWithdrawal = req.user.id;

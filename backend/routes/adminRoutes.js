@@ -17,7 +17,9 @@ const {
   replyToMessage,
   getMemberships,
   updateMembershipStatus,
-  getCustomerByCustId
+  getCustomerByCustId,
+  getAllTransfers,
+  getLedgerEntries
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
@@ -54,6 +56,10 @@ router.post('/users', createEmployee);
 router.put('/user/:id/role', updateUserRole);
 router.put('/user/:id/status', updateUserStatus);
 router.delete('/user/:id', deleteUser);
+
+// Transfers & Ledger
+router.get('/transfers', getAllTransfers);
+router.get('/ledger', getLedgerEntries);
 
 // RAG Document Management Endpoints
 router.post('/upload', upload.single('file'), uploadDocument);
