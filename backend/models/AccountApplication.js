@@ -51,7 +51,7 @@ const AccountApplicationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Approved', 'Rejected'],
+    enum: ['Pending', 'Pending Branch Verification', 'Branch Verification Completed', 'Approved', 'Rejected'],
     default: 'Pending'
   },
   verifiedBy: {

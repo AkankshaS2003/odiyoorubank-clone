@@ -56,8 +56,7 @@ exports.applyLoan = async (req, res, next) => {
     });
 
     await createAudit('Loan Application Submitted', req.user._id, `Applied for ${loanType} of ₹${amount}`);
-    await sendNotification(req.user.email, 'Loan Application Received', `Your application for ${loanType} is under review. ID: ${loan.loanApplicationId}`);
-
+    
     res.status(201).json({ success: true, data: loan });
   } catch (error) {
     next(error);
@@ -378,6 +377,28 @@ exports.payEmi = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, message: 'EMI Paid successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+// @desc    Complete physical branch verification for Loan
+// @route   PUT /api/loans/:id/branch-verification
+// @access  Private/Admin
+exports.adminCompleteBranchVerification = async (req, res, next) => {
+  try {
+    const loan = await Loan.findById(req.params.id);
+    if (!loan) return res.status(404).json({ success: false, message: 'Loan not found' });
+    
+    if (loan.status !== 'Pending Branch Verification') {
+      return res.status(400).json({ success: false, message: 'Loan is not pending branch verification' });
+    }
+
+    loan.status = 'Branch Verification Completed';
+    await loan.save();
+
+    res.status(200).json({ success: true, data: loan });
   } catch (error) {
     next(error);
   }

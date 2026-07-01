@@ -126,6 +126,10 @@ export const LoanDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCu
 
   const renderStatusBanner = () => {
     switch (loanData.status) {
+      case 'Pending Branch Verification':
+        return <div className="bg-amber-100 text-amber-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><Clock className="w-6 h-6" /> Please visit your nearest branch with original documents to verify your loan application.</div>;
+      case 'Branch Verification Completed':
+        return <div className="bg-amber-100 text-amber-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><CheckCircle className="w-6 h-6" /> Branch verification completed. Your loan application is currently under review by our team.</div>;
       case 'Pending Review':
         return <div className="bg-amber-100 text-amber-800 p-4 rounded-xl flex items-center gap-3 font-bold mb-6"><Clock className="w-6 h-6" /> Your loan application is currently under review by our team.</div>;
       case 'Rejected':

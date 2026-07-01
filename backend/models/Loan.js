@@ -28,6 +28,8 @@ const LoanSchema = new mongoose.Schema({
     type: String,
     enum: [
       'Pending Review', 
+      'Pending Branch Verification',
+      'Branch Verification Completed',
       'Rejected', 
       'Sanctioned', 
       'Loan Declined by Customer', 

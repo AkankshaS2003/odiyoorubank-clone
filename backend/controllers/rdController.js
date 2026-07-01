@@ -617,9 +617,17 @@ exports.payInstallment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Cannot pay this installment. Please clear previous outstanding installments first.' });
     }
 
-    const today = new Date();
+    const todayRaw = new Date();
+    const today = new Date(todayRaw);
+    today.setHours(0, 0, 0, 0);
+    const dueDate = new Date(installment.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    if (today < dueDate) {
+      return res.status(400).json({ success: false, message: `Cannot pay early. This installment is due on ${dueDate.toLocaleDateString('en-GB')}. Please pay on or after the due date.` });
+    }
     let penalty = 0;
-    if (new Date(installment.dueDate) < today) {
+    if (new Date(installment.dueDate) < todayRaw) {
       penalty = Math.round(installment.amount * 0.02);
     }
     const totalPayable = installment.amount + penalty;
@@ -628,9 +636,7 @@ exports.payInstallment = async (req, res, next) => {
       return res.status(400).json({ success: false, message: `Amount entered (₹${amountPaid}) must exactly match the Total Amount Payable (₹${totalPayable}).` });
     }
 
-    if (!signatureBase64) {
-      return res.status(400).json({ success: false, message: 'Digital signature is required before submitting payment.' });
-    }
+    // Digital signature validation removed
 
     let transactionId = null;
     let savingsAccount = null;

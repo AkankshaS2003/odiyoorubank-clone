@@ -10,6 +10,7 @@ const {
   customerAcceptOffer,
   adminFinalVerify,
   adminDisburseLoan,
+  adminCompleteBranchVerification,
   payEmi
 } = require('../controllers/loanController');
 const { protect, authorize } = require('../middleware/authMiddleware');
@@ -28,6 +29,7 @@ router.post('/pay-emi/:emiId', protect, payEmi);
 router.get('/admin/all', protect, authorize('admin', 'manager', 'employee'), adminGetAllLoans);
 router.post('/admin/verify/:id', protect, authorize('admin', 'manager', 'employee'), adminVerifyLoan);
 router.post('/admin/sanction/:id', protect, authorize('admin', 'manager', 'employee'), adminSanctionLoan);
+router.put('/:id/branch-verification', protect, authorize('admin', 'manager', 'employee'), adminCompleteBranchVerification);
 router.post('/admin/final-verify/:id', protect, authorize('admin', 'manager', 'employee'), adminFinalVerify);
 router.post('/admin/disburse/:id', protect, authorize('admin', 'manager', 'employee'), adminDisburseLoan);
 
