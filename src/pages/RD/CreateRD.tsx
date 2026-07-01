@@ -11,9 +11,11 @@ import {
   FileText,
   Lock
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => void }) => {
-  const { user, submitServiceApplication } = useAuth();
+  const { user, submitServiceApplication, systemSettings } = useAuth();
   
   // States
   const [step, setStep] = useState(1);
@@ -48,9 +50,7 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
   // Calculate Interest
   const isSenior = user?.dob && (new Date().getFullYear() - new Date(user.dob).getFullYear()) >= 60;
   
-  // Base rates logic mock
-  const baseRates: Record<string, number> = { '12': 7.0, '24': 7.25, '36': 7.5, '60': 7.75 };
-  const applicableRate = (baseRates[tenure] || 7.0) + (isSenior ? 0.5 : 0);
+  const applicableRate = (systemSettings?.rdRate || 7.75) + (isSenior ? 0.5 : 0);
   
   const calculateMaturity = () => {
     const P = parseInt(amount, 10);
@@ -208,6 +208,24 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
       </div>
     );
   }
+
+  const handleDownloadReceipt = async () => {
+    const element = document.getElementById('rd-receipt-card');
+    if (!element) return;
+    try {
+      const canvas = await html2canvas(element, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.text("Recurring Deposit Receipt", 14, 15);
+      pdf.addImage(imgData, 'PNG', 14, 25, pdfWidth - 28, pdfHeight);
+      pdf.save(`RD_Receipt_${successData?.rdNumber || 'Pending'}.pdf`);
+    } catch (err) {
+      console.error('Failed to generate PDF', err);
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto py-8">
@@ -525,7 +543,7 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
             <h2 className="text-3xl font-black text-slate-800 mb-2">Congratulations!</h2>
             <p className="text-slate-600 font-medium mb-8">Your Recurring Deposit has been successfully created and sent for final approval.</p>
 
-            <div className="max-w-md mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-6 text-left mb-8">
+            <div id="rd-receipt-card" className="max-w-md mx-auto bg-slate-50 border border-slate-200 rounded-2xl p-6 text-left mb-8">
               <div className="flex justify-between py-2 border-b border-slate-200">
                 <span className="font-bold text-slate-500 text-sm">Account Number</span>
                 <span className="font-black text-[#0F4C81] font-mono">{successData.rdNumber || 'Pending'}</span>
@@ -545,7 +563,7 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
             </div>
 
             <div className="flex justify-center gap-4">
-              <button onClick={() => window.print()} className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">
+              <button onClick={handleDownloadReceipt} className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">
                 ⬇️ Download E-Receipt
               </button>
               <button onClick={() => setCurrentTab('deposits')} className="px-6 py-3 bg-[#0F4C81] text-white rounded-xl font-bold hover:bg-blue-900 transition-colors">

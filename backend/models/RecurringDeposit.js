@@ -79,7 +79,7 @@ const RecurringDepositSchema = new mongoose.Schema({
   },
   linkedSavingsAccount: {
     type: mongoose.Schema.ObjectId,
-    ref: 'Account',
+    ref: 'SavingsAccount',
     required: true
   },
   settlementDetails: {

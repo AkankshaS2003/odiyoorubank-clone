@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { Printer, DownloadCloud, Landmark, User, FileText, CreditCard, ShieldCheck } from 'lucide-react';
+import { TpinPromptModal } from '../components/TpinPromptModal';
 
 export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurrentTab: (tab: string) => void }) => {
   const { user } = useAuth();
@@ -9,6 +10,8 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
   const [installments, setInstallments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(null);
 
   const formatDate = (dateString: string | Date | undefined) => {
     if (!dateString) return '';
@@ -37,52 +40,21 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
     fetchRD();
   }, [appId]);
 
-  const handlePayInstallment = async (installmentId: string, isRazorpay: boolean) => {
+  const handlePayInstallment = (installmentId: string) => {
+    setSelectedInstallmentId(installmentId);
+    setPinModalOpen(true);
+  };
+
+  const onPinSuccess = async () => {
+    setPinModalOpen(false);
+    if (!selectedInstallmentId) return;
+    
     setPaying(true);
     try {
-      if (isRazorpay) {
-        // Implement Razorpay checkout Flow
-        const orderRes = await api.post('/rd/razorpay-order', { installmentId });
-        if (orderRes.data.success) {
-          const options = {
-            key: orderRes.data.data.key_id,
-            amount: orderRes.data.data.amount,
-            currency: orderRes.data.data.currency,
-            name: "Odiyooru Souharda",
-            description: "RD Installment Payment",
-            order_id: orderRes.data.data.id,
-            handler: async function (response: any) {
-              try {
-                const verifyRes = await api.post('/rd/razorpay-verify', {
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature,
-                  installmentId
-                });
-                if (verifyRes.data.success) {
-                  alert('Payment Successful!');
-                  window.location.reload();
-                }
-              } catch (err) {
-                alert('Payment Verification Failed');
-              }
-            },
-            prefill: {
-              name: user?.fullName,
-              email: user?.email,
-              contact: user?.phone
-            },
-            theme: { color: "#0F4C81" }
-          };
-          const rzp = new (window as any).Razorpay(options);
-          rzp.open();
-        }
-      } else {
-        const res = await api.post('/rd/pay-savings', { installmentId });
-        if (res.data.success) {
-          alert('Installment paid successfully from Savings Account!');
-          window.location.reload();
-        }
+      const res = await api.post('/rd/pay-savings', { installmentId: selectedInstallmentId });
+      if (res.data.success) {
+        alert('Installment paid successfully from Savings Account!');
+        window.location.reload();
       }
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to process payment');
@@ -113,14 +85,47 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
     </div>;
   }
 
-  const startDateStr = formatDate(rdData.depositDate);
-  const maturityDateStr = rdData.maturityDate ? formatDate(rdData.maturityDate) : 'N/A';
-  
+  let startDateStr = formatDate(rdData.depositDate || rdData.createdAt);
+  let maturityDateStr = rdData.maturityDate ? formatDate(rdData.maturityDate) : 'N/A';
+  let estimatedMaturityAmount = rdData.maturityAmount || 0;
+
+  if (rdData.status === 'Pending Approval' || !rdData.maturityAmount) {
+    const today = new Date(rdData.depositDate || rdData.createdAt || Date.now());
+    const mDate = new Date(today);
+    mDate.setMonth(mDate.getMonth() + rdData.tenureMonths);
+    maturityDateStr = formatDate(mDate) + ' (Est.)';
+
+    const r = rdData.interestRate / 100;
+    const n = 4;
+    let totalInterest = 0;
+    let totalDeposited = 0;
+    for (let i = 1; i <= rdData.tenureMonths; i++) {
+      totalDeposited += rdData.monthlyAmount;
+      const t = (rdData.tenureMonths - i + 1) / 12;
+      const amt = rdData.monthlyAmount * Math.pow((1 + (r / n)), (n * t));
+      totalInterest += (amt - rdData.monthlyAmount);
+    }
+    estimatedMaturityAmount = Math.round(totalDeposited + totalInterest);
+  }
+
   const paidCount = installments.filter(i => i.status === 'Paid').length;
   const pendingCount = installments.filter(i => i.status === 'Pending').length;
   const overdueCount = installments.filter(i => i.status === 'Overdue').length;
   const nextPending = installments.find(i => i.status === 'Pending' || i.status === 'Overdue');
   const nextDueDateStr = nextPending ? formatDate(nextPending.dueDate) : 'None';
+
+  const estimatedMaturityAmountTop = estimatedMaturityAmount;
+
+  const firstPendingIndex = installments.findIndex(i => i.status === 'Pending' || i.status === 'Overdue');
+  
+  const isPayable = (inst: any, index: number) => {
+    if (index !== firstPendingIndex) return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const dueDate = new Date(inst.dueDate);
+    dueDate.setHours(0,0,0,0);
+    return today >= dueDate;
+  };
 
   const SectionTitle = ({ title, icon: Icon }: any) => (
     <h3 className="text-xs font-black text-white bg-[#0F4C81] px-4 py-2 inline-flex items-center gap-2 rounded-t-lg mt-6 mb-0 uppercase tracking-wider border-b-2 border-[#0F4C81]">
@@ -140,7 +145,7 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
       <div className="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="flex justify-between items-center mb-6">
-          <button onClick={() => setCurrentTab('my_rds')} className="text-sm font-bold text-slate-500 hover:text-[#0F4C81]">← Back to My RDs</button>
+          <button onClick={() => setCurrentTab('dashboard')} className="text-sm font-bold text-slate-500 hover:text-[#0F4C81]">← Back to Dashboard</button>
         </div>
 
         <div className="bg-white p-8 md:p-12 shadow-2xl shadow-slate-200 border border-slate-100 rounded-3xl">
@@ -174,8 +179,8 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
                 <p className="text-lg font-bold text-slate-800 mt-1">{rdData.tenureMonths}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Paid / Pending</p>
-                <p className="text-lg font-bold text-slate-800 mt-1">{paidCount} / {pendingCount}</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Paid / Total</p>
+                <p className="text-lg font-bold text-slate-800 mt-1">{paidCount} / {rdData.tenureMonths}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-rose-500 uppercase mb-1">Overdue</p>
@@ -191,7 +196,7 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
                 <InfoRow label="Interest Rate" value={`${rdData.interestRate}% p.a.`} />
                 <InfoRow label="Deposit Date" value={startDateStr} />
                 <InfoRow label="Maturity Date" value={maturityDateStr} />
-                <InfoRow label="Estimated Maturity Amount" value={`₹${rdData.maturityAmount?.toLocaleString('en-IN') || 0}`} />
+                <InfoRow label="Estimated Maturity Amount" value={`₹${estimatedMaturityAmount.toLocaleString('en-IN')}`} />
                 <InfoRow label="Linked Savings A/c" value={rdData.linkedSavingsAccount?.accountNumber} />
                 <InfoRow label="Auto Debit" value={rdData.autoDebit ? 'Enabled' : 'Disabled'} />
               </div>
@@ -240,22 +245,7 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
                       </td>
                       <td className="p-4">
                         {(inst.status === 'Pending' || inst.status === 'Overdue') && (
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={() => handlePayInstallment(inst._id, false)}
-                              disabled={paying}
-                              className="text-[10px] px-3 py-1.5 bg-[#0F4C81] text-white rounded font-bold hover:bg-blue-900 transition-colors"
-                            >
-                              Pay via Savings
-                            </button>
-                            <button 
-                              onClick={() => handlePayInstallment(inst._id, true)}
-                              disabled={paying}
-                              className="text-[10px] px-3 py-1.5 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700 transition-colors"
-                            >
-                              Pay via Razorpay
-                            </button>
-                          </div>
+                          <span className="text-xs text-slate-400 font-bold">-</span>
                         )}
                         {inst.status === 'Paid' && (
                           <span className="text-xs text-slate-400 font-bold">
@@ -300,6 +290,12 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
 
         </div>
       </div>
+      {pinModalOpen && (
+        <TpinPromptModal 
+          onSuccess={onPinSuccess} 
+          onClose={() => setPinModalOpen(false)} 
+        />
+      )}
     </div>
   );
 };

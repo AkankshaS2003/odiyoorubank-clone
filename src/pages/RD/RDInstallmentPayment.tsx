@@ -5,8 +5,11 @@ import api from '../../services/api';
 
 const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", readOnly = false }: any) => {
   let displayValue = value || '';
-  if (type === 'date' && typeof displayValue === 'string' && displayValue.includes('T')) {
-    displayValue = new Date(displayValue).toLocaleDateString('en-GB');
+  if (type === 'date' && displayValue) {
+    const d = new Date(displayValue);
+    if (!isNaN(d.getTime())) {
+      displayValue = d.toISOString().split('T')[0];
+    }
   }
 
   return (
@@ -167,19 +170,14 @@ export const RDInstallmentPayment: React.FC = () => {
 
     setErrorMsg(null);
 
-    // Validate Signature
-    if (!hasSignature) {
-      setErrorMsg('Digital signature is required before payment.');
-      return;
-    }
+    // Signature removed
 
     if (!declarationAgree) {
       setErrorMsg('You must agree to the declaration checkbox.');
       return;
     }
 
-    const canvas = canvasRef.current;
-    const signatureBase64 = canvas ? canvas.toDataURL() : '';
+    const signatureBase64 = '';
 
     setLoading(true);
 
@@ -478,37 +476,7 @@ export const RDInstallmentPayment: React.FC = () => {
             </div>
           </div>
 
-          {/* Signature Canvas */}
-          <div className="border border-slate-200 rounded-xl p-5">
-            <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 uppercase tracking-wider">
-              4. Digital Signature
-            </h3>
-            <p className="text-slate-500 text-xs mb-2">Draw your signature in the box below using touch or mouse:</p>
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="border border-slate-300 rounded-xl overflow-hidden bg-slate-50">
-                <canvas
-                  ref={canvasRef}
-                  width={350}
-                  height={120}
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                  className="cursor-crosshair block"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={clearSignature}
-                className="px-4 py-2 border border-[#0F4C81] text-[#0F4C81] hover:bg-[#0F4C81]/10 rounded-lg text-xs font-bold transition-all shrink-0"
-              >
-                Clear Signature
-              </button>
-            </div>
-          </div>
+          {/* Signature Removed */}
 
           {/* Declaration Section */}
           <div className="border border-slate-200 rounded-xl p-5 bg-blue-50/50">
@@ -532,7 +500,7 @@ export const RDInstallmentPayment: React.FC = () => {
           <button
             type="submit"
             disabled={loading || !paymentMode}
-            className="w-full py-3 bg-[#0F4C81] hover:bg-sky-950 text-white font-extrabold rounded-xl shadow-lg transition-all transform active:scale-95 text-center flex items-center justify-center text-sm disabled:bg-slate-300 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-[#0F4C81] hover:bg-sky-950 text-white font-extrabold rounded-xl shadow-lg transition-all transform active:scale-95 text-center flex items-center justify-center text-sm disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

@@ -36,7 +36,6 @@ import { RDDetailsPage } from './pages/RDDetailsPage';
 import { MyFixedDeposits } from './pages/MyFixedDeposits';
 import { FDDashboardReceipt } from './pages/FDDashboardReceipt';
 import { MembershipPayment } from './pages/MembershipPayment';
-import { RDDashboard } from './pages/RD/RDDashboard';
 import { LoanDetailsPage } from './pages/LoanDetailsPage';
 
 const AppContent: React.FC = () => {
@@ -73,7 +72,7 @@ const AppContent: React.FC = () => {
     let tabToRender = currentTab;
     let showLoginModal = false;
 
-    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'savings-history' || tabToRender === 'apply-savings-deposit' || tabToRender === 'apply-deposit' || tabToRender === 'apply-rd' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan' || tabToRender === 'my_fds' || tabToRender === 'fd_receipt' || tabToRender === 'my_rds') && !isAuthenticated) {
+    if ((tabToRender === 'dashboard' || tabToRender === 'loan-eligibility' || tabToRender === 'apply-account' || tabToRender === 'savings-history' || tabToRender === 'apply-savings-deposit' || tabToRender === 'apply-deposit' || tabToRender === 'apply-rd' || tabToRender === 'apply-gold-loan' || tabToRender === 'apply-vehicle-loan' || tabToRender === 'apply-educational-loan' || tabToRender === 'apply-personal-loan' || tabToRender === 'apply-housing-loan' || tabToRender === 'apply-mortgage-loan' || tabToRender === 'my_fds' || tabToRender === 'fd_receipt') && !isAuthenticated) {
       showLoginModal = true;
       tabToRender = 'home';
     } else if (tabToRender === 'login') {
@@ -189,9 +188,6 @@ const AppContent: React.FC = () => {
             return <Home setCurrentTab={setCurrentTab} />;
           }
           return <MyFixedDeposits setCurrentTab={setCurrentTab} setFdReceiptData={setFdReceiptData} />;
-        case 'my_rds':
-          if (!isAuthenticated) return <Home setCurrentTab={setCurrentTab} />;
-          return <RDDashboard setCurrentTab={setCurrentTab} />;
         case 'fd_receipt':
           if (!isAuthenticated) {
             return <Home setCurrentTab={setCurrentTab} />;

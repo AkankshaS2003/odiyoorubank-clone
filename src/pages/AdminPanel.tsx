@@ -3123,6 +3123,30 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
             </div>
             
             <div className="p-6 overflow-y-auto space-y-8 flex-grow">
+              {selectedServiceApp.userId && (
+                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
+                  <h4 className="font-bold text-emerald-900 text-sm mb-3 border-b border-emerald-200 pb-2">Customer Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Customer Name</span>
+                      <span className="text-sm font-semibold text-slate-800">{selectedServiceApp.userId.fullName}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Customer ID</span>
+                      <span className="text-sm font-semibold text-slate-800">{selectedServiceApp.userId.customerId}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Email</span>
+                      <span className="text-sm font-semibold text-slate-800">{selectedServiceApp.userId.email}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Phone</span>
+                      <span className="text-sm font-semibold text-slate-800">{selectedServiceApp.userId.phone}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
                 <h4 className="font-bold text-blue-900 text-sm mb-3 border-b border-blue-200 pb-2">Form Data Fields</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3143,7 +3167,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 </div>
               </div>
 
-              {selectedServiceApp.images && Object.keys(selectedServiceApp.images).length > 0 && (
+              {selectedServiceApp.applicationType !== 'Recurring Deposit' && selectedServiceApp.images && Object.keys(selectedServiceApp.images).length > 0 && (
                 <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl">
                   <h4 className="font-bold text-slate-800 text-sm mb-4 border-b border-slate-200 pb-2">Attached Documents & Signatures</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

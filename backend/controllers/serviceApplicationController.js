@@ -150,6 +150,47 @@ exports.updateApplicationStatus = async (req, res, next) => {
             account.balance = (account.balance || 0) - amount;
             await account.save();
           }
+          
+          const RecurringDeposit = require('../models/RecurringDeposit');
+          const rd = await RecurringDeposit.findOne({ userId: user._id, status: 'Pending Approval' }).sort({ createdAt: -1 });
+          if (rd) {
+            const count = await RecurringDeposit.countDocuments({ status: { $ne: 'Pending Approval' } });
+            rd.rdNumber = `RD${String(count + 1).padStart(5, '0')}`;
+            rd.status = 'Active';
+            
+            const today = new Date();
+            rd.depositDate = today;
+            const mDate = new Date(today);
+            mDate.setMonth(mDate.getMonth() + rd.tenureMonths);
+            rd.maturityDate = mDate;
+            
+            const r = rd.interestRate / 100;
+            const n = 4;
+            let totalInterest = 0;
+            let totalDeposited = 0;
+            const installments = [];
+            
+            for (let i = 1; i <= rd.tenureMonths; i++) {
+              totalDeposited += rd.monthlyAmount;
+              const t = (rd.tenureMonths - i + 1) / 12;
+              const amt = rd.monthlyAmount * Math.pow((1 + (r / n)), (n * t));
+              totalInterest += (amt - rd.monthlyAmount);
+              
+              const dueDate = new Date(today);
+              dueDate.setMonth(dueDate.getMonth() + (i - 1));
+              installments.push({
+                rdId: rd._id,
+                installmentNumber: i,
+                dueDate,
+                amount: rd.monthlyAmount
+              });
+            }
+            rd.maturityAmount = Math.round(totalDeposited + totalInterest);
+            await rd.save();
+            
+            const RDInstallment = require('../models/RDInstallment');
+            await RDInstallment.insertMany(installments);
+          }
         } else if (application.applicationType.includes('Loan')) {
           transactionType = 'Loan Disbursement';
           // Disburse the loan amount to their savings

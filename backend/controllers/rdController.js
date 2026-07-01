@@ -1,6 +1,6 @@
 const RecurringDeposit = require('../models/RecurringDeposit');
 const RDInstallment = require('../models/RDInstallment');
-const Account = require('../models/Account');
+const SavingsAccount = require('../models/SavingsAccount');
 const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const crypto = require('crypto');
@@ -71,7 +71,7 @@ exports.createRD = async (req, res, next) => {
       details: 'Transaction OTP successfully verified for RD creation'
     });
 
-    const linkedAccount = await Account.findOne({ _id: linkedSavingsAccountId, userId: req.user.id, accountType: 'Savings' });
+    const linkedAccount = await SavingsAccount.findOne({ _id: linkedSavingsAccountId, userId: req.user.id });
     if (!linkedAccount) {
       return res.status(404).json({ success: false, message: 'Linked Savings Account not found' });
     }
@@ -111,8 +111,22 @@ exports.getRDs = async (req, res, next) => {
 
 exports.getRDById = async (req, res, next) => {
   try {
-    const rd = await RecurringDeposit.findById(req.params.id).populate('linkedSavingsAccount', 'accountNumber balance');
-    if (!rd) return res.status(404).json({ success: false, message: 'RD not found' });
+    let rd = await RecurringDeposit.findById(req.params.id).populate('linkedSavingsAccount', 'accountNumber balance');
+    console.log("RD findById result:", !!rd);
+    
+    if (!rd) {
+      console.log("Falling back for ID:", req.params.id);
+      // Fallback: If ID is a ServiceApplication ID from the dashboard
+      const ServiceApplication = require('../models/ServiceApplication');
+      const app = await ServiceApplication.findById(req.params.id);
+      console.log("Service App found:", !!app, app ? app.applicationType : null);
+      if (app && app.applicationType === 'Recurring Deposit') {
+        rd = await RecurringDeposit.findOne({ userId: app.userId }).sort({ createdAt: -1 }).populate('linkedSavingsAccount', 'accountNumber balance');
+        console.log("Found RD from user:", !!rd);
+      }
+    }
+
+    if (!rd) return res.status(404).json({ success: false, message: 'RD Account not found' });
     
     if (req.user.role !== 'admin' && rd.userId.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Unauthorized' });
@@ -220,7 +234,20 @@ exports.payInstallmentFromSavings = async (req, res, next) => {
     const rd = installment.rdId;
     if (rd.status !== 'Active') return res.status(400).json({ success: false, message: `RD is ${rd.status}` });
     
-    const account = await Account.findById(rd.linkedSavingsAccount);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const dueDate = new Date(installment.dueDate);
+    dueDate.setHours(0,0,0,0);
+    if (today < dueDate) {
+      return res.status(400).json({ success: false, message: 'Installment cannot be paid before its due date' });
+    }
+
+    const previousPending = await RDInstallment.findOne({ rdId: rd._id, installmentNumber: { $lt: installment.installmentNumber }, status: { $ne: 'Paid' } });
+    if (previousPending) {
+      return res.status(400).json({ success: false, message: 'Please pay previous installments first' });
+    }
+
+    const account = await SavingsAccount.findById(rd.linkedSavingsAccount);
     const totalToPay = installment.amount + (installment.penalty || 0);
 
     if (account.balance < totalToPay) {
@@ -519,7 +546,7 @@ exports.searchByCustomer = async (req, res, next) => {
     }
 
     // Get linked savings account details
-    const linkedAccount = await Account.findById(rd.linkedSavingsAccount);
+    const linkedAccount = await SavingsAccount.findById(rd.linkedSavingsAccount);
 
     res.status(200).json({
       success: true,
