@@ -198,7 +198,9 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
                       onChange={(e) => setCurrentTpin(e.target.value.replace(/\D/g, ''))}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-2 focus:ring-blue-500"
                       maxLength={6}
-                      placeholder="••••••"
+                      placeholder=""
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   </div>
                 )}
@@ -210,7 +212,9 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
                     onChange={(e) => setTpin(e.target.value.replace(/\D/g, ''))}
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-2 focus:ring-blue-500"
                     maxLength={6}
-                    placeholder="••••••"
+                    placeholder=""
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
                 <div>
@@ -221,7 +225,9 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
                     onChange={(e) => setConfirmTpin(e.target.value.replace(/\D/g, ''))}
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-2 focus:ring-blue-500"
                     maxLength={6}
-                    placeholder="••••••"
+                    placeholder=""
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
                 <ul className="text-xs text-slate-500 list-disc pl-5 space-y-1 mt-2">

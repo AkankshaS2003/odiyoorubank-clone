@@ -16,8 +16,8 @@ export const FDDashboardReceipt: React.FC<{ fdData: any, setCurrentTab: (tab: st
       <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none">
         
         {/* Controls */}
-        <div className="flex justify-between items-center mb-6 print:hidden">
-          <button onClick={() => setCurrentTab('my_fds')} className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">
+        <div className="flex items-center gap-4 mb-6">
+          <button onClick={() => setCurrentTab('dashboard')} className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <button onClick={handlePrint} className="flex items-center gap-2 px-5 py-2.5 bg-[#0F4C81] text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-colors shadow-lg shadow-[#0F4C81]/20">

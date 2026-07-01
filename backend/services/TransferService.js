@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const Transaction = require('../models/Transaction');
 const LedgerEntry = require('../models/LedgerEntry');
 const SavingsAccount = require('../models/SavingsAccount');
+const SavingsTransaction = require('../models/SavingsTransaction');
+const User = require('../models/User');
 
 /**
  * TransferService manages all money movement within the cooperative bank.
@@ -33,8 +35,8 @@ class TransferService {
       throw new Error('Transfer amount must be greater than zero');
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // const // session = await mongoose.startSession();
+    // session.startTransaction();
 
     try {
       let sender = null;
@@ -42,7 +44,7 @@ class TransferService {
 
       // 1. Lock and validate Sender Account
       if (senderAccount) {
-        sender = await SavingsAccount.findOne({ accountNumber: senderAccount }).session(session);
+        sender = await SavingsAccount.findOne({ accountNumber: senderAccount });
         if (!sender) {
           throw new Error('Sender account not found');
         }
@@ -56,12 +58,31 @@ class TransferService {
         sender.balance -= amount;
         sender.totalWithdrawals += amount;
         sender.lastTransactionDate = new Date();
-        await sender.save({ session });
+        await sender.save({});
+
+        const senderUser = await User.findById(sender.userId);
+        if (senderUser) {
+          senderUser.savingsBalance = sender.balance;
+          await senderUser.save({});
+        }
+
+        const senderTx = new SavingsTransaction({
+          userId: sender.userId,
+          savingsAccountId: sender._id,
+          type: 'Transfer',
+          description: `Fund Transfer (${transferType})`,
+          debitAmount: amount,
+          creditAmount: 0,
+          balanceAfter: sender.balance,
+          status: 'Completed',
+          referenceNumber: `TRF${Date.now()}O${Math.floor(Math.random() * 1000)}`
+        });
+        await senderTx.save({});
       }
 
       // 2. Lock and validate Receiver Account
       if (receiverAccount) {
-        receiver = await SavingsAccount.findOne({ accountNumber: receiverAccount }).session(session);
+        receiver = await SavingsAccount.findOne({ accountNumber: receiverAccount });
         if (!receiver) {
           throw new Error('Receiver account not found');
         }
@@ -72,7 +93,26 @@ class TransferService {
         receiver.balance += amount;
         receiver.totalDeposits += amount;
         receiver.lastTransactionDate = new Date();
-        await receiver.save({ session });
+        await receiver.save({});
+
+        const receiverUser = await User.findById(receiver.userId);
+        if (receiverUser) {
+          receiverUser.savingsBalance = receiver.balance;
+          await receiverUser.save({});
+        }
+
+        const receiverTx = new SavingsTransaction({
+          userId: receiver.userId,
+          savingsAccountId: receiver._id,
+          type: 'Transfer',
+          description: `Fund Transfer Received (${transferType})`,
+          debitAmount: 0,
+          creditAmount: amount,
+          balanceAfter: receiver.balance,
+          status: 'Completed',
+          referenceNumber: `TRF${Date.now()}I${Math.floor(Math.random() * 1000)}`
+        });
+        await receiverTx.save({});
       }
 
       // 3. Create Transaction Record
@@ -90,7 +130,7 @@ class TransferService {
         remarks,
         accountId: sender ? sender._id : (receiver ? receiver._id : null)
       });
-      await transaction.save({ session });
+      await transaction.save({});
 
       // 4. Create Ledger Entries (Double Entry)
       const debitEntry = new LedgerEntry({
@@ -100,7 +140,7 @@ class TransferService {
         entryType: 'Debit',
         transferType
       });
-      await debitEntry.save({ session });
+      await debitEntry.save({});
 
       const creditEntry = new LedgerEntry({
         transactionId: transaction._id,
@@ -109,11 +149,11 @@ class TransferService {
         entryType: 'Credit',
         transferType
       });
-      await creditEntry.save({ session });
+      await creditEntry.save({});
 
       // 5. Commit Transaction
-      await session.commitTransaction();
-      session.endSession();
+      // await session.commitTransaction();
+      // session.endSession();
 
       return {
         success: true,
@@ -123,8 +163,8 @@ class TransferService {
       };
 
     } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       console.error('TransferService Error:', error.message);
       
       // We could optionally log a Failed transaction outside the session here if we wanted,

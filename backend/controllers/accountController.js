@@ -59,8 +59,8 @@ const getAccountDetails = async (req, res, next) => {
 // @access  Private
 const applyMembership = async (req, res, next) => {
   const mongoose = require('mongoose');
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // const // session = await mongoose.startSession();
+  // session.startTransaction();
 
   try {
     const { address, dob, tpin } = req.body;
@@ -70,7 +70,7 @@ const applyMembership = async (req, res, next) => {
     if (!tpin) {
       throw new Error('Transaction PIN is required');
     }
-    const userObj = await req.user.constructor.findById(req.user._id).select('+tpin +tpinLocked +tpinFailedAttempts +tpinActive').session(session);
+    const userObj = await req.user.constructor.findById(req.user._id).select('+tpin +tpinLocked +tpinFailedAttempts +tpinActive');
     if (!userObj.tpinActive || !userObj.tpin) {
       throw new Error('Transaction PIN is not set up');
     }
@@ -83,19 +83,19 @@ const applyMembership = async (req, res, next) => {
       if (userObj.tpinFailedAttempts >= 3) {
         userObj.tpinLocked = true;
       }
-      await userObj.save({ session });
-      await session.commitTransaction();
-      session.endSession();
+      await userObj.save({});
+      // await session.commitTransaction();
+      // session.endSession();
       return res.status(401).json({ success: false, error: 'Invalid Transaction PIN' });
     }
     
     // Reset attempts on success
     userObj.tpinFailedAttempts = 0;
-    await userObj.save({ session });
+    await userObj.save({});
 
     // 2. Fetch Account and Validate Balance
     const Account = require('../models/Account');
-    const account = await Account.findOne({ userId: req.user._id, accountType: 'Savings' }).session(session);
+    const account = await Account.findOne({ userId: req.user._id, accountType: 'Savings' });
     
     if (!account) {
       throw new Error('Savings account not found');
@@ -107,7 +107,7 @@ const applyMembership = async (req, res, next) => {
 
     // 3. Debit Savings Account
     account.balance -= APPLICATION_FEE;
-    await account.save({ session });
+    await account.save({});
 
     // 4. Create Savings Transaction Log
     const SavingsTransaction = require('../models/SavingsTransaction');
@@ -121,7 +121,7 @@ const applyMembership = async (req, res, next) => {
       status: 'Completed',
       transactionId,
       balanceAfter: account.balance
-    }], { session });
+    }], {});
 
     // 5. Create Audit Log
     const AuditLog = require('../models/AuditLog');
@@ -130,7 +130,7 @@ const applyMembership = async (req, res, next) => {
       action: 'MEMBERSHIP_APPLICATION_FEE_PAID',
       details: `Paid ₹${APPLICATION_FEE} for membership application from savings account.`,
       ipAddress: req.ip || req.connection.remoteAddress
-    }], { session });
+    }], {});
 
     const customerId = req.user.customerId || ('CUST' + Math.floor(100000 + Math.random() * 900000));
 
@@ -143,26 +143,26 @@ const applyMembership = async (req, res, next) => {
       membershipPaymentStatus: 'Paid',
       membershipPaymentDate: Date.now(),
       membershipPaymentRef: transactionId
-    }, { new: true, session });
+    }, { new: true});
 
     // 7. Create Membership Record
     const Membership = require('../models/Membership');
     await Membership.findOneAndUpdate(
       { userId: req.user._id },
       { customerId: updatedUser.customerId, status: 'Approved', approvalDate: Date.now() },
-      { upsert: true, returnDocument: 'after', session }
+      { upsert: true, returnDocument: 'after'}
     );
 
-    await session.commitTransaction();
-    session.endSession();
+    // await session.commitTransaction();
+    // session.endSession();
 
     res.status(200).json({
       success: true,
       data: updatedUser
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    // await session.abortTransaction();
+    // session.endSession();
     res.status(400).json({ success: false, error: error.message || 'Failed to process application fee' });
   }
 };

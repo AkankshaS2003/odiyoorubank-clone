@@ -2482,13 +2482,15 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       </button>
                       <button
                         onClick={async () => {
-                          if (newNoticeTitle && newNoticeDesc) {
-                            const updatedAnnouncements = [...announcements, { title: newNoticeTitle, desc: newNoticeDesc }];
-                            await updateSystemSettings({ announcements: updatedAnnouncements });
-                            setIsPublishingNotice(false);
-                            setNewNoticeTitle('');
-                            setNewNoticeDesc('');
+                          if (!newNoticeTitle || !newNoticeDesc) {
+                            alert('Please fill in both the Announcement Title and Description fields before publishing.');
+                            return;
                           }
+                          const updatedAnnouncements = [...announcements, { title: newNoticeTitle, desc: newNoticeDesc }];
+                          await updateSystemSettings({ announcements: updatedAnnouncements });
+                          setIsPublishingNotice(false);
+                          setNewNoticeTitle('');
+                          setNewNoticeDesc('');
                         }}
                         className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
                       >

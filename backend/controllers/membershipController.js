@@ -40,20 +40,20 @@ exports.getFeeDetails = async (req, res, next) => {
 };
 
 exports.payFee = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // const // session = await mongoose.startSession();
+  // session.startTransaction();
 
   try {
     const { tpin } = req.body;
 
     const tpinResult = await verifyTpin(req.user, tpin);
     if (!tpinResult.success) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       return res.status(401).json({ success: false, error: tpinResult.error });
     }
 
-    const user = await User.findById(req.user.id).session(session);
+    const user = await User.findById(req.user.id);
     if (!user) {
       throw new Error('User not found');
     }
@@ -62,12 +62,12 @@ exports.payFee = async (req, res, next) => {
       throw new Error('Membership fee has already been paid.');
     }
 
-    const account = await SavingsAccount.findOne({ userId: user._id, status: 'Active' }).session(session);
+    const account = await SavingsAccount.findOne({ userId: user._id, status: 'Active' });
     if (!account) {
       throw new Error('Active savings account required to pay membership fee.');
     }
 
-    const settings = await SystemSettings.findOne().session(session);
+    const settings = await SystemSettings.findOne();
     const feeAmount = settings ? settings.membershipFee : 500;
     const minBalance = settings ? settings.minimumSavingsBalance : 500;
 
@@ -79,14 +79,14 @@ exports.payFee = async (req, res, next) => {
     account.balance -= feeAmount;
     account.totalWithdrawals += feeAmount;
     account.lastTransactionDate = Date.now();
-    await account.save({ session });
+    await account.save({});
 
     user.savingsBalance = account.balance;
     user.membershipPaymentStatus = 'Paid';
     user.membershipPaymentDate = Date.now();
     const refNum = generateRef();
     user.membershipPaymentRef = refNum;
-    await user.save({ session });
+    await user.save({});
 
     const txnId = generateTxnId();
 
@@ -101,7 +101,7 @@ exports.payFee = async (req, res, next) => {
       status: 'Completed',
       referenceNumber: refNum
     });
-    await savingsTxn.save({ session });
+    await savingsTxn.save({});
 
     // Internal Ledger Credit (Membership Fee Collection Account)
     const ledger = new LedgerEntry({
@@ -111,7 +111,7 @@ exports.payFee = async (req, res, next) => {
       entryType: 'Credit',
       transferType: 'Internal Transfer'
     });
-    await ledger.save({ session });
+    await ledger.save({});
 
     const audit = new AuditLog({
       action: 'MEMBERSHIP_FEE_PAYMENT',
@@ -120,10 +120,10 @@ exports.payFee = async (req, res, next) => {
       details: `Paid ₹${feeAmount} via Savings Debit. TPIN Verified. Ref: ${refNum}`,
       ipAddress: req.ip
     });
-    await audit.save({ session });
+    await audit.save({});
 
-    await session.commitTransaction();
-    session.endSession();
+    // await session.commitTransaction();
+    // session.endSession();
 
     // Send async email notification
     try {
@@ -154,8 +154,8 @@ exports.payFee = async (req, res, next) => {
     });
 
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    // await session.abortTransaction();
+    // session.endSession();
     // Pass to error handler but return 400 for expected errors
     if (error.message.includes('balance') || error.message.includes('found') || error.message.includes('paid')) {
       return res.status(400).json({ success: false, error: error.message });

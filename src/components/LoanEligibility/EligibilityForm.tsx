@@ -29,7 +29,7 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({ onSubmit }) =>
     existingEmi: '',
     expenses: '',
     savings: '',
-    loanType: 'Home Loan',
+    loanType: 'Gold Loan',
     desiredAmount: '',
     loanTenure: '',
   });
@@ -57,7 +57,7 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({ onSubmit }) =>
       existingEmi: '',
       expenses: '',
       savings: '',
-      loanType: 'Home Loan',
+      loanType: 'Gold Loan',
       desiredAmount: '',
       loanTenure: '',
     });
@@ -86,7 +86,7 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({ onSubmit }) =>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Age</label>
-              <input required type="number" name="age" min="18" max="80" value={formData.age} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
+              <input required type="number" name="age" min="18" max="80" value={formData.age} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Gender</label>
@@ -116,19 +116,19 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({ onSubmit }) =>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Monthly Income (₹)</label>
-              <input required type="number" name="income" min="0" value={formData.income} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
+              <input required type="number" name="income" min="0" value={formData.income} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Existing EMI (₹)</label>
-              <input required type="number" name="existingEmi" min="0" value={formData.existingEmi} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
+              <input required type="number" name="existingEmi" min="0" value={formData.existingEmi} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Monthly Expenses (₹)</label>
-              <input required type="number" name="expenses" min="0" value={formData.expenses} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
+              <input required type="number" name="expenses" min="0" value={formData.expenses} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Savings Amount (₹)</label>
-              <input required type="number" name="savings" min="0" value={formData.savings} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
+              <input required type="number" name="savings" min="0" value={formData.savings} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
             </div>
           </div>
         </section>
@@ -140,14 +140,12 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({ onSubmit }) =>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Loan Type</label>
               <select name="loanType" value={formData.loanType} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all">
-                <option value="Home Loan">Home Loan</option>
-                <option value="Personal Loan">Personal Loan</option>
-                <option value="Vehicle Loan">Vehicle Loan</option>
-                <option value="Agricultural Loan">Agricultural Loan</option>
-                <option value="Member's Old Vehicle Loans">Member's Old Vehicle Loans</option>
-                <option value="Member's Surity Loans">Member's Surity Loans</option>
-                <option value="Member's Mortgage Loans">Member's Mortgage Loans</option>
                 <option value="Gold Loan">Gold Loan</option>
+                <option value="Vehicle Loan">Vehicle Loan</option>
+                <option value="Personal Loan">Personal Loan</option>
+                <option value="Educational Loan">Educational Loan</option>
+                <option value="Housing Loan">Housing Loan</option>
+                <option value="Agricultural Loan">Agricultural Loan</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -156,12 +154,12 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({ onSubmit }) =>
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <IndianRupee className="h-4 w-4 text-slate-400" />
                 </div>
-                <input required type="number" name="desiredAmount" min="1000" value={formData.desiredAmount} onChange={handleChange} className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
+                <input required type="number" name="desiredAmount" min="1000" value={formData.desiredAmount} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-600">Loan Tenure (Years)</label>
-              <input required type="number" name="loanTenure" min="1" max="30" value={formData.loanTenure} onChange={handleChange} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
+              <input required type="number" name="loanTenure" min="1" max="30" value={formData.loanTenure} onChange={handleChange} onWheel={(e) => (e.target as HTMLElement).blur()} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-slate-50 transition-all" />
             </div>
           </div>
         </section>

@@ -130,14 +130,7 @@ export const MyFixedDeposits: React.FC<{ setCurrentTab: (tab: string) => void, s
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <div>
-                      <span className="font-bold">Deposit Date:</span> {new Date(fd.depositDate).toLocaleDateString()}
-                    </div>
-                    <div>
-                      <span className="font-bold">Maturity Date:</span> {new Date(fd.maturityDate).toLocaleDateString()}
-                    </div>
-                  </div>
+
                 </div>
 
                 {/* Actions Section */}

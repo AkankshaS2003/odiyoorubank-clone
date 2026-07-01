@@ -149,6 +149,7 @@ export const LoanEligibilityPage: React.FC<LoanEligibilityPageProps> = ({ setCur
                     formData={formData} 
                     resultData={resultData} 
                     onReset={handleReset} 
+                    setCurrentTab={setCurrentTab}
                   />
                 )}
               </motion.div>

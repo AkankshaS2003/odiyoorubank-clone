@@ -4,21 +4,31 @@ import { IndianRupee, Percent, ArrowRight } from 'lucide-react';
 interface EligibleLoanListProps {
   recommendedLoans: string[];
   maxLoanAmount: number;
+  setCurrentTab?: (tab: string) => void;
 }
 
-export const EligibleLoanList: React.FC<EligibleLoanListProps> = ({ recommendedLoans, maxLoanAmount }) => {
+export const EligibleLoanList: React.FC<EligibleLoanListProps> = ({ recommendedLoans, maxLoanAmount, setCurrentTab }) => {
   const getLoanDetails = (loanType: string) => {
     switch (loanType) {
-      case 'Home Loan': return { rate: 8.5, max: maxLoanAmount };
-      case 'Agricultural Loan': return { rate: 7.0, max: Math.min(maxLoanAmount, 500000) };
-      case 'Vehicle Loan': return { rate: 9.0, max: Math.min(maxLoanAmount, 750000) };
+      case 'Housing Loan': return { rate: 8.25, max: maxLoanAmount };
+      case 'Agricultural Loan': return { rate: 8.5, max: Math.min(maxLoanAmount, 500000) };
+      case 'Vehicle Loan': return { rate: 10.0, max: Math.min(maxLoanAmount, 750000) };
       case 'Personal Loan': return { rate: 11.5, max: Math.min(maxLoanAmount, 300000) };
-      case 'Member\'s Old Vehicle Loans': return { rate: 12.0, max: Math.min(maxLoanAmount, 500000) };
-      case 'Member\'s Surity Loans': return { rate: 13.0, max: Math.min(maxLoanAmount, 200000) };
-      case 'Member\'s Mortgage Loans': return { rate: 9.5, max: Math.min(maxLoanAmount, 5000000) };
+      case 'Educational Loan': return { rate: 7.9, max: Math.min(maxLoanAmount, 500000) };
       case 'Gold Loan': return { rate: 8.5, max: Math.min(maxLoanAmount, 1500000) };
       default: return { rate: 10.0, max: maxLoanAmount };
     }
+  };
+
+  const handleApply = (loan: string) => {
+    if (!setCurrentTab) return;
+    if (loan === 'Housing Loan' || loan === 'Home Loan') setCurrentTab('apply-housing-loan');
+    else if (loan === 'Personal Loan') setCurrentTab('apply-personal-loan');
+    else if (loan === 'Vehicle Loan') setCurrentTab('apply-vehicle-loan');
+    else if (loan === 'Agricultural Loan') setCurrentTab('apply-agricultural-loan');
+    else if (loan === 'Educational Loan') setCurrentTab('apply-educational-loan');
+    else if (loan === 'Gold Loan') setCurrentTab('apply-gold-loan');
+    else setCurrentTab('apply-personal-loan');
   };
 
   return (
@@ -49,8 +59,11 @@ export const EligibleLoanList: React.FC<EligibleLoanListProps> = ({ recommendedL
                 </div>
               </div>
 
-              <button className="w-full py-3 bg-slate-50 group-hover:bg-primary group-hover:text-white text-slate-600 font-bold rounded-xl flex items-center justify-center space-x-2 transition-colors">
-                <span>Visit branch for more details</span>
+              <button 
+                onClick={() => handleApply(loan)}
+                className="w-full py-3 bg-slate-50 group-hover:bg-primary group-hover:text-white text-slate-600 font-bold rounded-xl flex items-center justify-center space-x-2 transition-colors"
+              >
+                <span>Apply</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>

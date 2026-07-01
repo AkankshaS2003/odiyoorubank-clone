@@ -9,11 +9,11 @@ const bcrypt = require('bcryptjs');
 // @route   POST /api/fd
 // @access  Private
 exports.createFD = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // const // session = await mongoose.startSession();
+  // session.startTransaction();
   try {
     const { amount, tenureMonths, interestRate, tpin, nomineeDetails, formData, signatureBase64 } = req.body;
-    const user = await User.findById(req.user.id).session(session).select('+tpin +tpinLocked +failedTpinAttempts');
+    const user = await User.findById(req.user.id).select('+tpin +tpinLocked +failedTpinAttempts');
     
     if (!user) throw new Error('User not found');
     if (!user.tpin) throw new Error('Transaction PIN is not set up');
@@ -26,7 +26,7 @@ exports.createFD = async (req, res, next) => {
         user.tpinLocked = true;
         user.tpinLastFailed = Date.now();
       }
-      await user.save({ session });
+      await user.save({});
       throw new Error(user.tpinLocked ? 'TPIN locked due to too many failed attempts' : 'Invalid Transaction PIN');
     }
     
@@ -41,7 +41,7 @@ exports.createFD = async (req, res, next) => {
     // Deduct savings, increase fd
     user.savingsBalance -= amountNum;
     user.fdBalance = (user.fdBalance || 0) + amountNum;
-    await user.save({ session });
+    await user.save({});
 
     // Pre-calculate FD details
     const r = interestRate / 100;
@@ -54,15 +54,15 @@ exports.createFD = async (req, res, next) => {
     const maturityDate = new Date(depositDate);
     maturityDate.setMonth(maturityDate.getMonth() + tenureMonths);
     
-    const fdCount = await FixedDeposit.countDocuments().session(session);
+    const fdCount = await FixedDeposit.countDocuments();
     const fdNumber = `FD${new Date().getFullYear()}${String(fdCount + 1).padStart(5, '0')}`;
 
     // Find linked savings account if any
-    const account = await Account.findOne({ userId: user._id }).session(session);
+    const account = await Account.findOne({ userId: user._id });
     let linkedAccountId = null;
     if (account) {
       account.balance -= amountNum;
-      await account.save({ session });
+      await account.save({});
       linkedAccountId = account._id;
       
       // Log transaction
@@ -74,7 +74,7 @@ exports.createFD = async (req, res, next) => {
         status: 'Completed',
         description: 'Fixed Deposit Creation',
         referenceNumber: fdNumber
-      }], { session });
+      }], {});
     }
 
     const ServiceApplication = require('../models/ServiceApplication');
@@ -86,7 +86,7 @@ exports.createFD = async (req, res, next) => {
       images: { signature: signatureBase64 || '' },
       processedBy: user._id,
       processedAt: Date.now()
-    }], { session });
+    }], {});
 
     const newFd = await FixedDeposit.create([{
       fdNumber,
@@ -103,15 +103,15 @@ exports.createFD = async (req, res, next) => {
       status: 'Active',
       nomineeDetails,
       linkedSavingsAccount: linkedAccountId
-    }], { session });
+    }], {});
 
-    await session.commitTransaction();
-    session.endSession();
+    // await session.commitTransaction();
+    // session.endSession();
     
     res.status(201).json({ success: true, data: newFd[0] });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    // await session.abortTransaction();
+    // session.endSession();
     res.status(400).json({ success: false, error: error.message || 'Failed to create Fixed Deposit' });
   }
 };

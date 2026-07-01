@@ -101,15 +101,6 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       interestRate: `${systemSettings?.housingLoanRate || 8.25}% p.a.`,
       benefits: ['Subsidized rates for cooperative members', 'Long terms up to 20 years', 'Zero prepayment charges']
     },
-
-    {
-      id: 'prod-mortgage',
-      name: "Member's Mortgage Loans",
-      category: 'loan',
-      description: "Unlock the value of your property with our long-term mortgage loans tailored for members.",
-      interestRate: `${systemSettings?.mortgageLoanRate || 9.50}% p.a.`,
-      benefits: ['High loan-to-value ratio', 'Extended repayment periods', 'Transparent processing']
-    },
     {
       id: 'prod-agriculture',
       name: "Agricultural Loan",
@@ -135,7 +126,6 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
       else if (product.id === 'prod-personal') setCurrentTab('apply-personal-loan');
       else if (product.id === 'prod-education') setCurrentTab('apply-educational-loan');
       else if (product.id === 'prod-housing') setCurrentTab('apply-housing-loan');
-      else if (product.id === 'prod-mortgage') setCurrentTab('apply-mortgage-loan');
       else if (product.id === 'prod-agriculture') setCurrentTab('apply-agricultural-loan');
       else if (product.id === 'prod-recurring') setCurrentTab('apply-rd');
       else if (product.category === 'deposit') setCurrentTab('apply-deposit');
@@ -173,7 +163,6 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
         else if (selectedProduct.id === 'prod-personal') setCurrentTab('apply-personal-loan');
         else if (selectedProduct.id === 'prod-education') setCurrentTab('apply-educational-loan');
         else if (selectedProduct.id === 'prod-housing') setCurrentTab('apply-housing-loan');
-        else if (selectedProduct.id === 'prod-mortgage') setCurrentTab('apply-mortgage-loan');
         else if (selectedProduct.id === 'prod-agriculture') setCurrentTab('apply-agricultural-loan');
       }
     }

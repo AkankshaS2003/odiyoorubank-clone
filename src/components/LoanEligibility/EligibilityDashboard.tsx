@@ -12,9 +12,10 @@ interface EligibilityDashboardProps {
   formData: LoanRequestData;
   resultData: LoanResponseData;
   onReset: () => void;
+  setCurrentTab?: (tab: string) => void;
 }
 
-export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ formData, resultData, onReset }) => {
+export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ formData, resultData, onReset, setCurrentTab }) => {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -164,6 +165,7 @@ export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ form
           <EligibleLoanList 
             recommendedLoans={resultData.recommendedLoans} 
             maxLoanAmount={resultData.maxLoanAmount} 
+            setCurrentTab={setCurrentTab}
           />
         )}
 

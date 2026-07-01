@@ -190,25 +190,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
               </div>
             )}
 
-            {user.membershipPaymentStatus === 'Pending' && user.accountNumber && (
-              <div className="bg-blue-50 border border-blue-200 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-6 mt-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                    <ShieldAlert className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-blue-900 mb-1">Action Required: Membership Fee</h3>
-                    <p className="text-sm text-blue-700">Please pay your one-time membership fee to fully activate your cooperative bank membership.</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setCurrentTab('membership-payment')}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition-colors shrink-0"
-                >
-                  Pay Membership Fee
-                </button>
-              </div>
-            )}
 
             {/* Transaction PIN Security Section */}
             <div className="bg-white border border-slate-150 p-6 md:p-8 rounded-3xl shadow-sm">

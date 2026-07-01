@@ -156,20 +156,20 @@ export const FundTransfers: React.FC = () => {
           />
         </div>
 
-        {activeTab !== 'own' && (
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Beneficiary Account Number</label>
-            <input
-              type="text"
-              name="toAccount"
-              value={formData.toAccount}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-mono focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none"
-              placeholder="Enter Account Number"
-            />
-          </div>
-        )}
+        <div>
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            {activeTab === 'own' ? 'To Account Number' : 'Beneficiary Account Number'}
+          </label>
+          <input
+            type="text"
+            name="toAccount"
+            value={formData.toAccount}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-mono focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors outline-none"
+            placeholder="Enter Account Number"
+          />
+        </div>
 
         {activeTab === 'external' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

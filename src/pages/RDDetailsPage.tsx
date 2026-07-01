@@ -10,6 +10,16 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
 
+  const formatDate = (dateString: string | Date | undefined) => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   useEffect(() => {
     const fetchRD = async () => {
       try {
@@ -103,14 +113,14 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
     </div>;
   }
 
-  const startDateStr = new Date(rdData.depositDate).toLocaleDateString();
-  const maturityDateStr = rdData.maturityDate ? new Date(rdData.maturityDate).toLocaleDateString() : 'N/A';
+  const startDateStr = formatDate(rdData.depositDate);
+  const maturityDateStr = rdData.maturityDate ? formatDate(rdData.maturityDate) : 'N/A';
   
   const paidCount = installments.filter(i => i.status === 'Paid').length;
   const pendingCount = installments.filter(i => i.status === 'Pending').length;
   const overdueCount = installments.filter(i => i.status === 'Overdue').length;
   const nextPending = installments.find(i => i.status === 'Pending' || i.status === 'Overdue');
-  const nextDueDateStr = nextPending ? new Date(nextPending.dueDate).toLocaleDateString() : 'None';
+  const nextDueDateStr = nextPending ? formatDate(nextPending.dueDate) : 'None';
 
   const SectionTitle = ({ title, icon: Icon }: any) => (
     <h3 className="text-xs font-black text-white bg-[#0F4C81] px-4 py-2 inline-flex items-center gap-2 rounded-t-lg mt-6 mb-0 uppercase tracking-wider border-b-2 border-[#0F4C81]">
@@ -215,7 +225,7 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
                   {installments.map((inst, index) => (
                     <tr key={inst._id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                       <td className="p-4 font-bold text-slate-700">{inst.installmentNumber}</td>
-                      <td className="p-4">{new Date(inst.dueDate).toLocaleDateString()}</td>
+                      <td className="p-4">{formatDate(inst.dueDate)}</td>
                       <td className="p-4 font-bold text-[#0F4C81]">₹{inst.amount.toLocaleString('en-IN')}</td>
                       <td className="p-4 text-rose-500 font-bold">₹{inst.penalty || 0}</td>
                       <td className="p-4">
@@ -249,7 +259,7 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
                         )}
                         {inst.status === 'Paid' && (
                           <span className="text-xs text-slate-400 font-bold">
-                            Paid on {new Date(inst.paidDate).toLocaleDateString()}
+                            Paid on {formatDate(inst.paidDate)}
                           </span>
                         )}
                       </td>

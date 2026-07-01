@@ -98,7 +98,7 @@ exports.internalTransfer = async (req, res) => {
  */
 exports.externalTransfer = async (req, res) => {
   try {
-    const { fromAccount, beneficiaryName, beneficiaryAccount, ifscCode, bankName, amount, transferMode, remarks, tpin } = req.body;
+    const { fromAccount, beneficiaryName, toAccount, ifscCode, bankName, amount, transferMode, remarks, tpin } = req.body;
 
     const tpinResult = await verifyTpin(req.user, tpin);
     if (!tpinResult.success) {
@@ -118,7 +118,7 @@ exports.externalTransfer = async (req, res) => {
       receiverAccount: null, // External bank
       userId: req.user.id,
       paymentChannel: transferMode,
-      remarks: `To: ${beneficiaryName} | A/C: ${beneficiaryAccount} | IFSC: ${ifscCode} | Bank: ${bankName} | ${remarks}`
+      remarks: `To: ${beneficiaryName} | A/C: ${toAccount} | IFSC: ${ifscCode} | Bank: ${bankName} | ${remarks}`
     });
 
     res.status(200).json(result);
