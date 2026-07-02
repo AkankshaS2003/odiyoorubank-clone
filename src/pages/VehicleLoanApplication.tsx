@@ -6,7 +6,7 @@ interface VehicleLoanApplicationProps {
   setCurrentTab?: (tab: string) => void;
 }
 
-const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false }: any) => {
+const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false, required = false }: any) => {
   let displayValue = value || '';
   if (type === 'date' && typeof displayValue === 'string' && displayValue.includes('-')) {
     const parts = displayValue.split('-');
@@ -32,7 +32,10 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
 
   return (
     <div className={`\ mb-3`}>
-      <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
+      <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
+        {label}
+        {required && <span className="text-rose-500 ml-1">*</span>}
+      </label>
       <input
         type={type}
         max={type === 'date' ? "9999-12-31" : undefined}
@@ -47,9 +50,12 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
   );
 };
 
-const SelectField = ({ label, name, value, onChange, options, width = "w-full" }: any) => (
+const SelectField = ({ label, name, value, onChange, options, width = "w-full", required = false }: any) => (
   <div className={`\ mb-3`}>
-    <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
+    <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
+      {label}
+      {required && <span className="text-rose-500 ml-1">*</span>}
+    </label>
     <select
       name={name}
       value={value}
@@ -86,6 +92,18 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+const calculateAge = (dobString: string) => {
+  if (!dobString) return '';
+  const birthDate = new Date(dobString);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age.toString();
+};
+
 export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ setCurrentTab }) => {
   const { user, submitServiceApplication, getCustomerByCustomerId } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,9 +128,13 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
         permHouse: customer.address || prev.permHouse,
         mobile: customer.phone || prev.mobile,
         dob: customer.dob || prev.dob,
-        aadhaar: customer.aadharNumber || prev.aadhaar,
-        pan: customer.panNumber || prev.pan,
+        age: customer.dob ? calculateAge(customer.dob) : prev.age,
+        aadhaar: customer.aadhaar || prev.aadhaar,
+        pan: customer.pan || prev.pan,
         email: customer.email || prev.email,
+        accNumber: customer.accountNumber || prev.accNumber,
+        accBranch: customer.accountNumber ? 'Main Branch' : prev.accBranch,
+        accIfsc: customer.accountNumber ? 'ODIY0001234' : prev.accIfsc,
       }));
     } else {
       alert("Customer not found");
@@ -142,6 +164,7 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
     permHouse: '',
     permStreet: '',
     permCity: '',
+    permTaluk: '',
     permDistrict: '',
     permState: '',
     permPin: '',
@@ -150,6 +173,7 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
     commHouse: '',
     commStreet: '',
     commCity: '',
+    commTaluk: '',
     commDistrict: '',
     commState: '',
     commPin: '',
@@ -163,18 +187,20 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
     employer: '',
     designation: '',
     monthlyIncome: '',
-    annualIncome: '',
     yearsEmployed: '',
 
     // Vehicle Details
+    vehicleCondition: 'New',
     vehicleType: '',
     vehicleBrand: '',
     vehicleModel: '',
+    fuelType: '',
+    mfgYear: '',
+    registrationNo: '',
     dealerName: '',
     exShowroomPrice: '',
     onRoadPrice: '',
     downPayment: '',
-    loanRequired: '',
 
     // Loan Details
     requestedAmount: '',
@@ -196,8 +222,11 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
     // Nominee
     nomName: '',
     nomRel: '',
+    nomDob: '',
     nomMobile: '',
     nomAddress: '',
+    guardianName: '',
+    guardianRel: '',
 
     // App Signature
     appPlace: '',
@@ -206,18 +235,24 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
 
   useEffect(() => {
     if (user) {
-      setFormData((prev: any) => ({
-        ...prev,
-        memberNo: prev.memberNo || user.memberId || '',
-        fullName: prev.fullName || user.fullName || '',
-        mobile: prev.mobile || user.phone || '',
-        email: prev.email || user.email || '',
-        dob: prev.dob || user.dob || '',
-        permHouse: prev.permHouse || user.address || '',
-        aadhaar: prev.aadhaar || user.aadharNumber || '',
-        pan: prev.pan || user.panNumber || '',
-        accNumber: prev.accNumber || user.accountNumber || '',
-      }));
+      setFormData((prev: any) => {
+        const dob = prev.dob || user.dob || '';
+        return {
+          ...prev,
+          memberNo: prev.memberNo || user.memberId || '',
+          fullName: prev.fullName || user.fullName || '',
+          mobile: prev.mobile || user.phone || '',
+          email: prev.email || user.email || '',
+          dob: dob,
+          age: dob ? calculateAge(dob) : prev.age,
+          permHouse: prev.permHouse || user.address || '',
+          aadhaar: prev.aadhaar || user.aadhaar || '',
+          pan: prev.pan || user.pan || '',
+          accNumber: prev.accNumber || user.accountNumber || '',
+          accBranch: (prev.accNumber || user.accountNumber) ? 'Main Branch' : prev.accBranch,
+          accIfsc: (prev.accNumber || user.accountNumber) ? 'ODIY0001234' : prev.accIfsc,
+        };
+      });
     }
   }, [user]);
 
@@ -246,6 +281,7 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
           newData.commHouse = prev.permHouse;
           newData.commStreet = prev.permStreet;
           newData.commCity = prev.permCity;
+          newData.commTaluk = prev.permTaluk;
           newData.commDistrict = prev.permDistrict;
           newData.commState = prev.permState;
           newData.commPin = prev.permPin;
@@ -261,10 +297,15 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
           newData.fullName = user.fullName || '';
           newData.mobile = user.phone || '';
           newData.dob = user.dob || '';
+          newData.age = user.dob ? calculateAge(user.dob) : '';
           newData.email = user.email || '';
           if (user.address) {
             newData.permStreet = user.address;
           }
+        }
+
+        if (name === 'dob' && value) {
+          newData.age = calculateAge(value);
         }
         
         return newData;
@@ -421,18 +462,18 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
               <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={user?.customerId || ''} readOnly /></div>
               <div className="lg:col-span-2"><InputField label="Membership Number" name="memberNo" value={formData.memberNo} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
               
-              <div className="lg:col-span-4"><InputField label="Applicant Full Name" name="fullName" value={formData.fullName} onChange={handleChange} /></div>
-              <div className="lg:col-span-4"><InputField label="Father's / Husband's Name" name="fatherHusbandName" value={formData.fatherHusbandName} onChange={handleChange} /></div>
+              <div className="lg:col-span-4"><InputField label="Applicant Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required={true} /></div>
+              <div className="lg:col-span-4"><InputField label="Father's / Husband's Name" name="fatherHusbandName" value={formData.fatherHusbandName} onChange={handleChange} required={true} /></div>
               
-              <InputField label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} />
-              <InputField label="Age" name="age" type="number" value={formData.age} onChange={handleChange} />
-              <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} />
+              <InputField label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} required={true} />
+              <InputField label="Age" name="age" type="number" value={formData.age} onChange={handleChange} readOnly={true} />
+              <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} required={true} />
               <SelectField label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} options={['Single', 'Married', 'Divorced', 'Widowed']} />
             </div>
 
             <h3 className="text-[10px] font-bold text-[#0F4C81] border-b border-slate-200 pb-1 mb-3 uppercase tracking-wider">Contact Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <InputField label="Mobile Number" name="mobile" value={formData.mobile} onChange={handleChange} />
+              <InputField label="Mobile Number" name="mobile" value={formData.mobile} onChange={handleChange} required={true} />
               <InputField label="Alternate Mobile" name="altMobile" value={formData.altMobile} onChange={handleChange} />
               <InputField label="Email ID" name="email" value={formData.email} onChange={handleChange} type="email" />
             </div>
@@ -440,13 +481,16 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <h3 className="text-[10px] font-bold text-[#0F4C81] border-b border-slate-200 pb-1 mb-3 uppercase tracking-wider">Permanent Address</h3>
-                <InputField label="House Number / Name" name="permHouse" value={formData.permHouse} onChange={handleChange} />
-                <InputField label="Street" name="permStreet" value={formData.permStreet} onChange={handleChange} />
-                <InputField label="Village / City" name="permCity" value={formData.permCity} onChange={handleChange} />
-                <InputField label="District" name="permDistrict" value={formData.permDistrict} onChange={handleChange} />
+                <InputField label="House Number / Name" name="permHouse" value={formData.permHouse} onChange={handleChange} required={true} />
+                <InputField label="Street" name="permStreet" value={formData.permStreet} onChange={handleChange} required={true} />
                 <div className="grid grid-cols-2 gap-2">
-                  <InputField label="State" name="permState" value={formData.permState} onChange={handleChange} />
-                  <InputField label="PIN Code" name="permPin" value={formData.permPin} onChange={handleChange} />
+                  <InputField label="Village / City" name="permCity" value={formData.permCity} onChange={handleChange} required={true} />
+                  <InputField label="Taluk / Tehsil" name="permTaluk" value={formData.permTaluk} onChange={handleChange} required={true} />
+                </div>
+                <InputField label="District" name="permDistrict" value={formData.permDistrict} onChange={handleChange} required={true} />
+                <div className="grid grid-cols-2 gap-2">
+                  <InputField label="State" name="permState" value={formData.permState} onChange={handleChange} required={true} />
+                  <InputField label="PIN Code" name="permPin" value={formData.permPin} onChange={handleChange} required={true} />
                 </div>
               </div>
               <div>
@@ -454,13 +498,16 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
                   <h3 className="text-[10px] font-bold text-[#0F4C81] uppercase tracking-wider">Communication Address</h3>
                   <CheckboxField label="Same as Permanent" name="sameAsPerm" checked={formData.sameAsPerm} onChange={handleChange} />
                 </div>
-                <InputField label="House Number / Name" name="commHouse" value={formData.commHouse} onChange={handleChange} readOnly={formData.sameAsPerm} />
-                <InputField label="Street" name="commStreet" value={formData.commStreet} onChange={handleChange} readOnly={formData.sameAsPerm} />
-                <InputField label="Village / City" name="commCity" value={formData.commCity} onChange={handleChange} readOnly={formData.sameAsPerm} />
-                <InputField label="District" name="commDistrict" value={formData.commDistrict} onChange={handleChange} readOnly={formData.sameAsPerm} />
+                <InputField label="House Number / Name" name="commHouse" value={formData.commHouse} onChange={handleChange} readOnly={formData.sameAsPerm} required={true} />
+                <InputField label="Street" name="commStreet" value={formData.commStreet} onChange={handleChange} readOnly={formData.sameAsPerm} required={true} />
                 <div className="grid grid-cols-2 gap-2">
-                  <InputField label="State" name="commState" value={formData.commState} onChange={handleChange} readOnly={formData.sameAsPerm} />
-                  <InputField label="PIN Code" name="commPin" value={formData.commPin} onChange={handleChange} readOnly={formData.sameAsPerm} />
+                  <InputField label="Village / City" name="commCity" value={formData.commCity} onChange={handleChange} readOnly={formData.sameAsPerm} required={true} />
+                  <InputField label="Taluk / Tehsil" name="commTaluk" value={formData.commTaluk} onChange={handleChange} readOnly={formData.sameAsPerm} required={true} />
+                </div>
+                <InputField label="District" name="commDistrict" value={formData.commDistrict} onChange={handleChange} readOnly={formData.sameAsPerm} required={true} />
+                <div className="grid grid-cols-2 gap-2">
+                  <InputField label="State" name="commState" value={formData.commState} onChange={handleChange} readOnly={formData.sameAsPerm} required={true} />
+                  <InputField label="PIN Code" name="commPin" value={formData.commPin} onChange={handleChange} readOnly={formData.sameAsPerm} required={true} />
                 </div>
               </div>
             </div>
@@ -470,8 +517,8 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Identification Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <InputField label="Aadhaar Number" name="aadhaar" value={formData.aadhaar} onChange={handleChange} />
-              <InputField label="PAN Number" name="pan" value={formData.pan} onChange={handleChange} />
+              <InputField label="Aadhaar Number" name="aadhaar" value={formData.aadhaar} onChange={handleChange} required={true} />
+              <InputField label="PAN Number" name="pan" value={formData.pan} onChange={handleChange} required={true} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2 border-t border-slate-300 print:hidden">
               <div className="flex flex-col">
@@ -493,11 +540,10 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Employment / Income Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <InputField label="Occupation" name="occupation" value={formData.occupation} onChange={handleChange} />
+              <SelectField label="Occupation" name="occupation" value={formData.occupation} onChange={handleChange} options={['Salaried', 'Self-employed', 'Business', 'Agriculture', 'Homemaker', 'Student', 'Retired']} required={true} />
               <InputField label="Employer / Business Name" name="employer" value={formData.employer} onChange={handleChange} />
               <InputField label="Designation" name="designation" value={formData.designation} onChange={handleChange} />
-              <InputField label="Monthly Income (₹)" name="monthlyIncome" type="number" value={formData.monthlyIncome} onChange={handleChange} />
-              <InputField label="Annual Income (₹)" name="annualIncome" type="number" value={formData.annualIncome} onChange={handleChange} />
+              <InputField label="Monthly Income (₹)" name="monthlyIncome" type="number" value={formData.monthlyIncome} onChange={handleChange} required={true} />
               <InputField label="Work Experience (Years)" name="yearsEmployed" type="number" value={formData.yearsEmployed} onChange={handleChange} />
             </div>
           </div>
@@ -505,17 +551,24 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
           {/* VEHICLE DETAILS */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Vehicle Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <SelectField label="Vehicle Type" name="vehicleType" value={formData.vehicleType} onChange={handleChange} options={['Two Wheeler', 'Car', 'Commercial Vehicle', 'Electric Vehicle', 'Other']} />
-              <InputField label="Vehicle Brand" name="vehicleBrand" value={formData.vehicleBrand} onChange={handleChange} />
-              <InputField label="Vehicle Model" name="vehicleModel" value={formData.vehicleModel} onChange={handleChange} />
-              <InputField label="Dealer Name" name="dealerName" value={formData.dealerName} onChange={handleChange} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+              <SelectField label="Vehicle Condition" name="vehicleCondition" value={formData.vehicleCondition} onChange={handleChange} options={['New', 'Used']} required={true} />
+              <SelectField label="Vehicle Type" name="vehicleType" value={formData.vehicleType} onChange={handleChange} options={['Two Wheeler', 'Car', 'Commercial Vehicle', 'Electric Vehicle', 'Other']} required={true} />
+              <InputField label="Vehicle Brand" name="vehicleBrand" value={formData.vehicleBrand} onChange={handleChange} required={true} />
+              <InputField label="Vehicle Model" name="vehicleModel" value={formData.vehicleModel} onChange={handleChange} required={true} />
+              <SelectField label="Fuel Type" name="fuelType" value={formData.fuelType} onChange={handleChange} options={['Petrol', 'Diesel', 'Electric', 'CNG', 'Hybrid']} required={true} />
             </div>
+            {formData.vehicleCondition === 'Used' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <InputField label="Manufacturing Year" name="mfgYear" value={formData.mfgYear} onChange={handleChange} required={true} />
+                <InputField label="Registration Number" name="registrationNo" value={formData.registrationNo} onChange={handleChange} required={true} />
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <InputField label="Dealer Name" name="dealerName" value={formData.dealerName} onChange={handleChange} />
               <InputField label="Ex-showroom Price (₹)" name="exShowroomPrice" type="number" value={formData.exShowroomPrice} onChange={handleChange} />
               <InputField label="On-road Price (₹)" name="onRoadPrice" type="number" value={formData.onRoadPrice} onChange={handleChange} />
               <InputField label="Down Payment Amount (₹)" name="downPayment" type="number" value={formData.downPayment} onChange={handleChange} />
-              <InputField label="Loan Amount Required (₹)" name="loanRequired" type="number" value={formData.loanRequired} onChange={handleChange} />
             </div>
           </div>
 
@@ -523,13 +576,14 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400 bg-slate-50 print:bg-transparent">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Loan Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <InputField label="Requested Loan Amount (₹)" name="requestedAmount" type="number" value={formData.requestedAmount} onChange={handleChange} />
+              <InputField label="Requested Loan Amount (₹)" name="requestedAmount" type="number" value={formData.requestedAmount} onChange={handleChange} required={true} />
               <SelectField 
-                label="Loan Tenure (in Years)" 
+                label="Loan Tenure (in Months)" 
                 name="tenure" 
                 value={formData.tenure} 
                 onChange={handleChange} 
-                options={['1 Year', '2 Years', '3 Years', '5 Years', '7 Years']} 
+                options={['12 Months', '24 Months', '36 Months', '48 Months', '60 Months', '72 Months', '84 Months']} 
+                required={true}
               />
               <SelectField 
                 label="Loan Purpose" 
@@ -537,6 +591,7 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
                 value={formData.purpose} 
                 onChange={handleChange} 
                 options={['New Vehicle Purchase', 'Used Vehicle Purchase', 'Commercial Use', 'Personal Use']} 
+                required={true}
               />
             </div>
           </div>
@@ -545,20 +600,27 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Bank Account Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <InputField label="Account Number" name="accNumber" value={formData.accNumber} onChange={handleChange} />
-              <InputField label="Branch" name="accBranch" value={formData.accBranch} onChange={handleChange} />
-              <InputField label="IFSC Code" name="accIfsc" value={formData.accIfsc} onChange={handleChange} />
+              <InputField label="Account Number" name="accNumber" value={formData.accNumber} onChange={handleChange} required={true} />
+              <InputField label="Branch" name="accBranch" value={formData.accBranch} onChange={handleChange} required={true} />
+              <InputField label="IFSC Code" name="accIfsc" value={formData.accIfsc} onChange={handleChange} required={true} />
             </div>
           </div>
 
           {/* NOMINEE DETAILS */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Nominee Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <InputField label="Nominee Name" name="nomName" value={formData.nomName} onChange={handleChange} />
-              <InputField label="Relationship" name="nomRel" value={formData.nomRel} onChange={handleChange} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              <InputField label="Nominee Name" name="nomName" value={formData.nomName} onChange={handleChange} required={true} />
+              <InputField label="Relationship" name="nomRel" value={formData.nomRel} onChange={handleChange} required={true} />
+              <InputField label="Date of Birth" name="nomDob" type="date" value={formData.nomDob} onChange={handleChange} required={true} />
+              <div className="lg:col-span-2"><InputField label="Address" name="nomAddress" value={formData.nomAddress} onChange={handleChange} /></div>
               <InputField label="Mobile Number" name="nomMobile" value={formData.nomMobile} onChange={handleChange} />
-              <InputField label="Address" name="nomAddress" value={formData.nomAddress} onChange={handleChange} />
+            </div>
+            
+            <h3 className="text-[10px] font-bold text-rose-500 border-b border-slate-300 pb-1 mb-3 uppercase tracking-wider">If Nominee is Minor</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField label="Guardian Name" name="guardianName" value={formData.guardianName} onChange={handleChange} />
+              <InputField label="Guardian Relationship" name="guardianRel" value={formData.guardianRel} onChange={handleChange} />
             </div>
           </div>
 

@@ -83,7 +83,7 @@ const FileUploadBox = ({ label, field, accept = "image/*", uploads, handleFileUp
 );
 
 export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurrentTab }) => {
-  const { user, submitAccountApplication } = useAuth();
+  const { user, submitAccountApplication, getCustomerByCustomerId } = useAuth();
   
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
@@ -160,8 +160,8 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
         permanentAddress: customer.address || prev.permanentAddress,
         mobileNumber: customer.phone || prev.mobileNumber,
         dob: customer.dob || prev.dob,
-        aadhaarNumber: customer.aadharNumber || prev.aadhaarNumber,
-        panNumber: customer.panNumber || prev.panNumber,
+        aadhaarNumber: customer.aadhaar || prev.aadhaarNumber,
+        panNumber: customer.pan || prev.panNumber,
         emailId: customer.email || prev.emailId,
       }));
     } else {

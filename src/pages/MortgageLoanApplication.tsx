@@ -138,8 +138,8 @@ export const MortgageLoanApplication: React.FC<MortgageLoanApplicationProps> = (
         permHouse: customer.address || prev.permHouse,
         mobile: customer.phone || prev.mobile,
         dob: customer.dob || prev.dob,
-        aadhaar: customer.aadharNumber || prev.aadhaar,
-        pan: customer.panNumber || prev.pan,
+        aadhaar: customer.aadhaar || prev.aadhaar,
+        pan: customer.pan || prev.pan,
         email: customer.email || prev.email,
       }));
     } else {
@@ -218,8 +218,8 @@ export const MortgageLoanApplication: React.FC<MortgageLoanApplicationProps> = (
         email: prev.email || user.email || '',
         dob: prev.dob || user.dob || '',
         permHouse: prev.permHouse || user.address || '',
-        aadhaar: prev.aadhaar || user.aadharNumber || '',
-        pan: prev.pan || user.panNumber || '',
+        aadhaar: prev.aadhaar || user.aadhaar || '',
+        pan: prev.pan || user.pan || '',
         accNumber: prev.accNumber || user.accountNumber || '',
       }));
     }

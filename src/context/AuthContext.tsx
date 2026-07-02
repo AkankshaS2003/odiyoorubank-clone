@@ -34,6 +34,8 @@ export interface User {
   email: string;
   aadhaar?: string;
   pan?: string;
+  aadharNumber?: string;
+  panNumber?: string;
   address?: string;
   dob?: string;
   bloodGroup?: string;
@@ -62,6 +64,12 @@ export interface User {
 export interface SystemSettings {
   fdRate: number;
   goldLoanRate: number;
+  vehicleLoanRate?: number;
+  personalLoanRate?: number;
+  educationalLoanRate?: number;
+  housingLoanRate?: number;
+  mortgageLoanRate?: number;
+  agriculturalLoanRate?: number;
   savingsRate: number;
   rdRate: number;
   marqueeText: string;

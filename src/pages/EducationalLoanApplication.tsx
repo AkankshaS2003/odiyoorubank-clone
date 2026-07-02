@@ -6,7 +6,15 @@ interface EducationalLoanApplicationProps {
   setCurrentTab?: (tab: string) => void;
 }
 
-const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false }: any) => {
+const calculateAge = (dobString: string) => {
+  if (!dobString) return '';
+  const dob = new Date(dobString);
+  if (isNaN(dob.getTime())) return '';
+  const diff = Date.now() - dob.getTime();
+  return Math.max(0, new Date(diff).getUTCFullYear() - 1970);
+};
+
+const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false, required = false }: any) => {
   let displayValue = value || '';
   if (type === 'date' && typeof displayValue === 'string' && displayValue.includes('-')) {
     const parts = displayValue.split('-');
@@ -17,6 +25,9 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
 
   const internalOnChange = (e: any) => {
     let finalValue = e.target.value;
+    if (type === 'number' && Number(finalValue) < 0) {
+      finalValue = '0';
+    }
     if (type === 'date' && finalValue) {
       const parts = finalValue.split('-');
       if (parts.length === 3 && parts[0].length === 4) {
@@ -32,7 +43,9 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
 
   return (
     <div className={`\ mb-3`}>
-      <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
+      <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
+        {label}{required && <span className="text-red-500 ml-1 text-sm">*</span>}
+      </label>
       <input
         type={type}
         max={type === 'date' ? "9999-12-31" : undefined}
@@ -41,19 +54,23 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
         onChange={internalOnChange}
         placeholder={placeholder}
         readOnly={readOnly}
+        required={required}
         className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] ${type === 'date' ? 'lowercase' : 'capitalize'} bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
       />
     </div>
   );
 };
 
-const SelectField = ({ label, name, value, onChange, options, width = "w-full" }: any) => (
+const SelectField = ({ label, name, value, onChange, options, width = "w-full", required = false }: any) => (
   <div className={`\ mb-3`}>
-    <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">{label}</label>
+    <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
+      {label}{required && <span className="text-red-500 ml-1 text-sm">*</span>}
+    </label>
     <select
       name={name}
       value={value}
       onChange={onChange}
+      required={required}
       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent"
     >
       <option value="">Select Option</option>
@@ -136,8 +153,8 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
         permHouse: customer.address || prev.permHouse,
         mobile: customer.phone || prev.mobile,
         dob: customer.dob || prev.dob,
-        aadhaar: customer.aadharNumber || prev.aadhaar,
-        pan: customer.panNumber || prev.pan,
+        aadhaar: customer.aadhaar || prev.aadhaar,
+        pan: customer.pan || prev.pan,
         email: customer.email || prev.email,
       }));
     } else {
@@ -163,7 +180,9 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
 
     // Student Address
     permHouse: '',
+    permStreet: '',
     permCity: '',
+    permTaluk: '',
     permDistrict: '',
     permState: '',
     permPin: '',
@@ -179,7 +198,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
     expectedCompletion: '',
 
     // Admission Proof
-    admissionConfirmed: false,
+    // admissionConfirmed removed
 
     // Co-Applicant Details
     coName: '',
@@ -190,8 +209,13 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
     coOccupation: '',
     coEmployer: '',
     coMonthlyIncome: '',
-    coAnnualIncome: '',
-    coAddress: '',
+    coHouse: '',
+    coStreet: '',
+    coCity: '',
+    coTaluk: '',
+    coDistrict: '',
+    coState: '',
+    coPin: '',
 
     // Course Expenses
     tuitionFee: 0,
@@ -201,6 +225,8 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
     otherFee: 0,
 
     // Loan Requirements
+    scholarshipConfirmed: 'No',
+    scholarshipProvider: '',
     scholarship: 0,
     familyContribution: 0,
 
@@ -222,6 +248,9 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
     nomRel: '',
     nomMobile: '',
     nomAddress: '',
+    nomDob: '',
+    nomGuardianName: '',
+    nomGuardianRel: '',
 
     // Signatures
     appPlace: '',
@@ -240,8 +269,8 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
         email: prev.email || user.email || '',
         dob: prev.dob || user.dob || '',
         permHouse: prev.permHouse || user.address || '',
-        aadhaar: prev.aadhaar || user.aadharNumber || '',
-        pan: prev.pan || user.panNumber || '',
+        aadhaar: prev.aadhaar || user.aadhaar || '',
+        pan: prev.pan || user.pan || '',
         accNumber: prev.accNumber || user.accountNumber || '',
       }));
     }
@@ -286,9 +315,32 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
           }
         }
         
+        if (name === 'academicYear' || name === 'courseDuration') {
+          const year = parseInt(newData.academicYear || '0', 10);
+          const durationStr = newData.courseDuration || '0';
+          const duration = parseInt(durationStr.replace(/\D/g, '') || '0', 10);
+          if (year > 1900 && duration > 0) {
+            newData.expectedCompletion = (year + duration).toString();
+          }
+        }
+
+        if (name === 'sharesToPurchase') {
+          newData.shareAmount = (Number(value) * 100).toString();
+        }
+
+        if (name === 'scholarshipConfirmed' && value === 'No') {
+          newData.scholarshipProvider = '';
+          newData.scholarship = 0;
+        }
+
         return newData;
       });
     }
+  };
+
+  const handleSaveDraft = () => {
+    localStorage.setItem('draft_EducationalLoanApplication', JSON.stringify(formData));
+    alert('Application saved as draft successfully!');
   };
 
   const handlePrint = () => {
@@ -297,17 +349,55 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoFile || !signatureFile || !aadhaarFile || !panFile) {
-      alert("Please upload all the required images (Aadhaar, PAN, Photo, and Signature).");
+    if (!photoFile || !signatureFile || !identityProofFile || !admissionLetterFile) {
+      alert("Please upload all the required images (Photo, Identity Proof, Admission Letter, and Signature).");
       return;
     }
-    if (!formData.courseName || !formData.institutionName || !formData.coName) {
-      alert("Please fill in Course Name, Institution Name, and Co-Applicant Details.");
+    
+    if (!/^\d{12}$/.test(formData.aadhaar)) {
+      alert("Student Aadhaar Number must be exactly 12 digits.");
+      return;
+    }
+    if (formData.pan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan.toUpperCase())) {
+      alert("Student PAN Number format is invalid (e.g. ABCDE1234F).");
+      return;
+    }
+    if (!/^\d{12}$/.test(formData.coAadhaar)) {
+      alert("Co-Applicant Aadhaar Number must be exactly 12 digits.");
+      return;
+    }
+    if (formData.coPan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.coPan.toUpperCase())) {
+      alert("Co-Applicant PAN Number format is invalid (e.g. ABCDE1234F).");
+      return;
+    }
+    if (!/^\d{10}$/.test(formData.mobile)) {
+      alert("Student Mobile Number must be exactly 10 digits.");
+      return;
+    }
+    if (!/^\d{10}$/.test(formData.coMobile)) {
+      alert("Co-Applicant Mobile Number must be exactly 10 digits.");
+      return;
+    }
+    if (!/^\d{6}$/.test(formData.permPin)) {
+      alert("Student Permanent Pincode must be exactly 6 digits.");
+      return;
+    }
+    if (!/^\d{6}$/.test(formData.coPin)) {
+      alert("Co-Applicant Pincode must be exactly 6 digits.");
+      return;
+    }
+    if (formData.nomMobile && !/^\d{10}$/.test(formData.nomMobile)) {
+      alert("Nominee Mobile Number must be exactly 10 digits.");
       return;
     }
 
-    if (!formData.admissionConfirmed) {
-      alert("Please confirm admission by checking the 'Admission Confirmed' box.");
+    if (totalCourseCost === 0) {
+      alert("At least one course expense field must be filled (e.g. Tuition Fee).");
+      return;
+    }
+
+    if (loanAmountRequired > totalCourseCost) {
+      alert("Loan Amount Required cannot exceed Total Course Cost.");
       return;
     }
     
@@ -352,8 +442,9 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
             <FileCheck className="h-10 w-10" />
           </div>
           <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Application Submitted!</h2>
-          <p className="text-slate-500 mb-8">
-            Your Educational Loan Application (No: {formData.applicationNo}) for ₹{loanAmountRequired.toLocaleString('en-IN')} has been successfully received.
+          <p className="text-slate-500 mb-8 leading-relaxed">
+            Your education loan application (No: <strong>{formData.applicationNo}</strong>) for <strong>{formData.fullName}</strong> has been submitted successfully on {formData.date}.<br /><br />
+            Our officer will contact you or your co-applicant within 2 working days on the registered mobile number.
           </p>
           
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-left mb-8 space-y-3">
@@ -453,28 +544,32 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={user?.customerId || ''} readOnly /></div>
               <div className="lg:col-span-2"><InputField label="Membership Number" name="memberNo" value={formData.memberNo} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
-              <div className="lg:col-span-4"><InputField label="Student Full Name" name="fullName" value={formData.fullName} onChange={handleChange} /></div>
-              <InputField label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} />
-              <InputField label="Age" name="age" type="number" value={formData.age} onChange={handleChange} />
-              <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} />
-              <InputField label="Aadhaar Number" name="aadhaar" value={formData.aadhaar} onChange={handleChange} />
+              <div className="lg:col-span-4"><InputField label="Student Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required={true} /></div>
+              <div className="flex flex-col mb-3">
+                <InputField label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} required={true} />
+                <span className="text-xs font-bold text-[#0F4C81] pl-1">Age: {calculateAge(formData.dob)} {calculateAge(formData.dob) ? 'years' : ''}</span>
+              </div>
+              <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} required={true} />
+              <InputField label="Aadhaar Number" name="aadhaar" value={formData.aadhaar} onChange={handleChange} required={true} />
               <InputField label="PAN Number (Optional)" name="pan" value={formData.pan} onChange={handleChange} />
-              <InputField label="Mobile Number" name="mobile" value={formData.mobile} onChange={handleChange} />
-              <div className="lg:col-span-2"><InputField label="Email ID" name="email" value={formData.email} onChange={handleChange} type="email" /></div>
+              <InputField label="Mobile Number" name="mobile" value={formData.mobile} onChange={handleChange} required={true} />
+              <div className="lg:col-span-3"><InputField label="Email ID" name="email" value={formData.email} onChange={handleChange} type="email" /></div>
             </div>
             
             <div className="mb-6 print:hidden">
-              <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Passport Size Photo Upload</label>
-              <input type="file" accept="image/*" onChange={e => setPhotoFile(e.target.files?.[0] || null)} className="text-xs text-slate-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:font-semibold file:bg-[#EAF6FF] file:text-[#0F4C81]" />
+              <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Passport Size Photo Upload <span className="text-red-500 ml-1 text-sm">*</span></label>
+              <input type="file" accept="image/*" onChange={e => setPhotoFile(e.target.files?.[0] || null)} required={true} className="text-xs text-slate-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:font-semibold file:bg-[#EAF6FF] file:text-[#0F4C81]" />
             </div>
 
-            <h3 className="text-[10px] font-bold text-[#0F4C81] border-b border-slate-200 pb-1 mb-3 uppercase tracking-wider">Student Address</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2"><InputField label="Permanent Address" name="permHouse" value={formData.permHouse} onChange={handleChange} /></div>
-              <InputField label="City" name="permCity" value={formData.permCity} onChange={handleChange} />
-              <InputField label="District" name="permDistrict" value={formData.permDistrict} onChange={handleChange} />
-              <InputField label="State" name="permState" value={formData.permState} onChange={handleChange} />
-              <InputField label="PIN Code" name="permPin" value={formData.permPin} onChange={handleChange} />
+            <h3 className="text-[10px] font-bold text-[#0F4C81] border-b border-slate-200 pb-1 mb-3 uppercase tracking-wider">Student Permanent Address</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <InputField label="House Number / Name" name="permHouse" value={formData.permHouse} onChange={handleChange} required={true} />
+              <InputField label="Street" name="permStreet" value={formData.permStreet} onChange={handleChange} />
+              <InputField label="City" name="permCity" value={formData.permCity} onChange={handleChange} required={true} />
+              <InputField label="Taluk / Tehsil" name="permTaluk" value={formData.permTaluk} onChange={handleChange} required={true} />
+              <InputField label="District" name="permDistrict" value={formData.permDistrict} onChange={handleChange} required={true} />
+              <InputField label="State" name="permState" value={formData.permState} onChange={handleChange} required={true} />
+              <InputField label="PIN Code" name="permPin" value={formData.permPin} onChange={handleChange} required={true} />
             </div>
           </div>
 
@@ -482,24 +577,24 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Educational Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField label="Course Name" name="courseName" value={formData.courseName} onChange={handleChange} />
-              <InputField label="Stream" name="stream" value={formData.stream} onChange={handleChange} />
-              <InputField label="Institution / College Name" name="institutionName" value={formData.institutionName} onChange={handleChange} />
-              <InputField label="University Name" name="universityName" value={formData.universityName} onChange={handleChange} />
-              <SelectField label="Course Type" name="courseType" value={formData.courseType} onChange={handleChange} options={['Diploma', 'Undergraduate', 'Postgraduate', 'Professional Course', 'Doctorate']} />
-              <InputField label="Course Duration (in Years)" name="courseDuration" value={formData.courseDuration} onChange={handleChange} />
-              <InputField label="Academic Year" name="academicYear" value={formData.academicYear} onChange={handleChange} />
-              <InputField label="Expected Completion Year" name="expectedCompletion" type="number" value={formData.expectedCompletion} onChange={handleChange} />
+              <InputField label="Course Name" name="courseName" value={formData.courseName} onChange={handleChange} required={true} />
+              <InputField label="Stream (Optional)" name="stream" value={formData.stream} onChange={handleChange} />
+              <InputField label="Institution / College Name" name="institutionName" value={formData.institutionName} onChange={handleChange} required={true} />
+              <InputField label="University Name" name="universityName" value={formData.universityName} onChange={handleChange} required={true} />
+              <SelectField label="Course Type" name="courseType" value={formData.courseType} onChange={handleChange} options={['Undergraduate (UG)', 'Postgraduate (PG)', 'Diploma', 'Certificate', 'Doctoral/PhD', 'Professional (CA/CS/ICWA)', 'Vocational', 'Other']} required={true} />
+              <SelectField label="Course Duration" name="courseDuration" value={formData.courseDuration} onChange={handleChange} options={['1 Year', '2 Years', '3 Years', '4 Years', '5 Years', '6 Years']} required={true} />
+              <InputField label="Academic Year" name="academicYear" value={formData.academicYear} onChange={handleChange} required={true} />
+              <InputField label="Expected Completion Year" name="expectedCompletion" type="number" value={formData.expectedCompletion} onChange={handleChange} required={true} />
             </div>
           </div>
 
           {/* ADMISSION PROOF SECTION */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Admission Proof (Mandatory)</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6 print:hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 print:hidden">
               <div>
-                <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Admission Letter</label>
-                <input type="file" accept=".pdf,image/*" onChange={e => setAdmissionLetterFile(e.target.files?.[0] || null)} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
+                <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Admission Letter <span className="text-red-500 ml-1 text-sm">*</span></label>
+                <input type="file" accept=".pdf,image/*" onChange={e => setAdmissionLetterFile(e.target.files?.[0] || null)} required={true} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Seat Allotment Letter</label>
@@ -514,30 +609,34 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
                 <input type="file" accept=".pdf,image/*" onChange={e => setMarksCardsFile(e.target.files?.[0] || null)} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Identity Proof</label>
-                <input type="file" accept=".pdf,image/*" onChange={e => setIdentityProofFile(e.target.files?.[0] || null)} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
+                <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Identity Proof <span className="text-red-500 ml-1 text-sm">*</span></label>
+                <input type="file" accept=".pdf,image/*" onChange={e => setIdentityProofFile(e.target.files?.[0] || null)} required={true} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
               </div>
-            </div>
-            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 print:border-none print:bg-transparent">
-              <CheckboxField label="Admission Confirmed" name="admissionConfirmed" checked={formData.admissionConfirmed} onChange={handleChange} />
             </div>
           </div>
 
-          {/* CO-APPLICANT DETAILS */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-2 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Co-Applicant Details (Mandatory)</h3>
             <p className="text-xs text-slate-500 mb-4 italic print:text-slate-800">Educational loans must be jointly applied for by the student and parent/guardian.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <div className="lg:col-span-2"><InputField label="Parent / Guardian Name" name="coName" value={formData.coName} onChange={handleChange} /></div>
-              <InputField label="Relationship with Student" name="coRel" value={formData.coRel} onChange={handleChange} />
-              <InputField label="Mobile Number" name="coMobile" value={formData.coMobile} onChange={handleChange} />
-              <InputField label="Aadhaar Number" name="coAadhaar" value={formData.coAadhaar} onChange={handleChange} />
+              <div className="lg:col-span-2"><InputField label="Parent / Guardian Name" name="coName" value={formData.coName} onChange={handleChange} required={true} /></div>
+              <InputField label="Relationship with Student" name="coRel" value={formData.coRel} onChange={handleChange} required={true} />
+              <InputField label="Mobile Number" name="coMobile" value={formData.coMobile} onChange={handleChange} required={true} />
+              <InputField label="Aadhaar Number" name="coAadhaar" value={formData.coAadhaar} onChange={handleChange} required={true} />
               <InputField label="PAN Number" name="coPan" value={formData.coPan} onChange={handleChange} />
-              <InputField label="Occupation" name="coOccupation" value={formData.coOccupation} onChange={handleChange} />
+              <SelectField label="Occupation" name="coOccupation" value={formData.coOccupation} onChange={handleChange} options={['Salaried', 'Self-employed', 'Business Owner', 'Agriculture', 'Government Employee', 'Homemaker', 'Retired', 'Other']} />
               <InputField label="Employer / Business Name" name="coEmployer" value={formData.coEmployer} onChange={handleChange} />
-              <InputField label="Monthly Income (₹)" name="coMonthlyIncome" type="number" value={formData.coMonthlyIncome} onChange={handleChange} />
-              <InputField label="Annual Income (₹)" name="coAnnualIncome" type="number" value={formData.coAnnualIncome} onChange={handleChange} />
-              <div className="lg:col-span-2"><InputField label="Address Details" name="coAddress" value={formData.coAddress} onChange={handleChange} /></div>
+              <InputField label="Monthly Income (₹)" name="coMonthlyIncome" type="number" value={formData.coMonthlyIncome} onChange={handleChange} required={true} />
+            </div>
+            <h3 className="text-[10px] font-bold text-[#0F4C81] border-b border-slate-200 pb-1 mb-3 uppercase tracking-wider">Co-Applicant Address Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <InputField label="House Number / Name" name="coHouse" value={formData.coHouse} onChange={handleChange} />
+              <InputField label="Street" name="coStreet" value={formData.coStreet} onChange={handleChange} />
+              <InputField label="Village / City" name="coCity" value={formData.coCity} onChange={handleChange} />
+              <InputField label="Taluk" name="coTaluk" value={formData.coTaluk} onChange={handleChange} />
+              <InputField label="District" name="coDistrict" value={formData.coDistrict} onChange={handleChange} />
+              <InputField label="State" name="coState" value={formData.coState} onChange={handleChange} />
+              <InputField label="PIN Code" name="coPin" value={formData.coPin} onChange={handleChange} />
             </div>
           </div>
 
@@ -546,7 +645,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
             <div className="border border-slate-200 rounded-xl p-5 print:border-slate-400">
               <h3 className="text-[10px] font-bold text-[#0F4C81] border-b border-slate-200 pb-1 mb-3 uppercase tracking-wider">Course Expense Details</h3>
               <div className="grid grid-cols-2 gap-4">
-                <InputField label="Tuition Fee" name="tuitionFee" type="number" value={formData.tuitionFee} onChange={handleChange} />
+                <InputField label="Tuition Fee" name="tuitionFee" type="number" value={formData.tuitionFee} onChange={handleChange} required={true} />
                 <InputField label="Hostel Fee" name="hostelFee" type="number" value={formData.hostelFee} onChange={handleChange} />
                 <InputField label="Examination Fee" name="examFee" type="number" value={formData.examFee} onChange={handleChange} />
                 <InputField label="Books & Equipment" name="booksFee" type="number" value={formData.booksFee} onChange={handleChange} />
@@ -562,7 +661,15 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
               <h3 className="text-[10px] font-bold text-[#0F4C81] border-b border-slate-200 pb-1 mb-3 uppercase tracking-wider">Loan Requirement Details</h3>
               <div className="grid grid-cols-1 gap-4">
                 <InputField label="Total Course Cost" name="totalCostDummy" type="number" value={totalCourseCost} readOnly />
-                <InputField label="Scholarship Amount (-)" name="scholarship" type="number" value={formData.scholarship} onChange={handleChange} />
+                <div className="grid grid-cols-2 gap-4">
+                  <RadioGroup label="Scholarship Confirmed?" name="scholarshipConfirmed" value={formData.scholarshipConfirmed} onChange={handleChange} options={['Yes', 'No']} />
+                  {formData.scholarshipConfirmed === 'Yes' && (
+                    <InputField label="Scholarship Provider Name" name="scholarshipProvider" value={formData.scholarshipProvider} onChange={handleChange} />
+                  )}
+                </div>
+                {formData.scholarshipConfirmed === 'Yes' && (
+                  <InputField label="Scholarship Amount (-)" name="scholarship" type="number" value={formData.scholarship} onChange={handleChange} />
+                )}
                 <InputField label="Family Contribution (-)" name="familyContribution" type="number" value={formData.familyContribution} onChange={handleChange} />
                 <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
                   <span className="block text-xs font-bold text-emerald-800 uppercase">Loan Amount Required</span>
@@ -589,10 +696,12 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
                 {formData.existingMember === 'No' && (
                   <>
                     <RadioGroup label="Apply for Membership?" name="applyMember" value={formData.applyMember} onChange={handleChange} options={['Yes', 'No']} />
-                    <div className="grid grid-cols-2 gap-4 mt-2">
-                      <InputField label="Number of Shares to Purchase" name="sharesToPurchase" type="number" value={formData.sharesToPurchase} onChange={handleChange} />
-                      <InputField label="Share Amount (₹)" name="shareAmount" type="number" value={formData.shareAmount} onChange={handleChange} />
-                    </div>
+                    {formData.applyMember === 'Yes' && (
+                      <div className="grid grid-cols-2 gap-4 mt-2">
+                        <InputField label="Number of Shares to Purchase" name="sharesToPurchase" type="number" value={formData.sharesToPurchase} onChange={handleChange} required={true} />
+                        <InputField label="Share Amount (₹)" name="shareAmount" type="number" value={formData.shareAmount} onChange={handleChange} readOnly={true} required={true} />
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -614,10 +723,19 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Nominee Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <InputField label="Nominee Name" name="nomName" value={formData.nomName} onChange={handleChange} />
-              <InputField label="Relationship" name="nomRel" value={formData.nomRel} onChange={handleChange} />
+              <InputField label="Nominee Name" name="nomName" value={formData.nomName} onChange={handleChange} required={true} />
+              <InputField label="Relationship" name="nomRel" value={formData.nomRel} onChange={handleChange} required={true} />
               <InputField label="Mobile Number" name="nomMobile" value={formData.nomMobile} onChange={handleChange} />
-              <InputField label="Address" name="nomAddress" value={formData.nomAddress} onChange={handleChange} />
+              <InputField label="Date of Birth" name="nomDob" type="date" value={formData.nomDob} onChange={handleChange} />
+              {calculateAge(formData.nomDob) !== '' && Number(calculateAge(formData.nomDob)) < 18 && (
+                <>
+                  <InputField label="Guardian Name" name="nomGuardianName" value={formData.nomGuardianName} onChange={handleChange} required={true} />
+                  <InputField label="Guardian Relationship" name="nomGuardianRel" value={formData.nomGuardianRel} onChange={handleChange} required={true} />
+                </>
+              )}
+              <div className="lg:col-span-2">
+                <InputField label="Address" name="nomAddress" value={formData.nomAddress} onChange={handleChange} />
+              </div>
             </div>
           </div>
 
@@ -664,7 +782,14 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
 
 
           {/* SUBMIT BUTTON */}
-          <div className="flex justify-end mt-12 pt-8 border-t border-slate-200 print:hidden">
+          <div className="flex justify-end mt-12 pt-8 border-t border-slate-200 print:hidden gap-4">
+            <button 
+              type="button"
+              onClick={handleSaveDraft}
+              className="px-8 py-4 bg-slate-100 text-[#0F4C81] rounded-xl font-bold text-lg shadow-sm border border-slate-200 hover:bg-slate-200 transition-all"
+            >
+              Save as Draft
+            </button>
             <button 
               onClick={handleSubmit}
               disabled={isSubmitting}
@@ -678,3 +803,6 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
     </div>
   );
 };
+
+export default EducationalLoanApplication;
+

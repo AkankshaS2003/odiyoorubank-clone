@@ -115,7 +115,9 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
 
   const handleApplyClick = (product: ProductItem) => {
     if (!isAuthenticated || !user) {
-      alert('Please register or log in as a member to apply for our banking products.');
+      if (setCurrentTab) {
+        setCurrentTab('login');
+      }
       return;
     }
     if (setCurrentTab) {
@@ -138,7 +140,9 @@ export const Products: React.FC<{ setCurrentTab?: (tab: string) => void }> = ({ 
     if (!selectedProduct) return;
 
     if (!isAuthenticated || !user) {
-      setApplicationError('Please register or log in as a member to apply for our banking products.');
+      if (setCurrentTab) {
+        setCurrentTab('login');
+      }
       return;
     }
 

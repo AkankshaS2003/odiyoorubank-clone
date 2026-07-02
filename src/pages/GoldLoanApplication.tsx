@@ -86,8 +86,20 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+const calculateAge = (dobString: string) => {
+  if (!dobString) return '';
+  const birthDate = new Date(dobString);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age.toString();
+};
+
 export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCurrentTab }) => {
-  const { user, systemSettings, submitServiceApplication } = useAuth();
+  const { user, systemSettings, submitServiceApplication, getCustomerByCustomerId } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -110,8 +122,9 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
         permHouse: customer.address || prev.permHouse,
         mobile: customer.phone || prev.mobile,
         dob: customer.dob || prev.dob,
-        aadhaar: customer.aadharNumber || prev.aadhaar,
-        pan: customer.panNumber || prev.pan,
+        age: customer.dob ? calculateAge(customer.dob) : prev.age,
+        aadhaar: customer.aadhaar || prev.aadhaar,
+        pan: customer.pan || prev.pan,
         email: customer.email || prev.email,
       }));
     } else {
@@ -142,6 +155,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
     permHouse: '',
     permStreet: '',
     permCity: '',
+    permTaluk: '',
     permDistrict: '',
     permState: '',
     permPin: '',
@@ -150,6 +164,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
     commHouse: '',
     commStreet: '',
     commCity: '',
+    commTaluk: '',
     commDistrict: '',
     commState: '',
     commPin: '',
@@ -189,18 +204,22 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
 
   useEffect(() => {
     if (user) {
-      setFormData((prev: any) => ({
-        ...prev,
-        memberNo: prev.memberNo || user.memberId || '',
-        fullName: prev.fullName || user.fullName || '',
-        mobile: prev.mobile || user.phone || '',
-        email: prev.email || user.email || '',
-        dob: prev.dob || user.dob || '',
-        permHouse: prev.permHouse || user.address || '',
-        aadhaar: prev.aadhaar || user.aadharNumber || '',
-        pan: prev.pan || user.panNumber || '',
-        accNumber: prev.accNumber || user.accountNumber || '',
-      }));
+      setFormData((prev: any) => {
+        const dob = prev.dob || user.dob || '';
+        return {
+          ...prev,
+          memberNo: prev.memberNo || user.memberId || '',
+          fullName: prev.fullName || user.fullName || '',
+          mobile: prev.mobile || user.phone || '',
+          email: prev.email || user.email || '',
+          dob: dob,
+          age: dob ? calculateAge(dob) : prev.age,
+          permHouse: prev.permHouse || user.address || '',
+          aadhaar: prev.aadhaar || user.aadhaar || '',
+          pan: prev.pan || user.pan || '',
+          accNumber: prev.accNumber || user.accountNumber || '',
+        };
+      });
     }
   }, [user]);
 
@@ -229,6 +248,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
           newData.commHouse = prev.permHouse;
           newData.commStreet = prev.permStreet;
           newData.commCity = prev.permCity;
+          newData.commTaluk = prev.permTaluk;
           newData.commDistrict = prev.permDistrict;
           newData.commState = prev.permState;
           newData.commPin = prev.permPin;
@@ -244,10 +264,15 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
           newData.fullName = user.fullName || '';
           newData.mobile = user.phone || '';
           newData.dob = user.dob || '';
+          newData.age = user.dob ? calculateAge(user.dob) : '';
           newData.email = user.email || '';
           if (user.address) {
             newData.permStreet = user.address;
           }
+        }
+        
+        if (name === 'dob' && value) {
+          newData.age = calculateAge(value);
         }
         
         return newData;
@@ -423,7 +448,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
               <div className="lg:col-span-4"><InputField label="Father's / Husband's Name" name="fatherHusbandName" value={formData.fatherHusbandName} onChange={handleChange} /></div>
               
               <InputField label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} />
-              <InputField label="Age" name="age" type="number" value={formData.age} onChange={handleChange} />
+              <InputField label="Age" name="age" type="number" value={formData.age} onChange={handleChange} readOnly={true} />
               <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} options={['Male', 'Female', 'Other']} />
               <SelectField label="Marital Status" name="maritalStatus" value={formData.maritalStatus} onChange={handleChange} options={['Single', 'Married', 'Divorced', 'Widowed']} />
             </div>
@@ -440,7 +465,10 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
                 <h3 className="text-[10px] font-bold text-[#0F4C81] border-b border-slate-200 pb-1 mb-3 uppercase tracking-wider">Permanent Address</h3>
                 <InputField label="House Number / Name" name="permHouse" value={formData.permHouse} onChange={handleChange} />
                 <InputField label="Street" name="permStreet" value={formData.permStreet} onChange={handleChange} />
-                <InputField label="Village / City" name="permCity" value={formData.permCity} onChange={handleChange} />
+                <div className="grid grid-cols-2 gap-2">
+                  <InputField label="Village / City" name="permCity" value={formData.permCity} onChange={handleChange} />
+                  <InputField label="Taluk / Tehsil" name="permTaluk" value={formData.permTaluk} onChange={handleChange} />
+                </div>
                 <InputField label="District" name="permDistrict" value={formData.permDistrict} onChange={handleChange} />
                 <div className="grid grid-cols-2 gap-2">
                   <InputField label="State" name="permState" value={formData.permState} onChange={handleChange} />
@@ -454,7 +482,10 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
                 </div>
                 <InputField label="House Number / Name" name="commHouse" value={formData.commHouse} onChange={handleChange} readOnly={formData.sameAsPerm} />
                 <InputField label="Street" name="commStreet" value={formData.commStreet} onChange={handleChange} readOnly={formData.sameAsPerm} />
-                <InputField label="Village / City" name="commCity" value={formData.commCity} onChange={handleChange} readOnly={formData.sameAsPerm} />
+                <div className="grid grid-cols-2 gap-2">
+                  <InputField label="Village / City" name="commCity" value={formData.commCity} onChange={handleChange} readOnly={formData.sameAsPerm} />
+                  <InputField label="Taluk / Tehsil" name="commTaluk" value={formData.commTaluk} onChange={handleChange} readOnly={formData.sameAsPerm} />
+                </div>
                 <InputField label="District" name="commDistrict" value={formData.commDistrict} onChange={handleChange} readOnly={formData.sameAsPerm} />
                 <div className="grid grid-cols-2 gap-2">
                   <InputField label="State" name="commState" value={formData.commState} onChange={handleChange} readOnly={formData.sameAsPerm} />
@@ -491,7 +522,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Occupation Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="lg:col-span-2"><InputField label="Occupation" name="occupation" value={formData.occupation} onChange={handleChange} /></div>
+              <div className="lg:col-span-2"><SelectField label="Occupation" name="occupation" value={formData.occupation} onChange={handleChange} options={['Salaried', 'Self-employed', 'Business', 'Agriculture', 'Homemaker', 'Student', 'Retired']} /></div>
               <div className="lg:col-span-3"><InputField label="Employer / Business Name" name="employer" value={formData.employer} onChange={handleChange} /></div>
               <div className="lg:col-span-2"><InputField label="Monthly Income (₹)" name="monthlyIncome" type="number" value={formData.monthlyIncome} onChange={handleChange} /></div>
               <div className="lg:col-span-2"><InputField label="Annual Income (₹)" name="annualIncome" type="number" value={formData.annualIncome} onChange={handleChange} /></div>
@@ -567,7 +598,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
               />
               
               <SelectField 
-                label="Loan Tenure (in Years)" 
+                label="Loan Tenure (in Months)" 
                 name="tenure" 
                 value={formData.tenure} 
                 onChange={handleChange} 

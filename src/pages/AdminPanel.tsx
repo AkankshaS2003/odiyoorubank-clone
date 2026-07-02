@@ -1319,8 +1319,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                           </div>
                           <div>
                             <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Identity</p>
-                            <p className="text-sm font-semibold text-slate-800">Aadhaar: {customer360Data.user.aadharNumber || 'N/A'}</p>
-                            <p className="text-sm font-semibold text-slate-800">PAN: {customer360Data.user.panNumber || 'N/A'}</p>
+                            <p className="text-sm font-semibold text-slate-800">Aadhaar: {customer360Data.user.aadhaar || 'N/A'}</p>
+                            <p className="text-sm font-semibold text-slate-800">PAN: {customer360Data.user.pan || 'N/A'}</p>
                             <p className="text-sm font-semibold text-slate-800">DOB: {customer360Data.user.dob || 'N/A'}</p>
                           </div>
                           <div>
