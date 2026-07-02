@@ -128,6 +128,26 @@ const UserSchema = new mongoose.Schema({
     enum: ['none', 'pending', 'approved', 'rejected'],
     default: 'none'
   },
+  sharesOwned: { type: Number, default: 0 },
+  shareCapitalInvested: { type: Number, default: 0 },
+  totalDividendEarned: { type: Number, default: 0 },
+  sharePurchases: [{
+    purchaseDate: { type: Date, default: Date.now },
+    shares: Number,
+    price: Number,
+    amount: Number,
+    transactionId: String,
+    referenceNumber: String,
+    certificateNo: String
+  }],
+  dividendHistory: [{
+    year: String,
+    rate: Number,
+    investment: Number,
+    amount: Number,
+    paymentDate: { type: Date, default: Date.now },
+    transactionId: String
+  }],
   minimumBalancePaid: {
     type: Boolean,
     default: false

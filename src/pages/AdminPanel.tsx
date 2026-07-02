@@ -51,6 +51,7 @@ import api from '../services/api';
 import { adminGetFDs, adminSettleFD, adminCheckMaturity } from '../services/fdApi';
 import { useAuth } from '../context/AuthContext';
 import { getAllSavingsDeposits, calculateInterest } from '../services/savingsApi';
+import { AdminShareCapital } from '../components/AdminShareCapital';
 
 interface DocumentGroup {
   _id: string; // filename
@@ -65,8 +66,9 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const { user: currentUser, logout, systemSettings, updateSystemSettings } = useAuth();
 
   // Tab State: matching all 14 specified modules
+  // Tab State: matching all modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'applications' | 'service_applications' | 'customers' | 'loans' | 'deposit_products' | 'fd_management' | 'rd_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships' | 'fund_transfers'
+    'dashboard' | 'applications' | 'service_applications' | 'customer_360' | 'customers' | 'loans' | 'deposit_products' | 'fd_management' | 'rd_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships' | 'fund_transfers' | 'share_capital'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -791,13 +793,14 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
   const COLORS = ['#0A315C', '#ED7F1E'];
 
-  // Sidebar list matching all 14 requested items
+  // Sidebar list matching all requested items
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'applications', label: 'Account Applications', icon: Briefcase },
     { id: 'service_applications', label: 'Loan & Deposit Apps', icon: FileText },
     { id: 'customer_360', label: 'Customer 360', icon: Search },
     { id: 'customers', label: 'Customers', icon: Users },
+    { id: 'share_capital', label: 'Share Capital', icon: Briefcase },
     { id: 'memberships', label: 'Memberships', icon: ShieldCheck },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
     { id: 'fd_management', label: 'Fixed Deposits', icon: History },
@@ -1128,6 +1131,13 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   </table>
                 </div>
               </div>
+            )}
+
+            {/* ========================================== */}
+            {/* NEW TAB: SHARE CAPITAL */}
+            {/* ========================================== */}
+            {activeTab === 'share_capital' && (
+              <AdminShareCapital />
             )}
 
             {/* ========================================== */}

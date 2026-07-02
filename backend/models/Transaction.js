@@ -16,7 +16,7 @@ const TransactionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['Deposit', 'Withdrawal', 'Transfer', 'Loan Disbursement', 'EMI Payment', 'Account Deposit', 'Fund Transfer', 'Application Fee', 'Fixed Deposit', 'Recurring Deposit', 'Initial Deposit', 'Membership Application Fee', 'RD Installment', 'RD Maturity Credit', 'Own Account Transfer', 'Internal Fund Transfer', 'NEFT Transfer', 'IMPS Transfer', 'RTGS Transfer'],
+    enum: ['Deposit', 'Withdrawal', 'Transfer', 'Loan Disbursement', 'EMI Payment', 'Account Deposit', 'Fund Transfer', 'Application Fee', 'Fixed Deposit', 'Recurring Deposit', 'Initial Deposit', 'Membership Application Fee', 'RD Installment', 'RD Maturity Credit', 'Own Account Transfer', 'Internal Fund Transfer', 'NEFT Transfer', 'IMPS Transfer', 'RTGS Transfer', 'Share Capital Purchase Debit', 'Share Capital Credit', 'Dividend Credit'],
     required: true
   },
   razorpayOrderId: String,

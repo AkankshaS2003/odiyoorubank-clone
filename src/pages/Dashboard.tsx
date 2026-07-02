@@ -24,6 +24,7 @@ import { RDInstallmentPayment } from './RD/RDInstallmentPayment';
 import { FundTransfers } from './FundTransfers';
 import { TpinSetupModal } from '../components/TpinSetupModal';
 import { KeyRound, Unlock, Lock } from 'lucide-react';
+import { ShareCapital } from './ShareCapital';
 
 interface DashboardProps {
   setCurrentTab: (tab: string) => void;
@@ -33,7 +34,7 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceiptData }) => {
   const { user, isAuthenticated, getUserServiceApplications } = useAuth();
   
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'account' | 'membership' | 'transactions' | 'loans' | 'deposits' | 'rd-installment' | 'fund-transfers'>('account');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'account' | 'membership' | 'share-capital' | 'transactions' | 'loans' | 'deposits' | 'rd-installment' | 'fund-transfers'>('account');
   const [serviceApps, setServiceApps] = useState<any[]>([]);
   const [showCard, setShowCard] = useState(false);
   const [savedReport, setSavedReport] = useState<any>(null);
@@ -336,6 +337,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
           </div>
         );
 
+      case 'share-capital':
+        return <ShareCapital />;
+
       case 'transactions':
         return (
           <div className="bg-white border border-slate-150 rounded-3xl shadow-sm overflow-hidden py-4">
@@ -453,91 +457,93 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
 
       case 'deposits':
         return (
-          <div className="bg-white border border-slate-150 rounded-3xl shadow-sm overflow-hidden py-4">
-            <div className="px-6 md:px-8 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h4 className="font-extrabold text-lg text-slate-900 flex items-center space-x-2">
-                  <PiggyBank className="h-5 w-5 text-primary" />
-                  <span>Term Deposits (FD & RD)</span>
-                </h4>
-                <p className="text-xs text-slate-500 mt-1">Manage your active fixed deposits and recurring deposits</p>
+          <div className="space-y-6">
+            <div className="bg-white border border-slate-150 rounded-3xl shadow-sm overflow-hidden py-4">
+              <div className="px-6 md:px-8 pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h4 className="font-extrabold text-lg text-slate-900 flex items-center space-x-2">
+                    <PiggyBank className="h-5 w-5 text-primary" />
+                    <span>Term Deposits (FD & RD)</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1">Manage your active fixed deposits and recurring deposits</p>
+                </div>
               </div>
+              
+              {depositApps.length === 0 ? (
+                <div className="p-8 text-center">
+                  <PiggyBank className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-sm font-bold text-slate-700">No Deposits Found</h3>
+                  <p className="text-xs text-slate-500 mt-1">You haven't applied for any term deposits yet.</p>
+                  <button onClick={() => setCurrentTab('products')} className="mt-4 px-6 py-2 bg-primary text-white rounded-lg text-xs font-bold">Apply Now</button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto mt-4">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Date</th>
+                        <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Application ID</th>
+                        <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Deposit Type</th>
+                        <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Amount</th>
+                        <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                        <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {depositApps.map((app: any) => (
+                        <tr key={app._id} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-4 px-6 text-xs text-slate-600 font-medium whitespace-nowrap">
+                            {new Date(app.submittedAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                              {app.applicationNo || app._id.substring(0, 8).toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 text-xs font-bold text-slate-800">
+                            {app.applicationType}
+                          </td>
+                          <td className="py-4 px-6 text-xs font-bold text-slate-800">
+                            ₹{(app.formData?.amount || app.formData?.depositAmount || app.applicationData?.amount || 0).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg ${
+                              app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                              app.status === 'Rejected' ? 'bg-rose-100 text-rose-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {app.status === 'Approved' ? 'Active' : app.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            {app.status === 'Approved' ? (
+                              <button
+                                onClick={() => setCurrentTab(app.applicationType === 'Fixed Deposit' ? `view-fd-details|${app._id}` : `view-rd-details|${app._id}`)}
+                                className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
+                              >
+                                View Details
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setSelectedDepositApp(app)}
+                                className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
+                              >
+                                View Application
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
             
-            {depositApps.length === 0 ? (
-              <div className="p-8 text-center">
-                <PiggyBank className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-sm font-bold text-slate-700">No Deposits Found</h3>
-                <p className="text-xs text-slate-500 mt-1">You haven't applied for any term deposits yet.</p>
-                <button onClick={() => setCurrentTab('products')} className="mt-4 px-6 py-2 bg-primary text-white rounded-lg text-xs font-bold">Apply Now</button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto mt-4">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Date</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Application ID</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Deposit Type</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Amount</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                      <th className="py-4 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {depositApps.map((app: any) => (
-                      <tr key={app._id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-4 px-6 text-xs text-slate-600 font-medium whitespace-nowrap">
-                          {new Date(app.submittedAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-4 px-6">
-                          <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                            {app.applicationNo || app._id.substring(0, 8).toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 text-xs font-bold text-slate-800">
-                          {app.applicationType}
-                        </td>
-                        <td className="py-4 px-6 text-xs font-bold text-slate-800">
-                          ₹{(app.formData?.amount || app.formData?.depositAmount || app.applicationData?.amount || 0).toLocaleString('en-IN')}
-                        </td>
-                        <td className="py-4 px-6">
-                          <span className={`px-2 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg ${
-                            app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
-                            app.status === 'Rejected' ? 'bg-rose-100 text-rose-700' :
-                            'bg-amber-100 text-amber-700'
-                          }`}>
-                            {app.status === 'Approved' ? 'Active' : app.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 text-right">
-                          {app.status === 'Approved' ? (
-                            <button
-                              onClick={() => setCurrentTab(app.applicationType === 'Fixed Deposit' ? `view-fd-details|${app._id}` : `view-rd-details|${app._id}`)}
-                              className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
-                            >
-                              View Details
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setSelectedDepositApp(app)}
-                              className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
-                            >
-                              View Application
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            {/* Embedded RD Installment Payment Section */}
+            <RDInstallmentPayment />
           </div>
         );
-
-      case 'rd-installment':
-        return <RDInstallmentPayment />;
 
       case 'fund-transfers':
         return <FundTransfers />;
@@ -547,10 +553,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
   const navItems = [
     { id: 'account', label: 'Account Details', icon: User },
     { id: 'membership', label: 'Membership', icon: Award },
+    { id: 'share-capital', label: 'Share Capital', icon: Briefcase },
     { id: 'transactions', label: 'Transaction History', icon: History },
     { id: 'loans', label: 'Loan Applications', icon: Briefcase },
-    { id: 'deposits', label: 'Deposits Section', icon: PiggyBank },
-    { id: 'rd-installment', label: 'RD Installment Payment', icon: ArrowRightLeft },
+    { id: 'deposits', label: 'Deposits', icon: PiggyBank },
     { id: 'fund-transfers', label: 'Fund Transfers', icon: ArrowRightLeft },
   ];
 

@@ -13,6 +13,10 @@ const SystemSettingsSchema = new mongoose.Schema({
   agriculturalLoanRate: { type: Number, default: 8.50 },
   membershipFee: { type: Number, default: 500 },
   minimumSavingsBalance: { type: Number, default: 500 },
+  sharePrice: { type: Number, default: 100 },
+  minShares: { type: Number, default: 10 },
+  maxShares: { type: Number, default: 1000 },
+  shareCertificateCounter: { type: Number, default: 0 },
   faceVerificationThreshold: { type: Number, default: 0.45 },
   marqueeText: { 
     type: String, 

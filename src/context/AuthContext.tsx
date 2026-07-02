@@ -52,6 +52,11 @@ export interface User {
   minimumBalancePaid?: boolean;
   accountNumber?: string;
   ifscCode?: string;
+  sharesOwned?: number;
+  shareCapitalInvested?: number;
+  totalDividendEarned?: number;
+  sharePurchases?: any[];
+  dividendHistory?: any[];
 }
 
 export interface SystemSettings {
@@ -65,6 +70,9 @@ export interface SystemSettings {
   aboutText: string;
   contactPhone: string;
   contactEmail: string;
+  sharePrice?: number;
+  minShares?: number;
+  maxShares?: number;
   announcements?: any[];
 }
 

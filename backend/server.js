@@ -40,6 +40,7 @@ app.use('/api/fd', require('./routes/fdRoutes'));
 app.use('/api/admin/fd', require('./routes/adminFdRoutes'));
 app.use('/api/rd', require('./routes/rdRoutes'));
 app.use('/api/transfers', require('./routes/transferRoutes'));
+app.use('/api/shares', require('./routes/shareRoutes'));
 
 // Initialize Cron Jobs
 require('./cron/rdCron');
