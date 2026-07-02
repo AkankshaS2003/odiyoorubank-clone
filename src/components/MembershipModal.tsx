@@ -50,7 +50,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
     setVerifyError('');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/account/verify-customer', {
+      const res = await fetch('/api/account/verify-customer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

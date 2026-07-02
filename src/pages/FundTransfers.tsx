@@ -49,7 +49,7 @@ export const FundTransfers: React.FC = () => {
                      : activeTab === 'internal' ? '/api/transfers/internal' 
                      : '/api/transfers/external';
 
-      const res = await fetch(`http://localhost:5000${endpoint}`, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

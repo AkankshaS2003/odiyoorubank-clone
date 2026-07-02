@@ -28,7 +28,7 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/tpin/send-otp', {
+      const res = await fetch('/api/tpin/send-otp', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -52,7 +52,7 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/tpin/verify-otp', {
+      const res = await fetch('/api/tpin/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
         ? { currentTpin, newTpin: tpin, confirmTpin } 
         : (user?.tpinLocked ? { newTpin: tpin, confirmTpin } : { tpin, confirmTpin });
 
-      const res = await fetch(`http://localhost:5000${endpoint}`, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
