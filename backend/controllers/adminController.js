@@ -550,6 +550,15 @@ const updateMembershipStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
+    // Sync Membership model status
+    const Membership = require('../models/Membership');
+    const membershipStatusUpdate = status === 'approved' ? 'Approved' : (status === 'rejected' ? 'Rejected' : 'Pending');
+    await Membership.findOneAndUpdate(
+      { userId: req.params.id },
+      { status: membershipStatusUpdate, ...(status === 'approved' && { approvalDate: Date.now() }) },
+      { upsert: true, returnDocument: 'after' }
+    );
+
     res.status(200).json({ success: true, data: updatedUser });
   } catch (error) {
     next(error);

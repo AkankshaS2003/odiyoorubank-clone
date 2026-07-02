@@ -66,47 +66,47 @@ const applyMembership = async (req, res, next) => {
     const { address, dob, tpin } = req.body;
     const bcrypt = require('bcryptjs');
 
-    // 1. Verify TPIN
+    // 1. Verify TPIN — field is tpinHash, not tpin
     if (!tpin) {
       throw new Error('Transaction PIN is required');
     }
-    const userObj = await req.user.constructor.findById(req.user._id).select('+tpin +tpinLocked +tpinFailedAttempts +tpinActive');
-    if (!userObj.tpinActive || !userObj.tpin) {
-      throw new Error('Transaction PIN is not set up');
+    const userObj = await req.user.constructor.findById(req.user._id).select('+tpinHash +tpinLocked +failedTpinAttempts +tpinActive');
+    if (!userObj.tpinActive || !userObj.tpinHash) {
+      throw new Error('Transaction PIN is not set up. Please set up your TPIN from the dashboard first.');
     }
     if (userObj.tpinLocked) {
-      throw new Error('Transaction PIN is locked');
+      throw new Error('Transaction PIN is locked. Please unlock it from the dashboard.');
     }
-    const isMatch = await bcrypt.compare(tpin, userObj.tpin);
+    const isMatch = await bcrypt.compare(tpin, userObj.tpinHash);
     if (!isMatch) {
-      userObj.tpinFailedAttempts += 1;
-      if (userObj.tpinFailedAttempts >= 3) {
+      userObj.failedTpinAttempts = (userObj.failedTpinAttempts || 0) + 1;
+      if (userObj.failedTpinAttempts >= 3) {
         userObj.tpinLocked = true;
       }
       await userObj.save({});
-      // await session.commitTransaction();
-      // session.endSession();
-      return res.status(401).json({ success: false, error: 'Invalid Transaction PIN' });
+      return res.status(401).json({ success: false, error: `Invalid Transaction PIN. ${3 - userObj.failedTpinAttempts} attempt(s) remaining.` });
     }
     
-    // Reset attempts on success
-    userObj.tpinFailedAttempts = 0;
+    // Reset failed attempts on success
+    userObj.failedTpinAttempts = 0;
     await userObj.save({});
 
-    // 2. Fetch Account and Validate Balance
-    const Account = require('../models/Account');
-    const account = await Account.findOne({ userId: req.user._id, accountType: 'Savings' });
+    // 2. Fetch SavingsAccount and Validate Balance
+    const SavingsAccount = require('../models/SavingsAccount');
+    const account = await SavingsAccount.findOne({ userId: req.user._id });
     
     if (!account) {
-      throw new Error('Savings account not found');
+      throw new Error('No savings account found. Please complete your initial deposit first.');
     }
     const APPLICATION_FEE = 200;
     if (account.balance < APPLICATION_FEE) {
-      throw new Error(`Insufficient savings balance. Required: ₹${APPLICATION_FEE}`);
+      throw new Error(`Insufficient savings balance. Required: ₹${APPLICATION_FEE}. Current: ₹${account.balance}`);
     }
 
     // 3. Debit Savings Account
     account.balance -= APPLICATION_FEE;
+    account.totalWithdrawals = (account.totalWithdrawals || 0) + APPLICATION_FEE;
+    account.lastTransactionDate = new Date();
     await account.save({});
 
     // 4. Create Savings Transaction Log
@@ -114,12 +114,13 @@ const applyMembership = async (req, res, next) => {
     const transactionId = 'TRX' + Date.now().toString().slice(-8) + Math.floor(Math.random() * 1000);
     await SavingsTransaction.create([{
       userId: req.user._id,
-      accountId: account._id,
-      type: 'Debit',
-      amount: APPLICATION_FEE,
+      savingsAccountId: account._id,
+      type: 'Charge',
       description: 'Membership Application Fee',
+      debitAmount: APPLICATION_FEE,
+      creditAmount: 0,
       status: 'Completed',
-      transactionId,
+      referenceNumber: transactionId,
       balanceAfter: account.balance
     }], {});
 
@@ -134,12 +135,13 @@ const applyMembership = async (req, res, next) => {
 
     const customerId = req.user.customerId || ('CUST' + Math.floor(100000 + Math.random() * 900000));
 
-    // 6. Update User Profile
+    // 6. Update User Profile (also sync savingsBalance)
     const updatedUser = await req.user.constructor.findByIdAndUpdate(req.user._id, {
       address,
       dob,
       customerId,
-      membershipStatus: 'approved',
+      savingsBalance: account.balance,
+      membershipStatus: 'pending',
       membershipPaymentStatus: 'Paid',
       membershipPaymentDate: Date.now(),
       membershipPaymentRef: transactionId
@@ -149,7 +151,7 @@ const applyMembership = async (req, res, next) => {
     const Membership = require('../models/Membership');
     await Membership.findOneAndUpdate(
       { userId: req.user._id },
-      { customerId: updatedUser.customerId, status: 'Approved', approvalDate: Date.now() },
+      { customerId: updatedUser.customerId, status: 'Pending' },
       { upsert: true, returnDocument: 'after'}
     );
 

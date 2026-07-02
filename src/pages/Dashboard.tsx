@@ -150,7 +150,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center hover:bg-slate-50 transition-colors p-4">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-40 shrink-0 mb-1 sm:mb-0">Branch Name</span>
-                  <span className="font-bold text-slate-800 text-sm">{user.accountNumber ? 'Main Branch' : '—'}</span>
+                  <span className="font-bold text-slate-800 text-sm">{user.isKycVerified ? 'Main Branch' : '—'}</span>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center hover:bg-slate-50 transition-colors p-4">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-40 shrink-0 mb-1 sm:mb-0">IFSC Code</span>
@@ -168,8 +168,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center hover:bg-slate-50 transition-colors p-4 bg-slate-50">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-40 shrink-0 mb-1 sm:mb-0">Account Status</span>
-                  <span className={`font-black text-sm uppercase tracking-wider ${user.accountNumber ? 'text-emerald-600' : 'text-amber-600'}`}>
-                    {user.accountNumber ? 'Active' : 'Pending Verification'}
+                  <span className={`font-black text-sm uppercase tracking-wider ${user.isKycVerified ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    {user.isKycVerified ? 'Active' : 'Pending Verification'}
                   </span>
                 </div>
               </div>
@@ -597,9 +597,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
       
       {showPaymentModal && (
         <PaymentModal
-          isOpen={showPaymentModal}
+          type="Initial Deposit"
           onClose={() => setShowPaymentModal(false)}
-          purpose="Initial Deposit"
+          onSuccess={() => { setShowPaymentModal(false); window.location.reload(); }}
           amount={500}
         />
       )}

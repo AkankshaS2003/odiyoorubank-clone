@@ -1050,7 +1050,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
                         <th className="p-4 rounded-l-xl">User & Contact</th>
                         <th className="p-4">Demographics</th>
-                        <th className="p-4">Customer ID</th>
+                        <th className="p-4">Membership ID</th>
                         <th className="p-4">Address</th>
                         <th className="p-4">Status</th>
                         <th className="p-4 text-center rounded-r-xl">Action</th>
