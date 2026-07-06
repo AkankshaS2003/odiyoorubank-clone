@@ -402,7 +402,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
       alert("Please fill all the mandatory fields and upload required documents before proceeding.");
       return;
     }
-    setStep(prev => Math.min(prev + 1, 3));
+    setStep(prev => Math.min(prev + 1, 2));
     window.scrollTo(0, 0);
   };
 
@@ -417,7 +417,11 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 3) {
+    if (step === 2) {
+      if (!validateStep2()) {
+        alert("Please fill all the mandatory fields and upload required documents before proceeding.");
+        return;
+      }
       submitApplicationData();
     }
   };
@@ -490,16 +494,16 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                 <Save className="w-4 h-4" /> Save Draft
               </button>
               <button className="flex items-center gap-2 px-4 py-2 bg-[#0F4C81]/10 text-[#0F4C81] rounded-lg text-sm font-bold">
-                Step {step} of 4
+                Step {step} of 2
               </button>
             </div>
           </div>
           
           <div className="flex items-center justify-between relative">
             <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 rounded-full z-0"></div>
-            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-[#0F4C81] rounded-full z-0 transition-all duration-500" style={{ width: `${((step - 1) / 3) * 100}%` }}></div>
+            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-[#0F4C81] rounded-full z-0 transition-all duration-500" style={{ width: `${((step - 1) / 1) * 100}%` }}></div>
             
-            {[1, 2, 3, 4].map((num) => (
+            {[1, 2].map((num) => (
               <div key={num} className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm border-4 transition-colors ${step >= num ? 'bg-[#0F4C81] border-[#EAF6FF] text-white' : 'bg-white border-gray-200 text-gray-400'}`}>
                 {num}
               </div>
@@ -508,8 +512,6 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
           <div className="flex justify-between mt-2 text-xs font-bold text-gray-500 px-1">
             <span className={step >= 1 ? 'text-[#0F4C81]' : ''}>Applicant Info</span>
             <span className={step >= 2 ? 'text-[#0F4C81]' : ''}>Nomination & Deposit</span>
-            <span className={step >= 3 ? 'text-[#0F4C81]' : ''}>Confirm</span>
-            <span className={step >= 4 ? 'text-[#0F4C81]' : ''}>Verification</span>
           </div>
         </div>
 
@@ -757,83 +759,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
               </div>
             </div>
 
-            {/* PAGE 3: SPECIMEN SIGNATURE CARD */}
-            <div className={step === 3 ? 'block' : 'hidden print:block print:break-after-page'}>
-              <div className="border-b-2 border-[#EAF6FF] pb-4 mb-6 print:mt-12 print:border-gray-200 print:hidden">
-                <h2 className="text-xl font-black text-[#0F4C81] uppercase tracking-wider">Page 3: Specimen Signature Card</h2>
-              </div>
 
-              <div className="max-w-3xl mx-auto border-2 border-[#0F4C81] rounded-none print:border-4">
-                <div className="bg-[#ED7F1E] p-4 sm:p-6 text-white print:bg-white print:text-[#ED7F1E] print:border-b-4 print:border-[#ED7F1E] flex items-center justify-center gap-4 sm:gap-6">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0">
-                    <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="w-full h-full object-contain" />
-                  </div>
-                  <div className="text-left flex flex-col justify-center">
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-wider uppercase leading-none font-heading mb-1">ODIYOORU SOUHARDA</h2>
-                    <h3 className="text-sm sm:text-base md:text-lg font-bold tracking-widest uppercase leading-none mb-1">COOPERATIVE SOCIETY LTD</h3>
-                    <p className="text-xs sm:text-sm font-bold tracking-widest uppercase font-mono leading-none">DRP:S.9:88:RGN:520:2010-11</p>
-                  </div>
-                </div>
-                <div className="text-center py-2 border-b-2 border-[#ED7F1E] print:border-b-2 print:border-gray-300">
-                  <h3 className="text-sm font-bold tracking-widest uppercase">Specimen Signature Card</h3>
-                </div>
-                
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-8">
-                    <div className="flex border-b border-gray-300 pb-1">
-                      <span className="text-xs font-bold w-32">Customer Name:</span>
-                      <span className="text-sm font-medium">{formData.applicantFullName || '_______________________'}</span>
-                    </div>
-                    <div className="flex border-b border-gray-300 pb-1">
-                      <span className="text-xs font-bold w-32">Customer No:</span>
-                      <span className="text-sm font-medium">{user?.customerId || '_______________________'}</span>
-                    </div>
-                    <div className="flex border-b border-gray-300 pb-1">
-                      <span className="text-xs font-bold w-32">Account Type:</span>
-                      <span className="text-sm font-medium">Savings Account</span>
-                    </div>
-                    <div className="flex border-b border-gray-300 pb-1">
-                      <span className="text-xs font-bold w-32">Account No:</span>
-                      <span className="text-sm font-medium">_______________________</span>
-                    </div>
-                  </div>
-
-                  <table className="w-full border-collapse border border-gray-400 mb-8">
-                    <thead>
-                      <tr className="bg-gray-100 print:bg-gray-200">
-                        <th className="border border-gray-400 p-2 text-xs font-bold text-left w-16">Sr. No.</th>
-                        <th className="border border-gray-400 p-2 text-xs font-bold text-left">Name of Holder</th>
-                        <th className="border border-gray-400 p-2 text-xs font-bold text-center w-64">Specimen Signature</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="border border-gray-400 p-3 text-sm text-center">1</td>
-                        <td className="border border-gray-400 p-3 text-sm font-medium">{formData.applicantFullName || '_______________________'}</td>
-                        <td className="border border-gray-400 p-3 h-24 relative print:h-32 text-center text-xs text-gray-400">Sign Here</td>
-                      </tr>
-                      {formData.hasJointApplicant && (
-                        <tr>
-                          <td className="border border-gray-400 p-3 text-sm text-center">2</td>
-                          <td className="border border-gray-400 p-3 text-sm font-medium">{formData.jointApplicantName || '_______________________'}</td>
-                          <td className="border border-gray-400 p-3 h-24 relative print:h-32 text-center text-xs text-gray-400">Sign Here</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-
-                  <div className="border border-gray-400 p-4 relative mt-12">
-                    <span className="absolute top-0 left-4 -mt-3 bg-white px-2 text-[10px] font-bold text-gray-500">OFFICE USE ONLY</span>
-                    <div className="grid grid-cols-4 gap-4 pt-2">
-                      <div className="border-b border-gray-400 h-10 relative"><span className="absolute bottom-1 text-[10px] text-gray-500">Scanned By</span></div>
-                      <div className="border-b border-gray-400 h-10 relative"><span className="absolute bottom-1 text-[10px] text-gray-500">Employee No.</span></div>
-                      <div className="border-b border-gray-400 h-10 relative"><span className="absolute bottom-1 text-[10px] text-gray-500">Signature</span></div>
-                      <div className="border-b border-gray-400 h-10 relative"><span className="absolute bottom-1 text-[10px] text-gray-500">Date</span></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
 
 
@@ -845,12 +771,12 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
                 </button>
               ) : <div></div>}
               
-              {step < 3 ? (
+              {step < 2 ? (
                 <button type="button" onClick={nextStep} className="flex items-center gap-2 px-8 py-3 bg-[#0F4C81] text-white rounded-xl font-bold hover:bg-blue-900 transition-colors shadow-lg shadow-[#0F4C81]/30">
                   Next Step <ChevronRight className="w-5 h-5" />
                 </button>
               ) : (
-                <button type="button" onClick={handleSubmit} className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-md">
+                <button type="submit" className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors shadow-md">
                   Submit Application <Send className="w-5 h-5" />
                 </button>
               )}

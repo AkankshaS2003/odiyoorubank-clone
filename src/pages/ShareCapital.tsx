@@ -142,7 +142,7 @@ export const ShareCapital: React.FC = () => {
                 {user.sharePurchases.slice().reverse().map((purchase: any, idx: number) => (
                   <tr key={idx} className="hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-6 text-xs text-slate-600 font-medium whitespace-nowrap">
-                      {new Date(purchase.purchaseDate).toLocaleDateString('en-IN')}
+                      {new Date(purchase.purchaseDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </td>
                     <td className="py-4 px-6">
                       <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
@@ -216,7 +216,7 @@ export const ShareCapital: React.FC = () => {
                 {user.dividendHistory.slice().reverse().map((div: any, idx: number) => (
                   <tr key={idx} className="hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-6 text-xs text-slate-600 font-medium whitespace-nowrap">
-                      {new Date(div.paymentDate).toLocaleDateString('en-IN')}
+                      {new Date(div.paymentDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </td>
                     <td className="py-4 px-6 text-xs font-bold text-slate-800">
                       {div.year}

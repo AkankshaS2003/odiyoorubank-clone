@@ -26,8 +26,8 @@ exports.settleFD = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'Fixed Deposit not found' });
     }
 
-    if (fd.status !== 'Pending Settlement Approval') {
-      return res.status(400).json({ success: false, error: 'FD is not pending settlement' });
+    if (fd.status !== 'Pending Settlement Approval' && fd.status !== 'Matured') {
+      return res.status(400).json({ success: false, error: 'FD is not ready for settlement' });
     }
 
     const amountToSettle = fd.maturityAmount;

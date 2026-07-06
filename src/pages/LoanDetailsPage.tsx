@@ -183,7 +183,7 @@ export const LoanDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCu
             </div>
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase">Applied Date</p>
-              <p className="font-bold text-slate-800">{new Date(loanData.appliedDate).toLocaleDateString()}</p>
+              <p className="font-bold text-slate-800">{new Date(loanData.appliedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
             </div>
             {loanData.loanAccountNumber && (
               <div>
@@ -258,7 +258,7 @@ export const LoanDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCu
                     {emis.map((emi: any, idx: number) => (
                       <tr key={emi._id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                         <td className="p-3 font-bold">#{emi.emiNumber}</td>
-                        <td className="p-3 font-semibold">{new Date(emi.dueDate).toLocaleDateString()}</td>
+                        <td className="p-3 font-semibold">{new Date(emi.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                         <td className="p-3 font-black text-[#0F4C81]">₹{emi.emiAmount.toLocaleString('en-IN')}</td>
                         <td className="p-3 text-slate-600">₹{emi.principalComponent.toLocaleString('en-IN')}</td>
                         <td className="p-3 text-slate-600">₹{emi.interestComponent.toLocaleString('en-IN')}</td>
@@ -272,7 +272,7 @@ export const LoanDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCu
                           {emi.paymentStatus !== 'Paid' && loanData.status === 'Active Loan' && (
                             <button onClick={() => handlePayEmi(emi._id)} disabled={actionLoading} className="px-3 py-1.5 bg-[#0F4C81] text-white rounded text-[10px] font-bold hover:bg-[#0A315C] transition-colors">Pay Now</button>
                           )}
-                          {emi.paymentStatus === 'Paid' && <span className="text-[10px] font-bold text-slate-400">Paid on {new Date(emi.paidDate).toLocaleDateString()}</span>}
+                          {emi.paymentStatus === 'Paid' && <span className="text-[10px] font-bold text-slate-400">Paid on {new Date(emi.paidDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>}
                         </td>
                       </tr>
                     ))}

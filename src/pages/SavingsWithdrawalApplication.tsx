@@ -168,7 +168,7 @@ export const SavingsWithdrawalApplication: React.FC<{ setCurrentTab: (tab: strin
                 <tr>
                   <td className="text-right pr-3 opacity-90 pb-2">Date:</td>
                   <td className="text-left pb-2">
-                    <input type="text" value={new Date().toLocaleDateString('en-IN')} readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors opacity-90" />
+                    <input type="text" value={new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors opacity-90" />
                   </td>
                 </tr>
               </tbody>

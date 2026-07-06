@@ -51,7 +51,7 @@ export const DepositApplicationModal: React.FC<DepositApplicationModalProps> = (
   const displayAmount = actualDeposit?.monthlyAmount || actualDeposit?.principalAmount || amount;
   const displayTenure = actualDeposit?.tenureMonths || tenure;
   const displayRate = actualDeposit?.interestRate || interestRate;
-  const displayMaturityDate = actualDeposit?.maturityDate ? new Date(actualDeposit.maturityDate).toLocaleDateString() : 'Pending Approval';
+  const displayMaturityDate = actualDeposit?.maturityDate ? new Date(actualDeposit.maturityDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Pending Approval';
   const displayMaturityAmount = actualDeposit?.maturityAmount ? `₹${actualDeposit.maturityAmount.toLocaleString('en-IN')}` : 'Calculated on Approval';
 
   return (

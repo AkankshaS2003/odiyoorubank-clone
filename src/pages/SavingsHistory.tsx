@@ -12,7 +12,8 @@ export const SavingsHistory: React.FC<{ setCurrentTab: (tab: string) => void }> 
       try {
         const res = await getSavingsTransactions();
         if (res.success) {
-          setTransactions(res.transactions);
+          const sortedTxns = res.transactions.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+          setTransactions(sortedTxns);
         }
       } catch (err) {
         console.error('Failed to fetch transactions', err);

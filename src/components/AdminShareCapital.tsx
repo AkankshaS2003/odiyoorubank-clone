@@ -224,7 +224,7 @@ export const AdminShareCapital: React.FC = () => {
                       <p className="font-bold text-slate-900">{p.fullName}</p>
                       <p className="text-[10px] text-slate-500">{p.customerId} | {p.memberId}</p>
                     </td>
-                    <td className="p-4 text-xs font-medium text-slate-600">{new Date(p.purchaseDate).toLocaleDateString()}</td>
+                    <td className="p-4 text-xs font-medium text-slate-600">{new Date(p.purchaseDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                     <td className="p-4 text-xs font-mono font-bold text-slate-500">{p.certificateNo}</td>
                     <td className="p-4 text-xs font-bold text-slate-800 text-right">{p.shares}</td>
                     <td className="p-4 text-xs font-black text-primary text-right">₹{p.amount.toLocaleString()}</td>
@@ -252,7 +252,7 @@ export const AdminShareCapital: React.FC = () => {
                       <p className="font-bold text-slate-900">{d.fullName}</p>
                       <p className="text-[10px] text-slate-500">{d.customerId} | {d.memberId}</p>
                     </td>
-                    <td className="p-4 text-xs font-medium text-slate-600">{new Date(d.paymentDate).toLocaleDateString()}</td>
+                    <td className="p-4 text-xs font-medium text-slate-600">{new Date(d.paymentDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                     <td className="p-4 text-xs font-bold text-emerald-600 text-right">{d.rate}%</td>
                     <td className="p-4 text-xs font-bold text-slate-600 text-right">₹{d.investment.toLocaleString()}</td>
                     <td className="p-4 text-xs font-black text-emerald-600 text-right">₹{d.amount.toLocaleString()}</td>

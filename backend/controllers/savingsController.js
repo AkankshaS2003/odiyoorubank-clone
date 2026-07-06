@@ -320,7 +320,7 @@ exports.getSavingsTransactions = async (req, res) => {
       ];
     }
 
-    const transactions = await SavingsTransaction.find(query).sort('-createdAt');
+    const transactions = await SavingsTransaction.find(query).sort('createdAt');
     res.json({ success: true, transactions });
   } catch (error) {
     console.error(error);

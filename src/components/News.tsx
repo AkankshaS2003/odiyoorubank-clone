@@ -12,7 +12,7 @@ export const News: React.FC = () => {
         id: index,
         tag: 'Notice',
         icon: Megaphone,
-        date: new Date(ann.publishedAt || Date.now()).toLocaleDateString(),
+        date: new Date(ann.publishedAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         title: ann.title,
         desc: ann.desc,
         color: index % 2 === 0 ? 'orange' : 'blue'

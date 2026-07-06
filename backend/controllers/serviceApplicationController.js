@@ -17,12 +17,45 @@ exports.submitApplication = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Please provide all required fields' });
     }
 
-    if (applicationType === 'Fixed Deposit' || applicationType === 'Recurring Deposit') {
+    if (applicationType.includes('Deposit')) {
       const User = require('../models/User');
+      const SavingsAccount = require('../models/SavingsAccount');
+      const Transaction = require('../models/Transaction');
+      
       const user = await User.findById(req.user.id);
       const amount = Number(formData.amount) || 0;
-      if (!user || user.savingsBalance < amount) {
-        return res.status(400).json({ success: false, error: 'Insufficient savings balance.' });
+      
+      if (amount > 0) {
+        if (!user || user.savingsBalance < amount) {
+          return res.status(400).json({ success: false, error: 'Insufficient savings balance.' });
+        }
+        
+        const account = await SavingsAccount.findOne({ userId: user._id });
+        if (!account || account.balance < amount) {
+           return res.status(400).json({ success: false, error: 'Insufficient account balance.' });
+        }
+        
+        // Debit
+        user.savingsBalance -= amount;
+        await user.save();
+        
+        account.balance -= amount;
+        account.totalWithdrawals = (account.totalWithdrawals || 0) + amount;
+        account.lastTransactionDate = new Date();
+        await account.save();
+        
+        // Log transaction
+        await Transaction.create({
+          userId: user._id,
+          accountId: account._id,
+          amount: amount,
+          type: 'Initial Deposit',
+          status: 'Completed',
+          referenceNumber: 'APP-' + Date.now().toString().slice(-6),
+          senderAccount: account.accountNumber,
+          receiverAccount: 'Internal Suspense Account',
+          remarks: `Initial deposit for ${applicationType} application`
+        });
       }
     }
 
@@ -46,7 +79,22 @@ exports.getUserApplications = async (req, res, next) => {
   try {
     const applications = await ServiceApplication.find({ userId: req.user.id })
       .populate('userId', 'fullName email phone customerId panNumber aadharNumber address dob accountNumber')
-      .sort('-submittedAt');
+      .sort('-submittedAt')
+      .lean();
+
+    const FixedDeposit = require('../models/FixedDeposit');
+    const RecurringDeposit = require('../models/RecurringDeposit');
+
+    for (let app of applications) {
+      if (app.status === 'Approved' && (app.applicationType === 'Fixed Deposit' || app.applicationType === 'Recurring Deposit')) {
+        let dep = await FixedDeposit.findOne({ applicationId: app._id });
+        if (!dep) dep = await RecurringDeposit.findOne({ applicationId: app._id });
+        if (dep && dep.status) {
+          app.status = dep.status;
+        }
+      }
+    }
+
     res.status(200).json({ success: true, data: applications });
   } catch (error) {
     next(error);

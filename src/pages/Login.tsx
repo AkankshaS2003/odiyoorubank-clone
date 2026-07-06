@@ -30,9 +30,9 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
   const [otpTimer, setOtpTimer] = useState(0);
   const [otpLoading, setOtpLoading] = useState(false);
   
-  // UI State
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -177,7 +177,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
 
   const handleGoogleSuccess = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsGoogleLoading(true);
     setErrorMsg(null);
     try {
       // The token is no longer passed here; AuthContext handles the Firebase popup
@@ -195,7 +195,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
     } catch (err: any) {
       setErrorMsg(err.response?.data?.error || err.message || 'Google login failed');
     } finally {
-      setIsLoading(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -434,7 +434,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isGoogleLoading}
             className="w-full py-2.5 mt-2 bg-gradient-to-r from-[#ED7F1E] to-[#d66a10] hover:from-[#d66a10] hover:to-[#c45e09] disabled:from-white/20 disabled:to-white/20 disabled:text-white/40 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm shadow-lg shadow-[#ED7F1E]/20 transition-all flex items-center justify-center border border-white/10"
           >
             {isLoading ? (
@@ -486,11 +486,15 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
             <button
               type="button"
               onClick={handleGoogleSuccess}
-              disabled={isLoading}
-              className="w-full max-w-[280px] py-2.5 bg-white text-slate-800 hover:bg-slate-100 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
+              disabled={isLoading || isGoogleLoading}
+              className="w-full max-w-[280px] py-2.5 bg-white text-slate-800 hover:bg-slate-100 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-4 w-4" />
-              <span>{"Continue with Google"}</span>
+              {isGoogleLoading ? (
+                <div className="w-4 h-4 border-2 border-slate-800/30 border-t-slate-800 rounded-full animate-spin"></div>
+              ) : (
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-4 w-4" />
+              )}
+              <span>{isGoogleLoading ? "Connecting..." : "Continue with Google"}</span>
             </button>
           </div>
         )}

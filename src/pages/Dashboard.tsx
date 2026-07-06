@@ -369,7 +369,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                   </div>
                   <div>
                     <h4 className="font-extrabold text-lg text-slate-900">Saved Eligibility Report</h4>
-                    <p className="text-sm text-slate-500 mt-1">Generated on {new Date(savedReport.date).toLocaleDateString()}</p>
+                    <p className="text-sm text-slate-500 mt-1">Generated on {new Date(savedReport.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                   </div>
                 </div>
                 <button
@@ -413,7 +413,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                       {loanApps.map((app: any) => (
                         <tr key={app._id} className="hover:bg-slate-50 transition-colors">
                           <td className="py-4 px-6 text-xs text-slate-600 font-medium whitespace-nowrap">
-                            {new Date(app.submittedAt).toLocaleDateString()}
+                            {new Date(app.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                           </td>
                           <td className="py-4 px-6">
                             <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
@@ -493,7 +493,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                       {depositApps.map((app: any) => (
                         <tr key={app._id} className="hover:bg-slate-50 transition-colors">
                           <td className="py-4 px-6 text-xs text-slate-600 font-medium whitespace-nowrap">
-                            {new Date(app.submittedAt).toLocaleDateString()}
+                            {new Date(app.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                           </td>
                           <td className="py-4 px-6">
                             <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">

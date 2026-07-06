@@ -56,6 +56,17 @@ const AppContent: React.FC = () => {
     window.scrollTo(0, 0);
   }, [currentTab]);
 
+  // Global fix: Prevent number inputs from changing value when scrolling
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (document.activeElement?.tagName === 'INPUT' && (document.activeElement as HTMLInputElement).type === 'number') {
+        (document.activeElement as HTMLInputElement).blur();
+      }
+    };
+    window.addEventListener('wheel', handleWheel, { passive: true });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
+
   const setCurrentTab = (tab: string) => {
     setHistory(prev => {
       if (prev[prev.length - 1] === tab) return prev;

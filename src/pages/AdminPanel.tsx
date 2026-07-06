@@ -68,7 +68,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   // Tab State: matching all 14 specified modules
   // Tab State: matching all modules
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'applications' | 'service_applications' | 'customer_360' | 'customers' | 'loans' | 'deposit_products' | 'fd_management' | 'rd_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships' | 'fund_transfers' | 'share_capital'
+    'dashboard' | 'applications' | 'service_applications' | 'customer_360' | 'customers' | 'loans' | 'deposit_products' | 'deposits_management' | 'cms' | 'branches' | 'announcements' | 'downloads' | 'rag' | 'chatbot' | 'users' | 'employees' | 'audit' | 'settings' | 'memberships' | 'fund_transfers' | 'share_capital'
   >('dashboard');
 
   // RAG Indexer States (Preserved and integrated)
@@ -803,8 +803,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     { id: 'share_capital', label: 'Share Capital', icon: Briefcase },
     { id: 'memberships', label: 'Memberships', icon: ShieldCheck },
     { id: 'deposit_products', label: 'Deposit Products', icon: TrendingUp },
-    { id: 'fd_management', label: 'Fixed Deposits', icon: History },
-    { id: 'rd_management', label: 'Recurring Deposits', icon: Database },
+    { id: 'deposits_management', label: 'Deposits', icon: History },
     { id: 'branches', label: 'Branch Management', icon: MapPin },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'rag', label: 'RAG Knowledge Base', icon: Database },
@@ -830,10 +829,10 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const isEmployee = currentUser?.role === 'employee';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
+    <div className="bg-slate-50 flex flex-col lg:flex-row" style={{ height: 'calc(100vh - 140px)' }}>
 
       {/* 1. SIDEBAR NAVIGATION */}
-      <aside className="w-full lg:w-64 bg-[#0A315C] text-white flex flex-col shrink-0 border-r border-[#ED7F1E]/20 select-none">
+      <aside className="w-full lg:w-64 bg-[#0A315C] text-white flex flex-col shrink-0 border-r border-[#ED7F1E]/20 select-none overflow-y-auto">
 
         {/* Profile Card Summary */}
         <div className="p-6 border-b border-white/10 bg-[#051C36]">
@@ -892,7 +891,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
       </aside>
 
       {/* 2. MAIN WORKSPACE CONTAINER */}
-      <main className="flex-grow p-6 lg:p-8 overflow-x-hidden">
+      <main className="flex-grow p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
 
         {/* Dynamic Alerts Banner */}
         {error && (
@@ -1025,7 +1024,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                 Reply via Email
                               </a>
                             </div>
-                            <span className="text-[10px] text-slate-400 font-mono tracking-tighter block shrink-0">{new Date(msg.createdAt).toLocaleDateString()}</span>
+                            <span className="text-[10px] text-slate-400 font-mono tracking-tighter block shrink-0">{new Date(msg.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                           </div>
                         ))}
                       </div>
@@ -1375,7 +1374,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                   <tr key={fd._id} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="p-4 font-bold text-slate-800">FD</td>
                                     <td className="p-4 font-black text-[#0A315C]">₹{fd.principalAmount?.toLocaleString('en-IN')}</td>
-                                    <td className="p-4 text-xs font-bold text-slate-600">{new Date(fd.maturityDate).toLocaleDateString()}</td>
+                                    <td className="p-4 text-xs font-bold text-slate-600">{new Date(fd.maturityDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                                     <td className="p-4">
                                       <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase ${fd.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
                                         {fd.status}
@@ -1397,7 +1396,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                   <tr key={rd._id} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="p-4 font-bold text-slate-800">RD</td>
                                     <td className="p-4 font-black text-[#0A315C]">₹{rd.monthlyAmount?.toLocaleString('en-IN')} / mo</td>
-                                    <td className="p-4 text-xs font-bold text-slate-600">{rd.maturityDate ? new Date(rd.maturityDate).toLocaleDateString() : 'N/A'}</td>
+                                    <td className="p-4 text-xs font-bold text-slate-600">{rd.maturityDate ? new Date(rd.maturityDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}</td>
                                     <td className="p-4">
                                       <span className={`inline-flex px-2 py-1 rounded-md text-[10px] font-bold uppercase ${rd.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : rd.status === 'Pending Approval' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-700'}`}>
                                         {rd.status}
@@ -1527,7 +1526,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                         </td>
                         <td className="p-4 text-xs font-mono font-bold text-slate-500">{dep.receiptNumber}</td>
                         <td className="p-4 text-xs font-bold text-slate-500">
-                          {new Date(dep.createdAt).toLocaleDateString()}
+                          {new Date(dep.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </td>
                         <td className="p-4">
                           <button className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors">View details</button>
@@ -1586,7 +1585,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               {app.applicationType}
                             </td>
                             <td className="p-4 text-xs text-slate-600">
-                              {new Date(app.submittedAt).toLocaleDateString()}
+                              {new Date(app.submittedAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                             </td>
                             <td className="p-4">
                               <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${app.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
@@ -1916,9 +1915,11 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
             )}
 
             {/* ========================================== */}
-            {/* TAB: FD MANAGEMENT */}
+            {/* TAB: DEPOSITS MANAGEMENT (FD & RD) */}
             {/* ========================================== */}
-            {activeTab === 'fd_management' && (
+            {activeTab === 'deposits_management' && (
+              <div className="space-y-8">
+                {/* FD Section */}
               <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
                   <div>
@@ -1969,7 +1970,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                             </td>
                             <td className="p-4">
                               <p className="text-sm font-bold text-emerald-700">₹{(fd.maturityAmount || 0).toLocaleString('en-IN')}</p>
-                              <p className="text-[10px] text-slate-500 font-medium">{new Date(fd.maturityDate).toLocaleDateString()}</p>
+                              <p className="text-[10px] text-slate-500 font-medium">{new Date(fd.maturityDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                             </td>
                             <td className="p-4">
                               <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
@@ -1982,16 +1983,15 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               </span>
                             </td>
                             <td className="p-4 text-center">
-                              {fd.status === 'Pending Settlement Approval' ? (
-                                <button
+                              {(fd.status === 'Pending Settlement Approval' || fd.status === 'Matured') ? (
+                                <button 
                                   onClick={() => handleFdSettlement(fd._id)}
-                                  disabled={actionLoading}
-                                  className="px-3 py-1.5 bg-[#ED7F1E] text-white hover:bg-[#d66b12] rounded-lg text-[10px] font-bold transition-colors"
+                                  className="text-[10px] font-black uppercase tracking-wider text-[#0F4C81] hover:text-[#0A315C] transition-colors"
                                 >
-                                  Approve Settlement
+                                  Process Settlement
                                 </button>
                               ) : (
-                                <span className="text-[10px] text-slate-400 font-semibold italic">No action needed</span>
+                                <span className="text-slate-400">No action needed</span>
                               )}
                             </td>
                           </tr>
@@ -2001,12 +2001,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                   </table>
                 </div>
               </div>
-            )}
-
-            {/* ========================================== */}
-            {/* TAB: RD MANAGEMENT */}
-            {/* ========================================== */}
-            {activeTab === 'rd_management' && (
+                {/* RD Section */}
               <div className="bg-white border border-slate-150 rounded-3xl p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4 mb-6">
                   <div>
@@ -2120,6 +2115,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     </tbody>
                   </table>
                 </div>
+              </div>
               </div>
             )}
 
@@ -3078,7 +3074,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
             )}
 
             <div className="border-t border-slate-100 pt-4 mt-4 flex justify-between items-center text-[10px] text-slate-450 font-bold shrink-0">
-              <span>Uploaded: {new Date(selectedDoc.createdAt).toLocaleDateString()}</span>
+              <span>Uploaded: {new Date(selectedDoc.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
               <span>Total: {docChunks.length} chunks</span>
             </div>
 

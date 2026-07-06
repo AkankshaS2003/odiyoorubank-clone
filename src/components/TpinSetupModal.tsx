@@ -31,7 +31,7 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
       const res = await fetch('/api/tpin/send-otp', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         }
       });
       const data = await res.json();
@@ -56,7 +56,7 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         },
         body: JSON.stringify({ otp })
       });
@@ -87,7 +87,7 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         },
         body: JSON.stringify(payload)
       });
@@ -230,11 +230,6 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
                     pattern="[0-9]*"
                   />
                 </div>
-                <ul className="text-xs text-slate-500 list-disc pl-5 space-y-1 mt-2">
-                  <li>Must be exactly 6 digits</li>
-                  <li>Cannot be sequential (e.g., 123456) or repeating (e.g., 000000)</li>
-                  <li>Cannot match DOB, Phone, or Aadhaar</li>
-                </ul>
                 <button
                   onClick={handleSetup}
                   disabled={loading || tpin.length !== 6 || confirmTpin.length !== 6}

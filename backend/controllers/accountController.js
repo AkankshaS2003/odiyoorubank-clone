@@ -37,16 +37,27 @@ const getAccountDetails = async (req, res, next) => {
       });
     }
 
-    // Mock recent activities
-    const recentActivities = [
-      { id: 1, type: 'Deposit', amount: 1000, date: new Date().toISOString() }
-    ];
+    // Fetch real recent activities
+    const Transaction = require('../models/Transaction');
+    const recentActivities = await Transaction.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
+    
+    // Map them to match expected frontend structure if needed
+    const formattedActivities = recentActivities.map(txn => ({
+      id: txn._id,
+      type: txn.type,
+      amount: txn.amount,
+      date: txn.createdAt,
+      status: txn.status
+    }));
 
     res.status(200).json({
       success: true,
       data: {
         account,
-        recentActivities
+        recentActivities: formattedActivities
       }
     });
   } catch (error) {

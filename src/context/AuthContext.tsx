@@ -118,7 +118,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(sessionStorage.getItem('token'));
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [tpinPromise, setTpinPromise] = useState<{ resolve: (tpin: string) => void; reject: (reason?: any) => void } | null>(null);
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({
@@ -149,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchSettings();
   }, []);
   const fetchUserProfile = async () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (token) {
       try {
         const res = await api.get('/auth/me');
@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Failed to fetch profile', error);
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         setIsAuthenticated(false);
       }
     }
@@ -181,7 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.post('/auth/login', { email: identifier, password: pass });
       if (res.data.success) {
-        localStorage.setItem('token', res.data.data.token);
+        sessionStorage.setItem('token', res.data.data.token);
         setToken(res.data.data.token);
         
         const profileRes = await api.get('/auth/me');
@@ -212,7 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.post('/auth/google', { token: firebaseToken });
       
       if (res.data.success) {
-        localStorage.setItem('token', res.data.data.token);
+        sessionStorage.setItem('token', res.data.data.token);
         setToken(res.data.data.token);
         const profileRes = await api.get('/auth/me');
         setUser({ 
@@ -246,7 +246,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.put(`/auth/resetpassword/${token}`, { password });
       if (res.data.success) {
-        localStorage.setItem('token', res.data.data.token);
+        sessionStorage.setItem('token', res.data.data.token);
         setToken(res.data.data.token);
         const profileRes = await api.get('/auth/me');
         setUser({ 
@@ -277,7 +277,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (res.data.success) {
         const newToken = res.data.data.token;
-        localStorage.setItem('token', newToken);
+        sessionStorage.setItem('token', newToken);
         setToken(newToken);
         
         const profileRes = await api.get('/auth/me');
@@ -300,7 +300,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);

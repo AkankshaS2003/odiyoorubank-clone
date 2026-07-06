@@ -94,7 +94,7 @@ export const FDDashboardReceipt: React.FC<{ fdData: any, setCurrentTab: (tab: st
               </div>
               <div>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider print:text-black">Settlement Date</p>
-                <p className="text-sm font-bold text-slate-900 print:text-black">{fdData.settlementDetails?.settlementDate ? new Date(fdData.settlementDetails.settlementDate).toLocaleDateString() : 'N/A'}</p>
+                <p className="text-sm font-bold text-slate-900 print:text-black">{fdData.settlementDetails?.settlementDate ? new Date(fdData.settlementDetails.settlementDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}</p>
               </div>
               <div>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider print:text-black">Status</p>

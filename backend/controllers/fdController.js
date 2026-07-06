@@ -13,13 +13,13 @@ exports.createFD = async (req, res, next) => {
   // session.startTransaction();
   try {
     const { amount, tenureMonths, interestRate, tpin, nomineeDetails, formData, signatureBase64 } = req.body;
-    const user = await User.findById(req.user.id).select('+tpin +tpinLocked +failedTpinAttempts');
+    const user = await User.findById(req.user.id).select('+tpinHash +tpinLocked +failedTpinAttempts');
     
     if (!user) throw new Error('User not found');
-    if (!user.tpin) throw new Error('Transaction PIN is not set up');
+    if (!user.tpinHash) throw new Error('Transaction PIN is not set up');
     if (user.tpinLocked) throw new Error('Transaction PIN is locked');
     
-    const isMatch = await bcrypt.compare(tpin, user.tpin);
+    const isMatch = await bcrypt.compare(tpin, user.tpinHash);
     if (!isMatch) {
       user.failedTpinAttempts = (user.failedTpinAttempts || 0) + 1;
       if (user.failedTpinAttempts >= 3) {
@@ -58,14 +58,31 @@ exports.createFD = async (req, res, next) => {
     const fdNumber = `FD${new Date().getFullYear()}${String(fdCount + 1).padStart(5, '0')}`;
 
     // Find linked savings account if any
-    const account = await Account.findOne({ userId: user._id });
+    const SavingsAccount = require('../models/SavingsAccount');
+    const SavingsTransaction = require('../models/SavingsTransaction');
+    const account = await SavingsAccount.findOne({ userId: user._id });
     let linkedAccountId = null;
     if (account) {
       account.balance -= amountNum;
+      account.totalWithdrawals = (account.totalWithdrawals || 0) + amountNum;
+      account.lastTransactionDate = new Date();
       await account.save({});
       linkedAccountId = account._id;
       
-      // Log transaction
+      // Log transaction in SavingsTransaction (so it shows in dashboard)
+      await SavingsTransaction.create([{
+        userId: user._id,
+        savingsAccountId: linkedAccountId,
+        type: 'Withdrawal',
+        description: 'Fixed Deposit Creation',
+        creditAmount: 0,
+        debitAmount: amountNum,
+        balanceAfter: account.balance,
+        status: 'Completed',
+        referenceNumber: fdNumber
+      }], {});
+      
+      // Also log in general Transaction table
       await Transaction.create([{
         userId: user._id,
         accountId: linkedAccountId,
@@ -73,7 +90,9 @@ exports.createFD = async (req, res, next) => {
         type: 'Fixed Deposit',
         status: 'Completed',
         description: 'Fixed Deposit Creation',
-        referenceNumber: fdNumber
+        referenceNumber: fdNumber,
+        senderAccount: account.accountNumber,
+        receiverAccount: 'Internal FD Pool'
       }], {});
     }
 
