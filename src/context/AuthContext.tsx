@@ -54,11 +54,16 @@ export interface User {
   minimumBalancePaid?: boolean;
   accountNumber?: string;
   ifscCode?: string;
+  ifsc?: string;
+  branch?: string;
   sharesOwned?: number;
   shareCapitalInvested?: number;
   totalDividendEarned?: number;
   sharePurchases?: any[];
   dividendHistory?: any[];
+  tpinActive?: boolean;
+  tpinLocked?: boolean;
+  id?: string;
 }
 
 export interface SystemSettings {
@@ -387,7 +392,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      const loanTypes = ['Personal Loan', 'Home Loan', 'Educational Loan', 'Education Loan', 'Gold Loan', 'Vehicle Loan', 'Agricultural Loan', 'Mortgage Loan', 'Business Loan'];
+      const loanTypes = ['Personal Loan', 'Home Loan', 'Educational Loan', 'Education Loan', 'Gold Loan', 'Vehicle Loan', 'Agricultural Loan', 'Business Loan'];
       
       if (loanTypes.includes(applicationType)) {
         const payload = {

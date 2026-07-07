@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const Account = require('../models/Account');
+const SavingsAccount = require('../models/SavingsAccount');
+const AuditLog = require('../models/AuditLog');
 const Otp = require('../models/Otp');
 const OtpAuditLog = require('../models/OtpAuditLog');
 const jwt = require('jsonwebtoken');
@@ -252,23 +254,80 @@ const googleLogin = async (req, res, next) => {
     let user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
-      // Auto register the user via Google
-      const randomPassword = crypto.randomBytes(16).toString('hex');
-      // Create user
-      user = await User.create({
-        fullName: name || 'Google User',
-        email: cleanEmail,
-        password: randomPassword,
-        provider: 'google',
-        role: 'customer'
+      // Step 2: Unregistered Google Account
+      await AuditLog.create({
+        action: 'Google Login Failed',
+        details: `Unregistered Google account attempt for email: ${cleanEmail}`,
+        ipAddress: req.ip
       });
-    } else {
-      // If user exists but was registered locally, we can optionally link them or just login
-      if (user.provider !== 'google') {
-        user.provider = 'google';
-        await user.save({ validateBeforeSave: false });
+      return res.status(400).json({ success: false, error: 'UNREGISTERED_GOOGLE_ACCOUNT' });
+    }
+
+    // Step 3 & 4: Account Status Validation
+    if (user.status !== 'Active') {
+      await AuditLog.create({
+        action: 'Google Login Failed',
+        userId: user._id,
+        details: `Blocked or suspended account attempt for email: ${cleanEmail}`,
+        ipAddress: req.ip
+      });
+      return res.status(403).json({ success: false, error: 'Your account has been blocked or suspended. Please contact the bank.' });
+    }
+
+    if (user.role === 'customer') {
+      if (!user.isKycVerified) {
+        await AuditLog.create({
+          action: 'Google Login Failed',
+          userId: user._id,
+          details: `Pending verification account attempt for email: ${cleanEmail}`,
+          ipAddress: req.ip
+        });
+        return res.status(403).json({ success: false, error: 'Your account is awaiting branch verification or admin approval.' });
+      }
+
+      const savingsAccount = await SavingsAccount.findOne({ userId: user._id });
+      if (!savingsAccount || savingsAccount.status !== 'Active') {
+        await AuditLog.create({
+          action: 'Google Login Failed',
+          userId: user._id,
+          details: `Inactive savings account attempt for email: ${cleanEmail}`,
+          ipAddress: req.ip
+        });
+        return res.status(403).json({ success: false, error: 'Your savings account is not active or missing.' });
       }
     }
+
+    // Step 5: Google Linking & Multiple Account Protection
+    if (user.googleLinked) {
+      if (user.googleId !== sub) {
+        await AuditLog.create({
+          action: 'Google Login Failed',
+          userId: user._id,
+          details: `Multiple Google account attempt for email: ${cleanEmail}`,
+          ipAddress: req.ip
+        });
+        return res.status(400).json({ success: false, error: 'This customer account is already linked to another Google account.' });
+      }
+    } else {
+      // First time Google linking
+      user.googleLinked = true;
+      user.googleId = sub;
+      user.googleEmail = cleanEmail;
+      user.provider = 'google';
+    }
+
+    // Update Session Info
+    user.lastLogin = Date.now();
+    user.deviceInfo = req.headers['user-agent'] || 'Unknown Device';
+    await user.save({ validateBeforeSave: false });
+
+    // Step 7: Audit Log for Success
+    await AuditLog.create({
+      action: 'Google Login Success',
+      userId: user._id,
+      details: `Successful Google Login for ${user.role} with email: ${cleanEmail}`,
+      ipAddress: req.ip
+    });
 
     res.status(200).json({
       success: true,

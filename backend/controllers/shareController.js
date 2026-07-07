@@ -7,6 +7,7 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const QRCode = require('qrcode');
 
 // Helper to generate unique ID
 const generateUniqueId = (prefix) => {
@@ -339,11 +340,11 @@ exports.getShareCertificate = async (req, res) => {
     const account = await SavingsAccount.findOne({ userId: user._id });
     const accountNumber = account ? account.accountNumber : 'N/A';
 
-    // Generate PDF
+    // Generate PDF (A4 Portrait)
     const doc = new PDFDocument({
       size: 'A4',
-      layout: 'landscape',
-      margin: 50
+      layout: 'portrait',
+      margin: 40
     });
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -351,71 +352,108 @@ exports.getShareCertificate = async (req, res) => {
 
     doc.pipe(res);
 
-    // Draw Certificate Border
-    doc.rect(30, 30, doc.page.width - 60, doc.page.height - 60).lineWidth(4).stroke('#0F4C81');
-    doc.rect(35, 35, doc.page.width - 70, doc.page.height - 70).lineWidth(1).stroke('#0F4C81');
+    const width = doc.page.width;
+    const height = doc.page.height;
+
+    // Draw Double-Line Border with ornaments
+    doc.rect(20, 20, width - 40, height - 40).lineWidth(3).stroke('#0F4C81');
+    doc.rect(26, 26, width - 52, height - 52).lineWidth(1).stroke('#D4AF37');
+
+    // Subtle Watermark
+    const logoPath = path.join(__dirname, '../../public/logo-bg.png');
+    if (fs.existsSync(logoPath)) {
+      doc.save();
+      doc.opacity(0.05);
+      doc.image(logoPath, width / 2 - 150, height / 2 - 150, { width: 300 });
+      doc.restore();
+    }
+
+    // Bank Logo at top center
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, width / 2 - 40, 40, { fit: [80, 80] });
+    }
+
+    doc.moveDown(6);
 
     // Title / Bank Name
-    doc.font('Helvetica-Bold').fontSize(26).fillColor('#0F4C81')
-       .text('Odiyooru Souharda Cooperative Society Ltd', 50, 70, { align: 'center', width: doc.page.width - 100 });
-    
-    doc.fontSize(12).fillColor('#666666')
-       .text('Main Branch, Odiyooru', { align: 'center', width: doc.page.width - 100 });
+    doc.font('Times-Bold').fontSize(24).fillColor('#002366')
+       .text('ODIYOORU SOUHARDA', { align: 'center' });
+    doc.fontSize(16).text('COOPERATIVE SOCIETY LTD.', { align: 'center' });
        
+    doc.font('Times-Roman').fontSize(12).fillColor('#666666')
+       .text('Main Branch, Odiyooru', { align: 'center' });
+       
+    doc.moveDown(1.5);
+    
+    // Certificate Title
+    doc.font('Times-Bold').fontSize(28).fillColor('#D4AF37')
+       .text('SHARE CERTIFICATE', { align: 'center' });
+
     doc.moveDown(2);
-    
-    doc.font('Helvetica-Bold').fontSize(36).fillColor('#D4AF37')
-       .text('SHARE CERTIFICATE', { align: 'center', width: doc.page.width - 100 });
 
-    // Certificate Details
-    doc.font('Helvetica').fontSize(14).fillColor('#333333');
-    const startY = doc.y + 20;
+    // Formal Paragraph
+    doc.font('Times-Roman').fontSize(14).fillColor('#333333');
+    doc.text(`This is to certify that ${user.fullName} is the registered holder of share capital in the cooperative society, subject to the Cooperative Societies Act, rules, and bylaws of the bank.`, 50, doc.y, { align: 'center', width: width - 100, lineGap: 5 });
     
-    doc.text(`Certificate Number: ${purchase.certificateNo}`, 50, startY, { lineBreak: false });
-    doc.text(`Issue Date: ${new Date().toLocaleDateString('en-IN')}`, 50, startY, { align: 'right', width: doc.page.width - 100 });
-    
-    const midY = startY + 40;
-    doc.fontSize(16).text('This is to certify that', 50, midY, { align: 'center', width: doc.page.width - 100 });
-    
-    doc.font('Helvetica-Bold').fontSize(22).fillColor('#0F4C81')
-       .text(`${user.fullName}`, 50, midY + 30, { align: 'center', width: doc.page.width - 100 });
-       
-    doc.font('Helvetica').fontSize(16).fillColor('#333333')
-       .text('is the Registered Holder of Shares in the Cooperative Society.', 50, midY + 70, { align: 'center', width: doc.page.width - 100 });
-       
-    // Table of details
-    const tableTop = midY + 120;
-    const labelX = 250;
-    const valueX = 450;
-    const lineSpacing = 25;
+    doc.moveDown(2);
 
-    doc.fontSize(14);
+    // Member Details Table
+    const tableTop = doc.y + 10;
+    const rowHeight = 25;
+    const col1X = 60;
+    const col2X = 180;
+    const col3X = width / 2 + 10;
+    const col4X = width / 2 + 130;
     
-    const details = [
+    const detailsLeft = [
+      { label: 'Certificate No:', value: purchase.certificateNo },
+      { label: 'Customer Name:', value: user.fullName },
       { label: 'Customer ID:', value: user.customerId || 'N/A' },
-      { label: 'Membership Number:', value: user.memberId || 'N/A' },
-      { label: 'Savings Account No:', value: accountNumber },
-      { label: 'Number of Shares:', value: `${purchase.shares}` },
-      { label: 'Price Per Share:', value: `Rs. ${purchase.price.toFixed(2)}` },
-      { label: 'Total Investment:', value: `Rs. ${purchase.amount.toFixed(2)}` },
-      { label: 'Purchase Date:', value: new Date(purchase.purchaseDate).toLocaleDateString('en-IN') }
+      { label: 'Membership No:', value: user.memberId || 'N/A' },
+      { label: 'Savings A/C:', value: accountNumber },
+    ];
+    
+    const detailsRight = [
+      { label: 'Issue Date:', value: new Date().toLocaleDateString('en-IN') },
+      { label: 'Purchase Date:', value: new Date(purchase.purchaseDate).toLocaleDateString('en-IN') },
+      { label: 'Shares Count:', value: `${purchase.shares}` },
+      { label: 'Face Value:', value: `Rs. ${purchase.price.toFixed(2)}` },
+      { label: 'Total Invested:', value: `Rs. ${purchase.amount.toFixed(2)}` },
     ];
 
-    details.forEach((item, i) => {
-      const currentY = tableTop + (i * lineSpacing);
-      doc.font('Helvetica-Bold').text(item.label, labelX, currentY, { lineBreak: false });
-      doc.font('Helvetica').text(item.value, valueX, currentY, { lineBreak: false });
-    });
+    // Draw Table borders
+    doc.lineWidth(1).strokeColor('#E2E8F0');
+    doc.rect(50, tableTop, width - 100, detailsLeft.length * rowHeight).stroke();
+    
+    for (let i = 1; i < detailsLeft.length; i++) {
+      doc.moveTo(50, tableTop + (i * rowHeight)).lineTo(width - 50, tableTop + (i * rowHeight)).stroke();
+    }
+    doc.moveTo(width / 2, tableTop).lineTo(width / 2, tableTop + detailsLeft.length * rowHeight).stroke();
+
+    // Fill Table data
+    for (let i = 0; i < detailsLeft.length; i++) {
+      const currentY = tableTop + (i * rowHeight) + 7;
+      
+      doc.font('Times-Bold').fontSize(11).fillColor('#0F4C81');
+      doc.text(detailsLeft[i].label, col1X, currentY);
+      doc.font('Times-Roman').fillColor('#333333');
+      doc.text(detailsLeft[i].value, col2X, currentY);
+
+      doc.font('Times-Bold').fillColor('#0F4C81');
+      doc.text(detailsRight[i].label, col3X, currentY);
+      doc.font('Times-Roman').fillColor('#333333');
+      doc.text(detailsRight[i].value, col4X, currentY);
+    }
 
     // Signatures
     const sigY = doc.page.height - 100;
     
-    doc.moveTo(100, sigY).lineTo(250, sigY).stroke('#333333');
-    doc.font('Helvetica-Bold').fontSize(12).fillColor('#333333')
-       .text('Customer Signature', 100, sigY + 10, { width: 150, align: 'center' });
+    doc.moveTo(80, sigY).lineTo(230, sigY).lineWidth(1).stroke('#333333');
+    doc.font('Times-Bold').fontSize(12).fillColor('#333333')
+       .text('Customer Signature', 80, sigY + 10, { width: 150, align: 'center' });
 
-    doc.moveTo(doc.page.width - 250, sigY).lineTo(doc.page.width - 100, sigY).stroke('#333333');
-    doc.text('Authorized Signatory', doc.page.width - 250, sigY + 10, { width: 150, align: 'center' });
+    doc.moveTo(width - 230, sigY).lineTo(width - 80, sigY).stroke('#333333');
+    doc.text('Authorized Signatory', width - 230, sigY + 10, { width: 150, align: 'center' });
 
     doc.end();
 

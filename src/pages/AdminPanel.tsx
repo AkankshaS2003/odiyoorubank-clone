@@ -780,7 +780,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const loanAnalyticsData = [
     { name: 'Personal', count: loans.filter(l => l.loanType === 'Personal Loan').length || 3 },
     { name: 'Home', count: loans.filter(l => l.loanType === 'Home Loan' || l.loanType === 'Housing Loan').length || 5 },
-    { name: 'Mortgage', count: loans.filter(l => l.loanType === 'Member\'s Mortgage Loans').length || 2 },
+
     { name: 'Surity', count: loans.filter(l => l.loanType === 'Member\'s Surity Loans').length || 2 },
     { name: 'Gold', count: loans.filter(l => l.loanType === 'Gold Loan').length || 8 },
     { name: 'Vehicle', count: loans.filter(l => l.loanType === 'Vehicle Loan' || l.loanType === 'Member\'s Old Vehicle Loans').length || 4 }
@@ -2214,10 +2214,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Housing Loan Rate (% p.a.)</label>
                       <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.housingLoanRate} onChange={(e) => setCmsState({ ...cmsState, housingLoanRate: Number(e.target.value) })} />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Mortgage Loan Rate (% p.a.)</label>
-                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.mortgageLoanRate} onChange={(e) => setCmsState({ ...cmsState, mortgageLoanRate: Number(e.target.value) })} />
-                    </div>
+
                     <div className="space-y-1">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Agricultural Loan Rate (% p.a.)</label>
                       <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.agriculturalLoanRate} onChange={(e) => setCmsState({ ...cmsState, agriculturalLoanRate: Number(e.target.value) })} />
@@ -2334,10 +2331,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Housing Loan Rate (% p.a.)</label>
                       <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.housingLoanRate} onChange={(e) => setCmsState({ ...cmsState, housingLoanRate: Number(e.target.value) })} />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Mortgage Loan Rate (% p.a.)</label>
-                      <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.mortgageLoanRate} onChange={(e) => setCmsState({ ...cmsState, mortgageLoanRate: Number(e.target.value) })} />
-                    </div>
+
                     <div className="space-y-1">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Agricultural Loan Rate (% p.a.)</label>
                       <input type="number" step="0.05" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#0A315C] text-xs font-bold" value={cmsState.agriculturalLoanRate} onChange={(e) => setCmsState({ ...cmsState, agriculturalLoanRate: Number(e.target.value) })} />

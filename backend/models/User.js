@@ -47,6 +47,11 @@ const UserSchema = new mongoose.Schema({
     enum: ['local', 'google'],
     default: 'local'
   },
+  googleId: String,
+  googleLinked: { type: Boolean, default: false },
+  googleEmail: String,
+  lastLogin: Date,
+  deviceInfo: String,
   address: String,
   dob: String,
 

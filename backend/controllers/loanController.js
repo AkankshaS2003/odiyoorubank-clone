@@ -76,20 +76,145 @@ exports.getMyLoans = async (req, res, next) => {
 // Calculate Eligibility
 exports.calculateEligibility = async (req, res, next) => {
   try {
-    const { income, existingEmi, age } = req.body;
-    const availableForEmi = (income * 0.5) - existingEmi;
-    if (availableForEmi <= 0 || age > 65 || age < 18) {
-      return res.status(200).json({
-        success: true,
-        data: { eligibleAmount: 0, eligibilityPercentage: 0, estimatedEmi: 0, isEligible: false }
-      });
+    const { 
+      income = 0, 
+      existingEmi = 0, 
+      expenses = 0, 
+      savings = 0, 
+      age = 30, 
+      occupation = 'Salaried',
+      loanType = 'Personal Loan',
+      desiredLoanAmount = 0,
+      loanTenure = 5 // years
+    } = req.body;
+
+    const monthlyIncome = Number(income);
+    const emi = Number(existingEmi);
+    const monthlyExpenses = Number(expenses);
+    const savingsAmount = Number(savings);
+    const amount = Number(desiredLoanAmount);
+    const tenureYears = Number(loanTenure) || 5;
+    const tenureMonths = tenureYears * 12;
+
+    // Interest Rates Mapping
+    const interestRates = {
+      'Agricultural Loan': 7.0,
+      'Vehicle Loan': 8.5,
+      'Personal Loan': 10.5,
+      'Gold Loan': 8.0,
+      'Educational Loan': 9.0,
+      'Housing Loan': 8.5
+    };
+    const interestRate = interestRates[loanType] || 10.5;
+    const rate = interestRate / (12 * 100);
+
+    // Core Calculations
+    const disposableIncome = monthlyIncome - emi - monthlyExpenses;
+    const dti = monthlyIncome > 0 ? (emi / monthlyIncome) * 100 : 100;
+    
+    // Desired Loan EMI calculation
+    const desiredEmi = amount > 0 
+      ? Math.floor(amount * rate * Math.pow(1 + rate, tenureMonths) / (Math.pow(1 + rate, tenureMonths) - 1))
+      : 0;
+    
+    const newDti = monthlyIncome > 0 ? ((emi + desiredEmi) / monthlyIncome) * 100 : 100;
+
+    // Maximum Eligible Loan (Max EMI they can afford is say 55% of income minus existing EMI)
+    const maxAffordableEmi = (monthlyIncome * 0.55) - emi;
+    let maxEligibleAmount = 0;
+    if (maxAffordableEmi > 0) {
+      maxEligibleAmount = Math.floor(maxAffordableEmi * (Math.pow(1 + rate, tenureMonths) - 1) / (rate * Math.pow(1 + rate, tenureMonths)));
     }
-    const rate = 10 / (12 * 100);
-    const months = 60;
-    const eligibleAmount = Math.floor(availableForEmi * (Math.pow(1 + rate, months) - 1) / (rate * Math.pow(1 + rate, months)));
+
+    // Eligibility Status
+    let isEligible = true;
+    let approvalProbability = "High (90%+)";
+    let riskProfile = "Low Risk";
+    let eligibilityScore = 95;
+
+    if (newDti > 60 || disposableIncome < desiredEmi) {
+      isEligible = false;
+      approvalProbability = "Very Low (<20%)";
+      riskProfile = "High Risk";
+      eligibilityScore = 30;
+    } else if (newDti > 45) {
+      approvalProbability = "Medium (50-70%)";
+      riskProfile = "Medium Risk";
+      eligibilityScore = 65;
+    }
+
+    if (age > 65 || age < 18) {
+      isEligible = false;
+      approvalProbability = "Rejected (Age Criteria)";
+      eligibilityScore = 10;
+    }
+
+    // Loan Breakdown
+    const principalAmount = amount;
+    const totalRepayment = desiredEmi * tenureMonths;
+    const totalInterest = totalRepayment - principalAmount;
+    const processingFee = Math.floor(principalAmount * 0.01); // 1% processing fee
+
+    // Reasoning
+    const detailedReasoning = isEligible ? [
+      `Monthly income of Rs. ${monthlyIncome.toLocaleString()} is sufficient for repayment.`,
+      `Existing EMI obligations (${emi}) are within acceptable limits.`,
+      `Debt-to-Income ratio (${newDti.toFixed(1)}%) satisfies bank policy.`,
+      `Age (${age}) meets eligibility requirements.`
+    ] : [
+      `Debt-to-Income ratio (${newDti.toFixed(1)}%) exceeds maximum acceptable threshold of 60%.`,
+      `Disposable income is insufficient to cover the new EMI of Rs. ${desiredEmi}.`,
+      `Requested loan amount is higher than repayment capacity.`
+    ];
+
+    const improvementSuggestions = isEligible ? [
+      "Maintain your current savings rate to build a strong credit profile.",
+      "Consider prepaying existing loans to increase future eligibility."
+    ] : [
+      "Reduce existing EMI burdens by paying off smaller loans.",
+      "Increase down payment to reduce the desired loan amount.",
+      "Choose a longer tenure to reduce the monthly EMI."
+    ];
+
+    // Chart Data
+    const chartData = {
+      financialBreakdown: [
+        { name: 'Income', value: monthlyIncome },
+        { name: 'Existing EMI', value: emi },
+        { name: 'Expenses', value: monthlyExpenses },
+        { name: 'Savings', value: savingsAmount }
+      ],
+      repaymentBreakdown: [
+        { name: 'Principal', value: principalAmount },
+        { name: 'Interest', value: totalInterest }
+      ]
+    };
+
     res.status(200).json({
       success: true,
-      data: { eligibleAmount, eligibilityPercentage: 100, estimatedEmi: availableForEmi, isEligible: true }
+      data: {
+        isEligible,
+        eligibilityStatus: isEligible ? 'Eligible' : 'Not Eligible',
+        maxEligibleAmount,
+        approvalProbability,
+        recommendedLoanType: loanType,
+        interestRate,
+        monthlyEMI: desiredEmi,
+        principalAmount,
+        totalInterest,
+        totalRepaymentAmount: totalRepayment,
+        processingFee,
+        debtToIncomeRatio: newDti,
+        disposableIncome,
+        riskProfile,
+        eligibilityScore,
+        aiRecommendation: isEligible 
+          ? `We recommend a ${loanType} because your stable monthly income, low debt-to-income ratio, consistent savings, and repayment capacity indicate that this loan is financially suitable.` 
+          : `We do not recommend applying for this ${loanType} at this time. Your requested loan amount creates a monthly EMI burden that exceeds our safe lending thresholds.`,
+        detailedReasoning,
+        improvementSuggestions,
+        chartData
+      }
     });
   } catch (error) {
     next(error);

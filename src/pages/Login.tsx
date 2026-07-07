@@ -12,8 +12,8 @@ interface LoginProps {
 export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
   const { login, registerUser, forgotPassword, resetPassword, googleLogin } = useAuth();
   
-  // 'login' | 'register' | 'register-otp' | 'forgot' | 'reset'
-  const [view, setView] = useState<'login' | 'register' | 'register-otp' | 'forgot' | 'reset'>('login');
+  // 'login' | 'register' | 'register-otp' | 'forgot' | 'reset' | 'unregistered-google'
+  const [view, setView] = useState<'login' | 'register' | 'register-otp' | 'forgot' | 'reset' | 'unregistered-google'>('login');
   
   // Form State
   const [name, setName] = useState('');
@@ -193,7 +193,12 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         setErrorMsg('Google login failed or was cancelled');
       }
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.error || err.message || 'Google login failed');
+      const errorMessage = err.response?.data?.error || err.message || 'Google login failed';
+      if (errorMessage === 'UNREGISTERED_GOOGLE_ACCOUNT') {
+        setView('unregistered-google');
+      } else {
+        setErrorMsg(errorMessage);
+      }
     } finally {
       setIsGoogleLoading(false);
     }
@@ -244,10 +249,36 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
               {(view === 'register' || view === 'register-otp') && "Member Registration"}
               {view === 'forgot' && "Password Recovery"}
               {view === 'reset' && "Set New Password"}
+              {view === 'unregistered-google' && "Registration Required"}
             </span>
             <div className="h-px w-8 bg-white/20"></div>
           </div>
         </div>
+
+        {view === 'unregistered-google' && (
+          <div className="w-full flex flex-col items-center relative z-10 text-center">
+            <ShieldAlert className="w-12 h-12 text-[#ED7F1E] mb-4" />
+            <h3 className="text-white font-bold text-lg mb-2">Unregistered Account</h3>
+            <p className="text-white/70 text-sm mb-6">
+              Your Google account is not registered with the bank. Please complete account registration before using Google Sign-In.
+            </p>
+            <button
+              onClick={() => { setView('register'); setErrorMsg(null); }}
+              className="w-full py-2.5 bg-gradient-to-r from-[#ED7F1E] to-[#d66a10] hover:from-[#d66a10] hover:to-[#c45e09] text-white rounded-xl font-bold text-sm shadow-lg mb-3 flex justify-center items-center"
+            >
+              Register Now
+            </button>
+            <button
+              onClick={() => { setView('login'); setErrorMsg(null); }}
+              className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl font-bold text-sm transition-colors flex justify-center items-center"
+            >
+              Back to Login
+            </button>
+          </div>
+        )}
+
+        {view !== 'unregistered-google' && (
+          <>
 
         {errorMsg && (
           <div className="w-full mb-6 p-3 bg-red-500/10 border border-red-500/30 text-red-200 rounded-xl flex items-start space-x-2 text-xs relative z-10 backdrop-blur-md">
@@ -498,8 +529,11 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
             </button>
           </div>
         )}
+          </>
+        )}
 
       </div>
     </div>
   );
 };
+

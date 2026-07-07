@@ -106,7 +106,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
   const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
   const [panFile, setPanFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+
 
   const generateAppNo = () => `GL-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -301,8 +301,8 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoFile || !signatureFile || !aadhaarFile || !panFile) {
-      alert("Please upload all the required images (Aadhaar, PAN, Photo, and Signature).");
+    if (!photoFile || !aadhaarFile || !panFile) {
+      alert("Please upload all the required images (Aadhaar, PAN, and Photo).");
       return;
     }
     if (!formData.requestedAmount || !formData.tenure || !formData.purpose) {
@@ -317,7 +317,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
       if (aadhaarFile) images.aadhaar = await fileToBase64(aadhaarFile);
       if (panFile) images.pan = await fileToBase64(panFile);
       if (photoFile) images.photo = await fileToBase64(photoFile);
-      if (signatureFile) images.signature = await fileToBase64(signatureFile);
+
     } catch (err) {
       console.error('Failed to convert images to base64', err);
     }
@@ -498,7 +498,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
           {/* IDENTIFICATION DETAILS */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Identification Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <InputField label="Aadhaar Number" name="aadhaar" value={formData.aadhaar} onChange={handleChange} />
               <InputField label="PAN Number" name="pan" value={formData.pan} onChange={handleChange} />
             </div>
@@ -657,8 +657,7 @@ export const GoldLoanApplication: React.FC<GoldLoanApplicationProps> = ({ setCur
             <div className="flex-grow flex flex-col justify-end gap-4 text-center w-full">
               <div className="flex justify-end mt-6">
                 <div className="w-full max-w-[250px] text-left">
-                  <label className="block text-[10px] font-bold text-[#0F4C81] mb-2 uppercase tracking-wider print:hidden">Upload Applicant Signature</label>
-                  <input type="file" accept="image/*" onChange={e => setSignatureFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#EAF6FF] file:text-[#0F4C81] hover:file:bg-[#d6efff] transition-all cursor-pointer print:hidden"/>
+
                 </div>
               </div>
               <div className="flex justify-end items-end h-16">

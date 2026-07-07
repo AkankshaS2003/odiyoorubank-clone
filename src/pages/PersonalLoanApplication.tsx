@@ -112,7 +112,7 @@ export const PersonalLoanApplication: React.FC<PersonalLoanApplicationProps> = (
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
   const [panFile, setPanFile] = useState<File | null>(null);
-  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+
 
   const generateAppNo = () => `PL-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -308,8 +308,8 @@ export const PersonalLoanApplication: React.FC<PersonalLoanApplicationProps> = (
       return;
     }
 
-    if (!photoFile || !signatureFile || !aadhaarFile || !panFile) {
-      alert("Please upload all the required images (Aadhaar, PAN, Photo, and Signature).");
+    if (!photoFile || !aadhaarFile || !panFile) {
+      alert("Please upload all the required images (Aadhaar, PAN, and Photo).");
       return;
     }
     if (!formData.loanAmountRequired || !formData.tenure || !formData.purpose) {
@@ -324,7 +324,7 @@ export const PersonalLoanApplication: React.FC<PersonalLoanApplicationProps> = (
       if (photoFile) images.photo = await fileToBase64(photoFile);
       if (aadhaarFile) images.aadhaar = await fileToBase64(aadhaarFile);
       if (panFile) images.pan = await fileToBase64(panFile);
-      if (signatureFile) images.signature = await fileToBase64(signatureFile);
+
     } catch (err) {
       console.error('Failed to convert images to base64', err);
     }
@@ -611,8 +611,7 @@ export const PersonalLoanApplication: React.FC<PersonalLoanApplicationProps> = (
             <div className="flex-grow flex flex-col justify-end gap-4 text-center w-full">
               <div className="flex justify-end mt-6">
                 <div className="w-full max-w-[250px] text-left">
-                  <label className="block text-[10px] font-bold text-[#0F4C81] mb-2 uppercase tracking-wider print:hidden">Upload Applicant Signature</label>
-                  <input type="file" accept="image/*" onChange={e => setSignatureFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#EAF6FF] file:text-[#0F4C81] hover:file:bg-[#d6efff] transition-all cursor-pointer print:hidden"/>
+
                 </div>
               </div>
               <div className="flex justify-end items-end h-16">

@@ -136,8 +136,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
   const [feeStructureFile, setFeeStructureFile] = useState<File | null>(null);
   const [marksCardsFile, setMarksCardsFile] = useState<File | null>(null);
   const [identityProofFile, setIdentityProofFile] = useState<File | null>(null);
-  const [signatureFile, setSignatureFile] = useState<File | null>(null);
-  const [coSignatureFile, setCoSignatureFile] = useState<File | null>(null);
+
 
   const generateAppNo = () => `EL-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -349,8 +348,8 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoFile || !signatureFile || !identityProofFile || !admissionLetterFile) {
-      alert("Please upload all the required images (Photo, Identity Proof, Admission Letter, and Signature).");
+    if (!photoFile || !identityProofFile || !admissionLetterFile) {
+      alert("Please upload all the required images (Photo, Identity Proof, Admission Letter).");
       return;
     }
     
@@ -411,8 +410,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
       if (feeStructureFile) images.feeStructure = await fileToBase64(feeStructureFile);
       if (marksCardsFile) images.marksCards = await fileToBase64(marksCardsFile);
       if (identityProofFile) images.identityProof = await fileToBase64(identityProofFile);
-      if (signatureFile) images.studentSignature = await fileToBase64(signatureFile);
-      if (coSignatureFile) images.coApplicantSignature = await fileToBase64(coSignatureFile);
+
     } catch (err) {
       console.error('Failed to convert images to base64', err);
     }
@@ -711,7 +709,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
           {/* BANK ACCOUNT DETAILS */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Bank Account Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField label="Account Holder Name" name="accName" value={formData.accName} onChange={handleChange} />
               <InputField label="Account Number" name="accNumber" value={formData.accNumber} onChange={handleChange} />
               <InputField label="Branch Name" name="accBranch" value={formData.accBranch} onChange={handleChange} />
@@ -722,7 +720,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
           {/* NOMINEE DETAILS */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Nominee Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField label="Nominee Name" name="nomName" value={formData.nomName} onChange={handleChange} required={true} />
               <InputField label="Relationship" name="nomRel" value={formData.nomRel} onChange={handleChange} required={true} />
               <InputField label="Mobile Number" name="nomMobile" value={formData.nomMobile} onChange={handleChange} />
@@ -755,8 +753,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
                 <InputField label="Place" name="appPlace" value={formData.appPlace} onChange={handleChange} />
                 <InputField label="Date" name="appDate" type="date" value={formData.appDate} onChange={handleChange} />
                 <div className="mt-4">
-                  <label className="block text-[10px] font-bold text-[#0F4C81] mb-2 uppercase tracking-wider print:hidden">Upload Signature</label>
-                  <input type="file" accept="image/*" onChange={e => setSignatureFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-500 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#EAF6FF] file:text-[#0F4C81] hover:file:bg-[#d6efff] transition-all cursor-pointer print:hidden"/>
+
                 </div>
                 <div className="flex justify-start items-end h-16">
                   <div className="w-48 border-t border-slate-800 pt-2 text-[10px] font-bold uppercase">Signature</div>
@@ -769,8 +766,7 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
                 <InputField label="Place" name="coAppPlace" value={formData.coAppPlace} onChange={handleChange} />
                 <InputField label="Date" name="coAppDate" type="date" value={formData.coAppDate} onChange={handleChange} />
                 <div className="mt-4">
-                  <label className="block text-[10px] font-bold text-[#0F4C81] mb-2 uppercase tracking-wider print:hidden">Upload Signature</label>
-                  <input type="file" accept="image/*" onChange={e => setCoSignatureFile(e.target.files?.[0] || null)} className="w-full text-sm text-slate-500 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#EAF6FF] file:text-[#0F4C81] hover:file:bg-[#d6efff] transition-all cursor-pointer print:hidden"/>
+
                 </div>
                 <div className="flex justify-start items-end h-16">
                   <div className="w-48 border-t border-slate-800 pt-2 text-[10px] font-bold uppercase">Signature</div>
