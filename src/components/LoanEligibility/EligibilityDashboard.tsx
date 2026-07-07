@@ -84,6 +84,23 @@ export const EligibilityDashboard: React.FC<EligibilityDashboardProps> = ({ form
 
   return (
     <div className="space-y-6">
+      <style>{`
+        @media print {
+          body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            background: white !important;
+          }
+          .recharts-responsive-container {
+            width: 100% !important;
+          }
+          /* Ensure page breaks avoid cutting cards in half */
+          .shadow-sm, .shadow-xl {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+        }
+      `}</style>
       
       {/* Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100 print:hidden">

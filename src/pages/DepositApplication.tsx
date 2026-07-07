@@ -335,9 +335,12 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
     } else if (formData.depositType === 'Fixed Deposit') {
       try {
         const tpin = await requestTpin();
+        
+        const tenureMonths = parseInt(formData.depositPeriod) || 12;
+
         const fdPayload = {
           amount: parseInt(formData.amount, 10),
-          tenureMonths: parseInt(formData.depositPeriod) || 12,
+          tenureMonths: tenureMonths,
           interestRate: 8.50, // Default FD rate
           nomineeDetails: {
             name: formData.nomineeName,
@@ -498,7 +501,7 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
                 <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">Period of Deposit</label>
                 <select name="depositPeriod" value={formData.depositPeriod} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-slate-800 bg-white">
                   <option value="">Select Period</option>
-                  <option value="3 Months">3 Months</option>
+                  <option value="1 Month">1 Month</option>
                   <option value="6 Months">6 Months</option>
                   <option value="12 Months">12 Months</option>
                 </select>

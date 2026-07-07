@@ -1,3 +1,4 @@
+import { InputField, SelectField } from '../components/Form';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Printer, CheckCircle, FileCheck } from 'lucide-react';
@@ -6,70 +7,7 @@ interface HousingLoanApplicationProps {
   setCurrentTab?: (tab: string) => void;
 }
 
-const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false, required = false, error, note }: any) => {
-  let displayValue = value || '';
-  if (type === 'date' && typeof displayValue === 'string' && displayValue.includes('-')) {
-    const parts = displayValue.split('-');
-    if (parts.length === 3 && parts[0].length === 2) {
-      displayValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-  }
 
-  const internalOnChange = (e: any) => {
-    let finalValue = e.target.value;
-    if (type === 'date' && finalValue) {
-      const parts = finalValue.split('-');
-      if (parts.length === 3 && parts[0].length === 4) {
-        finalValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
-      }
-    }
-    const syntheticEvent = {
-      ...e,
-      target: { ...e.target, name, value: finalValue }
-    };
-    onChange(syntheticEvent);
-  };
-
-  return (
-    <div className={`mb-3`}>
-      <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        type={type}
-        max={type === 'date' ? "9999-12-31" : undefined}
-        name={name}
-        value={displayValue}
-        onChange={internalOnChange}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        className={`w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] ${type === 'date' ? 'lowercase' : 'capitalize'} bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
-      />
-      {note && <p className="text-slate-500 text-xs mt-1 italic">{note}</p>}
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-    </div>
-  );
-};
-
-const SelectField = ({ label, name, value, onChange, options, width = "w-full", required = false, error }: any) => (
-  <div className={`mb-3`}>
-    <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <select
-      name={name}
-      value={value}
-      onChange={onChange}
-      className={`w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent`}
-    >
-      <option value="">Select Option</option>
-      {options.map((opt: string) => (
-        <option key={opt} value={opt}>{opt}</option>
-      ))}
-    </select>
-    {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-  </div>
-);
 
 const CheckboxField = ({ label, name, checked, onChange }: any) => (
   <label className="flex items-center gap-2 cursor-pointer">
@@ -117,6 +55,7 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
     applicationNo: generateAppNo(),
     date: new Date().toISOString().split('T')[0],
 
+    customerId: '',
     memberNo: '',
     fullName: '',
     fatherHusbandName: '',
@@ -207,21 +146,7 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      setFormData((prev: any) => ({
-        ...prev,
-        memberNo: prev.memberNo || user.memberId || '',
-        fullName: prev.fullName || user.fullName || '',
-        mobile: prev.mobile || user.phone || '',
-        email: prev.email || user.email || '',
-        dob: prev.dob || user.dob || '',
-        permHouse: prev.permHouse || user.address || '',
-        aadhaar: prev.aadhaar || user.aadhaar || '',
-        pan: prev.pan || user.pan || '',
-      }));
-    }
-  }, [user]);
+  
 
   useEffect(() => {
     const draft = localStorage.getItem('draft_HousingLoanApplication');
@@ -282,7 +207,7 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
         }
         
         // Auto-fill customer ID
-        if (name === 'memberNo' && user?.customerId && value === user.customerId) {
+        if ((name === 'memberNo' || name === 'memberNoExisting' || name === 'customerId') && user && (value === user.customerId || value === user.memberId)) {
           newData.fullName = user.fullName || '';
           newData.mobile = user.phone || '';
           newData.dob = user.dob || '';
@@ -504,7 +429,7 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Applicant Details</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={user?.customerId || ''} readOnly /></div>
+              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={formData.customerId || ''} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
               <div className="lg:col-span-2"><InputField label="Membership Number" name="memberNo" value={formData.memberNo} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
               
               <div className="lg:col-span-4"><InputField label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required={true} error={errors.fullName} /></div>
