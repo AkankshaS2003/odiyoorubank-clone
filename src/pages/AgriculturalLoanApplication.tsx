@@ -6,71 +6,7 @@ interface AgriculturalLoanApplicationProps {
   setCurrentTab?: (tab: string) => void;
 }
 
-const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false, required = false, error, note, step }: any) => {
-  let displayValue = value || '';
-  if (type === 'date' && typeof displayValue === 'string' && displayValue.includes('-')) {
-    const parts = displayValue.split('-');
-    if (parts.length === 3 && parts[0].length === 2) {
-      displayValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-  }
 
-  const internalOnChange = (e: any) => {
-    let finalValue = e.target.value;
-    if (type === 'date' && finalValue) {
-      const parts = finalValue.split('-');
-      if (parts.length === 3 && parts[0].length === 4) {
-        finalValue = `${parts[2]}-${parts[1]}-${parts[0]}`;
-      }
-    }
-    const syntheticEvent = {
-      ...e,
-      target: { ...e.target, name, value: finalValue }
-    };
-    onChange(syntheticEvent);
-  };
-
-  return (
-    <div className={`${width} mb-3`}>
-      <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        type={type}
-        max={type === 'date' ? "9999-12-31" : undefined}
-        step={step}
-        name={name}
-        value={displayValue}
-        onChange={internalOnChange}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        className={`w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] ${type === 'date' ? 'lowercase' : 'capitalize'} bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent ${readOnly ? 'bg-slate-50' : ''}`}
-      />
-      {note && <p className="text-slate-500 text-xs mt-1 italic">{note}</p>}
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-    </div>
-  );
-};
-
-const SelectField = ({ label, name, value, onChange, options, width = "w-full", required = false, error }: any) => (
-  <div className={`${width} mb-3`}>
-    <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <select
-      name={name}
-      value={value}
-      onChange={onChange}
-      className={`w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:appearance-none print:bg-transparent`}
-    >
-      <option value="">Select Option</option>
-      {options.map((opt: string) => (
-        <option key={opt} value={opt}>{opt}</option>
-      ))}
-    </select>
-    {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-  </div>
-);
 
 const RadioGroup = ({ label, name, value, onChange, options, required = false, error }: any) => (
   <div className="mb-3">
@@ -193,6 +129,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
     loanTenure: '',
 
     existingMember: 'Yes',
+    customerId: '',
     memberNoExisting: '',
     shareCapitalCert: '',
     applyMember: 'No',
@@ -270,24 +207,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
     }
   };
 
-  useEffect(() => {
-    if (user) {
-      setFormData((prev: any) => ({
-        ...prev,
-        memberNoExisting: prev.memberNoExisting || user.memberId || '',
-        accNumber: prev.accNumber || user.accountNumber || '',
-        accBranch: prev.accBranch || user.branch || '',
-        accIfsc: prev.accIfsc || user.ifscCode || '',
-        fullName: prev.fullName || user.fullName || '',
-        mobile: prev.mobile || user.phone || '',
-        email: prev.email || user.email || '',
-        dob: prev.dob || user.dob || '',
-        permHouse: prev.permHouse || user.address || '',
-        aadhaar: prev.aadhaar || user.aadhaar || '',
-        pan: prev.pan || user.pan || '',
-      }));
-    }
-  }, [user]);
+  
 
   useEffect(() => {
     const draft = localStorage.getItem('draft_AgriculturalLoanApplication');
@@ -336,6 +256,18 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
         }
         
         const newData = { ...prev, [name]: finalValue };
+        if ((name === 'memberNoExisting' || name === 'memberNo' || name === 'customerId') && user && (newData[name] === user.memberId || newData[name] === user.customerId)) {
+          if ('accNumber' in prev) newData.accNumber = user.accountNumber || '';
+          if ('accBranch' in prev) newData.accBranch = user.branch || '';
+          if ('accIfsc' in prev) newData.accIfsc = user.ifscCode || '';
+          newData.fullName = user.fullName || '';
+          newData.mobile = user.phone || '';
+          newData.email = user.email || '';
+          newData.dob = user.dob || '';
+          newData.permHouse = user.address || '';
+          newData.aadhaar = user.aadhaar || '';
+          newData.pan = user.pan || '';
+        }
         
         if (name === 'existingMember' && finalValue === 'Yes' && user) {
           newData.memberNoExisting = user.memberId || '';
@@ -601,7 +533,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Applicant Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={user?.customerId || ''} readOnly /></div>
+              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={formData.customerId || ''} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
               <div className="lg:col-span-2"><InputField label="Occupation" name="occupation" value="Agriculturist / Farmer" readOnly /></div>
               <div className="lg:col-span-4"><InputField label="Applicant Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required={true} error={errors.fullName} /></div>
               <div className="lg:col-span-4"><InputField label="Father's / Husband's Name" name="fatherHusbandName" value={formData.fatherHusbandName} onChange={handleChange} required={true} error={errors.fatherHusbandName} /></div>
@@ -879,7 +811,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
               
               {formData.existingMember === 'Yes' ? (
                 <div className="grid grid-cols-1 gap-4 animate-fade-in mt-4">
-                  <InputField label="Membership Number" name="memberNoExisting" value={formData.memberNoExisting} onChange={handleChange} required={true} error={errors.memberNoExisting} readOnly={!!user} />
+                  <InputField label="Membership Number" name="memberNoExisting" value={formData.memberNoExisting} onChange={handleChange} required={true} error={errors.memberNoExisting} />
                   <InputField label="Share Capital Certificate Number" name="shareCapitalCert" value={formData.shareCapitalCert} onChange={handleChange} required={true} error={errors.shareCapitalCert} />
                 </div>
               ) : (
@@ -892,9 +824,9 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
             <div className="border border-slate-200 rounded-xl p-5 print:border-slate-400">
               <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Bank Account Details</h3>
               <div className="grid grid-cols-1 gap-4">
-                <InputField label="Account Number" name="accNumber" value={formData.accNumber} onChange={handleChange} readOnly={!!user} />
-                <InputField label="Branch Name" name="accBranch" value={formData.accBranch} onChange={handleChange} readOnly={!!user} />
-                <InputField label="IFSC Code" name="accIfsc" value={formData.accIfsc} onChange={handleChange} readOnly={!!user} />
+                <InputField label="Account Number" name="accNumber" value={formData.accNumber} onChange={handleChange} />
+                <InputField label="Branch Name" name="accBranch" value={formData.accBranch} onChange={handleChange} />
+                <InputField label="IFSC Code" name="accIfsc" value={formData.accIfsc} onChange={handleChange} />
                 <div className="mt-2">
                   <CheckboxField label="I confirm my bank account is linked to my Aadhaar number" name="aadhaarLinked" checked={formData.aadhaarLinked} onChange={handleChange} />
                 </div>
