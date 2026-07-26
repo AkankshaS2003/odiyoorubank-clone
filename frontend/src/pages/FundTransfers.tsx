@@ -45,9 +45,10 @@ export const FundTransfers: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const endpoint = activeTab === 'own' ? '/api/transfers/own-account' 
-                     : activeTab === 'internal' ? '/api/transfers/internal' 
-                     : '/api/transfers/external';
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const endpoint = activeTab === 'own' ? `${baseUrl}/api/transfers/own-account` 
+                     : activeTab === 'internal' ? `${baseUrl}/api/transfers/internal` 
+                     : `${baseUrl}/api/transfers/external`;
 
       const res = await fetch(endpoint, {
         method: 'POST',

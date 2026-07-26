@@ -68,7 +68,8 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         setSuccessMsg('Verification OTP resent to your email.');
       }
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.error || 'Failed to resend verification OTP.');
+      const errorData = err.response?.data?.error;
+      setErrorMsg(typeof errorData === 'object' && errorData !== null ? errorData.message || JSON.stringify(errorData) : errorData || err.message || 'Failed to resend verification OTP.');
     } finally {
       setOtpLoading(false);
     }
@@ -169,7 +170,9 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         }
       }
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.error || err.message || 'An error occurred. Please try again.');
+      const errorData = err.response?.data?.error;
+      const parsedError = typeof errorData === 'object' && errorData !== null ? errorData.message || JSON.stringify(errorData) : errorData;
+      setErrorMsg(parsedError || err.message || 'An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -193,7 +196,9 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         setErrorMsg('Google login failed or was cancelled');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.message || 'Google login failed';
+      const errorData = err.response?.data?.error;
+      const parsedError = typeof errorData === 'object' && errorData !== null ? errorData.message || JSON.stringify(errorData) : errorData;
+      const errorMessage = parsedError || err.message || 'Google login failed';
       if (errorMessage === 'UNREGISTERED_GOOGLE_ACCOUNT') {
         setView('unregistered-google');
       } else {

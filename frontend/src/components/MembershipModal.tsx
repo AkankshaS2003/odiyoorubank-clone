@@ -50,7 +50,8 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
     setVerifyError('');
     try {
       const token = sessionStorage.getItem('token');
-      const res = await fetch('/api/account/verify-customer', {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${baseUrl}/api/account/verify-customer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

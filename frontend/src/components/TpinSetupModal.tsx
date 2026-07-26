@@ -28,7 +28,8 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/tpin/send-otp', {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${baseUrl}/api/tpin/send-otp`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
@@ -52,7 +53,8 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/tpin/verify-otp', {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const res = await fetch(`${baseUrl}/api/tpin/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +80,8 @@ export const TpinSetupModal: React.FC<TpinSetupModalProps> = ({ isOpen, onClose,
     setLoading(true);
     setError('');
     try {
-      const endpoint = isChangeMode ? '/api/tpin/change' : (user?.tpinLocked ? '/api/tpin/unlock' : '/api/tpin/setup');
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const endpoint = isChangeMode ? `${baseUrl}/api/tpin/change` : (user?.tpinLocked ? `${baseUrl}/api/tpin/unlock` : `${baseUrl}/api/tpin/setup`);
       const payload = isChangeMode 
         ? { currentTpin, newTpin: tpin, confirmTpin } 
         : (user?.tpinLocked ? { newTpin: tpin, confirmTpin } : { tpin, confirmTpin });
