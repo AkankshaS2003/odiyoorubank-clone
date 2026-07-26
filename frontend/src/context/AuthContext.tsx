@@ -42,6 +42,7 @@ export interface User {
   memberId?: string;
   kycStatus?: 'Pending' | 'Verified' | 'Unsubmitted';
   kycDocumentUrl?: string;
+  profileImageBase64?: string;
   deposits?: Deposit[];
   loans?: Loan[];
   savingsBalance?: number;

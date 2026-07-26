@@ -87,7 +87,7 @@ export const AccountApplication: React.FC<AccountApplicationProps> = ({ setCurre
   
   const [step, setStep] = useState(1);
   const [success, setSuccess] = useState(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<{ [key: string]: string | undefined }>({});
 
   const defaultFormData = {
     date: new Date().toISOString().split('T')[0],

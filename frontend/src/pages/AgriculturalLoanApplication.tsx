@@ -64,7 +64,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
   const { user, submitServiceApplication, getCustomerByCustomerId } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
   // Files
   const [photoFile, setPhotoFile] = useState<File | null>(null);

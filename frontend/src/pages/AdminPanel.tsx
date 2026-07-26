@@ -143,7 +143,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [isCustomerProductModalOpen, setIsCustomerProductModalOpen] = useState(false);
 
   // Announcements States
-  const announcements = systemSettings?.announcements?.length > 0 ? systemSettings.announcements : [
+  const announcements: any[] = (systemSettings?.announcements?.length ?? 0) > 0 ? systemSettings.announcements! : [
     { title: 'Cooperative Fixed Deposit Rates Increased to 8.50%', desc: 'Our governing board has authorized an upward adjustment in FD yield returns to protect capital value for member families.', isPublished: true },
     { title: 'Financial Literacy Program Conducted in Rural Hubs', desc: 'Held simulated training workshops supporting over 300+ women micro-entrepreneurs on savings structures and credit pathways.', isPublished: true },
     { title: 'New Digital Doorstep Banking Service Sanctioned', desc: 'Launched mobile collection systems allowing members to deposit savings and pay EMIs directly through certified agents.', isPublished: true }

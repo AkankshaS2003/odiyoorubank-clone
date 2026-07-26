@@ -292,7 +292,8 @@ export const RDDetailsPage = ({ appId, setCurrentTab }: { appId: string, setCurr
       </div>
       {pinModalOpen && (
         <TpinPromptModal 
-          onSuccess={onPinSuccess} 
+          isOpen={pinModalOpen}
+          onSubmit={onPinSuccess} 
           onClose={() => setPinModalOpen(false)} 
         />
       )}
