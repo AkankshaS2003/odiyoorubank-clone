@@ -102,7 +102,9 @@ exports.createRD = async (req, res, next) => {
 exports.getRDs = async (req, res, next) => {
   try {
     const query = req.user.role === 'admin' ? {} : { userId: req.user.id };
-    const rds = await RecurringDeposit.find(query).populate('linkedSavingsAccount', 'accountNumber');
+    const rds = await RecurringDeposit.find(query)
+      .populate('userId', 'fullName email phone customerId')
+      .populate('linkedSavingsAccount', 'accountNumber');
     res.status(200).json({ success: true, data: rds });
   } catch (error) {
     next(error);

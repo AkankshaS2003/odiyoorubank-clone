@@ -65,7 +65,7 @@ const getStats = async (req, res, next) => {
 // @access  Private/Admin or Employee
 const getAllLoans = async (req, res, next) => {
   try {
-    const loans = await Loan.find().populate('userId', 'fullName email phone accountNumber');
+    const loans = await Loan.find().populate('userId', 'fullName email phone accountNumber customerId');
 
     res.status(200).json({
       success: true,
@@ -92,6 +92,20 @@ const updateLoanStatus = async (req, res, next) => {
       returnDocument: 'after',
       runValidators: true
     });
+
+    // Sync status with ServiceApplication
+    try {
+      const ServiceApplication = require('../models/ServiceApplication');
+      let serviceStatus = 'Pending';
+      if (req.body.status === 'Approved' || req.body.status === 'Sanctioned' || req.body.status === 'Active Loan' || req.body.status === 'Loan Disbursed' || req.body.status === 'Ready for Disbursement' || req.body.status === 'Loan Accepted') {
+        serviceStatus = 'Approved';
+      } else if (req.body.status === 'Rejected') {
+        serviceStatus = 'Rejected';
+      }
+      await ServiceApplication.updateOne({ _id: loan._id }, { status: serviceStatus });
+    } catch (syncErr) {
+      console.error('Failed to sync ServiceApplication status on loan status update', syncErr);
+    }
 
     res.status(200).json({
       success: true,

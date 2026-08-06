@@ -36,4 +36,5 @@ const sendEmail = async (options) => {
   console.log('Message sent: %s', info.messageId);
 };
 
+// Export the email sender service
 module.exports = sendEmail;

@@ -247,6 +247,14 @@ exports.updateApplicationStatus = async (req, res, next) => {
             account.balance = (account.balance || 0) + amount;
             await account.save();
           }
+
+          // Sync status with Loan
+          try {
+            const Loan = require('../models/Loan');
+            await Loan.updateOne({ _id: application._id }, { status: 'Loan Disbursed' });
+          } catch (loanErr) {
+            console.error('Failed to sync Loan status to Disbursed', loanErr);
+          }
         } else {
           transactionType = 'Application Fee';
         }
@@ -262,6 +270,15 @@ exports.updateApplicationStatus = async (req, res, next) => {
             status: 'Completed'
           });
         }
+      }
+    }
+
+    if (status === 'Rejected' && application.applicationType.includes('Loan')) {
+      try {
+        const Loan = require('../models/Loan');
+        await Loan.updateOne({ _id: application._id }, { status: 'Rejected' });
+      } catch (loanErr) {
+        console.error('Failed to sync Loan status to Rejected', loanErr);
       }
     }
 

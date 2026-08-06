@@ -130,6 +130,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
   const [savingsDeposits, setSavingsDeposits] = useState<any[]>([]);
   const [serviceApplications, setServiceApplications] = useState<any[]>([]);
   const [selectedServiceApp, setSelectedServiceApp] = useState<any>(null);
+  const [selectedLoanDetails, setSelectedLoanDetails] = useState<any>(null);
   const [adminFds, setAdminFds] = useState<any[]>([]);
   const [adminRds, setAdminRds] = useState<any[]>([]);
   const [adminTransfers, setAdminTransfers] = useState<any[]>([]);
@@ -518,14 +519,14 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
 
 
   // Update Loan Status
-  const handleLoanStatusChange = async (loanId: string, status: 'Approved' | 'Rejected') => {
+  const handleLoanStatusChange = async (loanId: string, status: string) => {
     setActionLoading(true);
     setError(null);
     setSuccess(null);
     try {
       const res = await api.put(`/admin/loan/${loanId}`, { status });
       if (res.data.success) {
-        setSuccess(`Loan status updated to ${status}`);
+        setSuccess(`Loan status successfully updated to ${status}`);
         addAuditLog(`Updated loan application status to ${status} for Loan ID ${loanId}`);
         fetchLoans();
         fetchStats();
@@ -798,6 +799,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'applications', label: 'Account Applications', icon: Briefcase },
     { id: 'service_applications', label: 'Loan & Deposit Apps', icon: FileText },
+    { id: 'loans', label: 'Loan Applications', icon: Briefcase },
     { id: 'customer_360', label: 'Customer 360', icon: Search },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'share_capital', label: 'Share Capital', icon: Briefcase },
@@ -1855,7 +1857,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                           <th className="pb-3">Type</th>
                           <th className="pb-3 text-right">Sum Requested</th>
                           <th className="pb-3 text-center">Tenure</th>
-                          <th className="pb-3 text-right">Declared Salary</th>
+                          <th className="pb-3 text-center">Details</th>
                           <th className="pb-3 text-center">Status</th>
                           <th className="pb-3 text-right pr-2">Actions</th>
                         </tr>
@@ -1868,11 +1870,18 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                               <p className="text-[10px] text-slate-400 mt-0.5">{loan.userId?.email || 'N/A'}</p>
                             </td>
                             <td className="py-4 font-bold text-[#0A315C]">{loan.loanType}</td>
-                            <td className="py-4 text-right font-bold">₹{(loan.amount || 0).toLocaleString('en-IN')}</td>
-                            <td className="py-4 text-center font-mono text-slate-500">{loan.tenure} M</td>
-                            <td className="py-4 text-right font-mono text-slate-655">₹{(loan.income || 0).toLocaleString('en-IN')}</td>
+                            <td className="py-4 text-right font-bold">₹{(loan.requestedAmount || 0).toLocaleString('en-IN')}</td>
+                            <td className="py-4 text-center font-mono text-slate-500">{loan.requestedTenure} M</td>
                             <td className="py-4 text-center">
-                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${loan.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                              <button
+                                onClick={() => setSelectedLoanDetails(loan)}
+                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
+                              >
+                                View Details
+                              </button>
+                            </td>
+                            <td className="py-4 text-center">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${['Approved', 'Sanctioned', 'Loan Disbursed', 'Active Loan'].includes(loan.status) ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
                                   loan.status === 'Rejected' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
                                     'bg-amber-50 text-amber-600 border border-amber-100 animate-pulse'
                                 }`}>
@@ -1885,7 +1894,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                                 ) : loan.status === 'Branch Verification Completed' || loan.status === 'Pending Review' || loan.status === 'Pending' ? (
                                 <>
                                   <button
-                                    onClick={() => handleLoanStatusChange(loan._id, 'Approved')}
+                                    onClick={() => handleLoanStatusChange(loan._id, 'Sanctioned')}
                                     disabled={actionLoading}
                                     className="p-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-lg border border-emerald-100 hover:border-emerald-600 transition-all cursor-pointer inline-flex items-center justify-center"
                                     title="Approve Loan Application"
@@ -2015,7 +2024,8 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     <thead>
                       <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] font-black">
                         <th className="p-4 rounded-l-xl">RD Number</th>
-                        <th className="p-4">Customer Details</th>
+                        <th className="p-4">Customer ID</th>
+                        <th className="p-4">Customer Name</th>
                         <th className="p-4">Monthly Amount</th>
                         <th className="p-4">Tenure</th>
                         <th className="p-4">Status</th>
@@ -2025,7 +2035,7 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                     <tbody className="divide-y divide-slate-100">
                       {adminRds.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
+                          <td colSpan={7} className="p-8 text-center text-slate-400 font-semibold italic text-xs">
                             No Recurring Deposits found.
                           </td>
                         </tr>
@@ -2034,6 +2044,9 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                           <tr key={rd._id} className="hover:bg-slate-50/50 transition-colors">
                             <td className="p-4">
                               <span className="font-bold text-slate-900 font-mono">{rd.rdNumber || 'Pending'}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="font-bold text-slate-800 font-mono">{rd.userId?.customerId || 'N/A'}</span>
                             </td>
                             <td className="p-4">
                               <p className="font-bold text-slate-900">{rd.userId?.fullName || 'N/A'}</p>
@@ -3113,6 +3126,179 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                 {actionLoading ? 'Saving...' : 'Register Branch'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {selectedLoanDetails && (
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 flex justify-center items-start">
+          <div className="bg-white w-full max-w-4xl mt-10 mb-10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50 shrink-0">
+              <div>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-wider">{selectedLoanDetails.loanType} Application</h3>
+                <p className="text-xs text-slate-550 font-bold mt-1">Submitted on {new Date(selectedLoanDetails.appliedDate || selectedLoanDetails.createdAt || Date.now()).toLocaleString()}</p>
+              </div>
+              <button onClick={() => setSelectedLoanDetails(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500 cursor-pointer">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-8 flex-grow">
+              {selectedLoanDetails.userId && (
+                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
+                  <h4 className="font-bold text-emerald-900 text-sm mb-3 border-b border-emerald-200 pb-2">Customer Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Customer Name</span>
+                      <span className="text-sm font-semibold text-slate-800">{selectedLoanDetails.userId.fullName}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Customer ID</span>
+                      <span className="text-sm font-semibold text-slate-800">{selectedLoanDetails.userId.customerId || 'N/A'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Email</span>
+                      <span className="text-sm font-semibold text-slate-800">{selectedLoanDetails.userId.email}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Phone</span>
+                      <span className="text-sm font-semibold text-slate-800">{selectedLoanDetails.userId.phone}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                <h4 className="font-bold text-blue-900 text-sm mb-3 border-b border-blue-200 pb-2">Loan Specifications</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Loan Type</span>
+                    <span className="text-sm font-semibold text-slate-800">{selectedLoanDetails.loanType}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Requested Amount</span>
+                    <span className="text-sm font-semibold text-slate-800">₹{(selectedLoanDetails.requestedAmount || 0).toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Requested Tenure</span>
+                    <span className="text-sm font-semibold text-slate-800">{selectedLoanDetails.requestedTenure} Months</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Declared Income</span>
+                    <span className="text-sm font-semibold text-slate-800">₹{(selectedLoanDetails.income || 0).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {selectedLoanDetails.applicationDetails && Object.keys(selectedLoanDetails.applicationDetails).length > 0 && (
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                  <h4 className="font-bold text-slate-800 text-sm mb-3 border-b border-slate-350 pb-2">Form Data Fields</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(selectedLoanDetails.applicationDetails)
+                      .filter(([key, value]) => {
+                        if (['minorDob', 'guardianName', 'introducerName', 'introducerAccountNo', 'uploadedDocuments', 'images', 'tpin'].includes(key)) return false;
+                        if (value === '' || value === null || value === undefined || value === '-') return false;
+                        return true;
+                      })
+                      .map(([key, value]: any) => {
+                        let displayValue = value;
+                        
+                        // Parse JSON string values if necessary
+                        if (typeof value === 'string' && (value.trim().startsWith('[') || value.trim().startsWith('{'))) {
+                          try {
+                            displayValue = JSON.parse(value);
+                          } catch (e) {}
+                        }
+
+                        if (key === 'goldItems' || key === 'goldDetails') {
+                          const items = Array.isArray(displayValue) ? displayValue : [displayValue];
+                          displayValue = (
+                            <div className="space-y-1.5 mt-1 w-full col-span-2">
+                              {items.map((item: any, idx: number) => (
+                                <div key={idx} className="p-2.5 bg-amber-50/50 border border-amber-200 rounded-xl text-xs space-y-1">
+                                  <div className="flex justify-between font-extrabold text-slate-850">
+                                    <span>Item {idx + 1}: {item.type || item.itemName || 'Gold Item'}</span>
+                                    <span className="text-amber-800 font-bold">{item.purity || item.goldPurity || '-'}K</span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-500 font-bold">
+                                    <span>Qty: {item.qty || item.quantity}</span>
+                                    <span>Gross Wt: {item.grossWt || item.grossWeight || '-'}g</span>
+                                    <span>Net Wt: {item.netWt || item.netWeight || '-'}g</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        } else if (Array.isArray(displayValue)) {
+                          displayValue = (
+                            <ul className="list-disc pl-4 space-y-1 mt-1 text-slate-700">
+                              {displayValue.map((item: any, idx: number) => (
+                                <li key={idx}>
+                                  {typeof item === 'object' ? JSON.stringify(item) : item.toString()}
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                        } else if (typeof displayValue === 'object' && displayValue !== null) {
+                          displayValue = (
+                            <div className="grid grid-cols-2 gap-2 p-2 bg-slate-100/50 rounded-lg text-xs mt-1">
+                              {Object.entries(displayValue).map(([k, v]: any) => (
+                                <div key={k} className="flex flex-col">
+                                  <span className="text-[9px] uppercase font-bold text-slate-450">{k.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                  <span className="font-semibold text-slate-700">{v?.toString() || '-'}</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        } else {
+                          displayValue = <span className="text-sm font-semibold text-slate-800 break-words">{displayValue?.toString() || '-'}</span>;
+                        }
+
+                        return (
+                          <div key={key} className={`flex flex-col ${(key === 'goldItems' || key === 'goldDetails') ? 'col-span-2' : ''}`}>
+                            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                            {displayValue}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {((selectedLoanDetails.uploadedDocuments && selectedLoanDetails.uploadedDocuments.length > 0) || (selectedLoanDetails.applicationDetails?.uploadedDocuments && selectedLoanDetails.applicationDetails.uploadedDocuments.length > 0)) && (
+                <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                  <h4 className="font-bold text-slate-800 text-sm mb-4 border-b border-slate-200 pb-2">Attached Documents & Signatures</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {((selectedLoanDetails.uploadedDocuments && selectedLoanDetails.uploadedDocuments.length > 0)
+                      ? selectedLoanDetails.uploadedDocuments
+                      : (selectedLoanDetails.applicationDetails?.uploadedDocuments || []))
+                    .map((doc: any, idx: number) => (
+                      <div key={idx} className="flex flex-col items-center p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                        <span className="text-xs uppercase font-bold text-slate-600 tracking-wider mb-3 w-full text-center border-b border-slate-100 pb-2">{doc.documentName}</span>
+                        {doc.documentUrl && typeof doc.documentUrl === 'string' && doc.documentUrl.startsWith('data:image') ? (
+                          <img src={doc.documentUrl} alt={doc.documentName} className="max-w-full h-auto max-h-48 object-contain rounded" />
+                        ) : doc.documentUrl && typeof doc.documentUrl === 'string' && doc.documentUrl.startsWith('data:application/pdf') ? (
+                          <a href={doc.documentUrl} download={`${doc.documentName}.pdf`} className="text-blue-600 hover:underline font-bold text-sm flex items-center gap-2">
+                            <FileText className="w-5 h-5" /> Download PDF
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400">No Document / Unsupported format</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-4 shrink-0">
+              <button 
+                onClick={() => setSelectedLoanDetails(null)}
+                className="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

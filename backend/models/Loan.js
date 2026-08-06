@@ -126,7 +126,7 @@ LoanSchema.pre('save', function(next) {
   if (!this.loanApplicationId) {
     this.loanApplicationId = 'APP-LN-' + Date.now() + Math.floor(Math.random() * 1000);
   }
-  next();
+  if (typeof next === 'function') next();
 });
 
 module.exports = mongoose.model('Loan', LoanSchema);

@@ -300,6 +300,17 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
     
     if (formData.depositType === 'Recurring Deposit') {
       try {
+        // Send OTP first
+        await api.post('/auth/send-otp');
+        
+        // Prompt for OTP
+        const otpVal = prompt('Please enter the 6-digit OTP to verify your Recurring Deposit application (check your backend terminal):');
+        if (!otpVal || otpVal.length !== 6) {
+          alert('Invalid OTP format or verification cancelled.');
+          setIsSubmitting(false);
+          return;
+        }
+
         const accountsRes = await api.get('/account/details');
         let savingsAccountId = null;
         if (accountsRes.data.success && accountsRes.data.data.account) {
@@ -321,7 +332,8 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
           nomineeDetails: {
             name: formData.nomineeName,
             relation: formData.nomineeRelationship
-          }
+          },
+          otp: otpVal
         });
 
         if (rdRes.data.success) {

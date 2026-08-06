@@ -40,6 +40,21 @@ exports.applyLoan = async (req, res, next) => {
   try {
     const { loanType, amount, tenure, income, tpin, ...applicationDetails } = req.body;
     
+    let cleanTenure = tenure;
+    if (typeof tenure === 'string') {
+      cleanTenure = parseInt(tenure.replace(/\D/g, ''), 10) || 12;
+    }
+    
+    let cleanAmount = amount;
+    if (typeof amount === 'string') {
+      cleanAmount = parseInt(amount.replace(/\D/g, ''), 10) || 0;
+    }
+    
+    let cleanIncome = income;
+    if (typeof income === 'string') {
+      cleanIncome = parseInt(income.replace(/\D/g, ''), 10) || 0;
+    }
+
     const tpinResult = await verifyTpin(req.user, tpin);
     if (!tpinResult.success) {
       return res.status(401).json({ success: false, message: tpinResult.error, error: tpinResult.error });
@@ -48,12 +63,43 @@ exports.applyLoan = async (req, res, next) => {
     const loan = await Loan.create({
       userId: req.user._id,
       loanType,
-      requestedAmount: amount,
-      requestedTenure: tenure,
-      income,
+      requestedAmount: cleanAmount,
+      requestedTenure: cleanTenure,
+      income: cleanIncome,
       applicationDetails,
+      uploadedDocuments: applicationDetails.uploadedDocuments || [],
       status: 'Pending Review'
     });
+
+    // Also create a ServiceApplication for the dashboard paper trail and listing
+    try {
+      const serviceImages = {};
+      if (Array.isArray(applicationDetails.uploadedDocuments)) {
+        applicationDetails.uploadedDocuments.forEach(doc => {
+          if (doc.documentName && doc.documentUrl) {
+            serviceImages[doc.documentName] = doc.documentUrl;
+          }
+        });
+      }
+
+      const ServiceApplication = require('../models/ServiceApplication');
+      await ServiceApplication.create({
+        _id: loan._id,
+        userId: req.user._id,
+        applicationType: loanType,
+        formData: {
+          ...applicationDetails,
+          amount: cleanAmount,
+          tenure: cleanTenure,
+          income: cleanIncome,
+          loanType
+        },
+        images: serviceImages,
+        status: 'Pending'
+      });
+    } catch (serviceErr) {
+      console.error('Failed to create ServiceApplication for loan', serviceErr);
+    }
 
     await createAudit('Loan Application Submitted', req.user._id, `Applied for ${loanType} of ₹${amount}`);
     
