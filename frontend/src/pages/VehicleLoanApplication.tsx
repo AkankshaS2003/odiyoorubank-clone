@@ -399,8 +399,8 @@ export const VehicleLoanApplication: React.FC<VehicleLoanApplicationProps> = ({ 
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Applicant Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={formData.customerId || ''} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
-              <div className="lg:col-span-2"><InputField label="Membership Number" name="memberNo" value={formData.memberNo} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
+              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={formData.customerId || ''} onChange={handleChange} onBlur={() => formData.customerId ? fetchCustomerDetails(formData.customerId) : null} placeholder="Enter to Auto-fill" /></div>
+              <div className="lg:col-span-2"><InputField label="Membership Number" name="memberNo" value={formData.memberNo} onChange={handleChange} onBlur={() => formData.memberNo ? fetchCustomerDetails(formData.memberNo) : null} placeholder="Enter to Auto-fill" /></div>
               
               <div className="lg:col-span-4"><InputField label="Applicant Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required={true} /></div>
               <div className="lg:col-span-4"><InputField label="Father's / Husband's Name" name="fatherHusbandName" value={formData.fatherHusbandName} onChange={handleChange} required={true} /></div>

@@ -572,8 +572,13 @@ const getCustomerByCustId = async (req, res, next) => {
   try {
     const { custId } = req.params;
     
-    // 1. Find User by customerId (case-insensitive)
-    const user = await User.findOne({ customerId: new RegExp(`^${custId}$`, 'i') }).select('-password');
+    // 1. Find User by customerId or memberId (case-insensitive)
+    const user = await User.findOne({
+      $or: [
+        { customerId: new RegExp(`^${custId}$`, 'i') },
+        { memberId: new RegExp(`^${custId}$`, 'i') }
+      ]
+    }).select('-password');
     
     if (!user) {
       return res.status(404).json({ success: false, error: 'Customer not found with this ID' });

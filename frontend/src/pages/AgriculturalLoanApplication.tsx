@@ -534,7 +534,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Applicant Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={formData.customerId || ''} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
+              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={formData.customerId || ''} onChange={handleChange} onBlur={() => formData.customerId ? fetchCustomerDetails(formData.customerId) : null} placeholder="Enter to Auto-fill" /></div>
               <div className="lg:col-span-2"><InputField label="Occupation" name="occupation" value="Agriculturist / Farmer" readOnly /></div>
               <div className="lg:col-span-4"><InputField label="Applicant Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required={true} error={errors.fullName} /></div>
               <div className="lg:col-span-4"><InputField label="Father's / Husband's Name" name="fatherHusbandName" value={formData.fatherHusbandName} onChange={handleChange} required={true} error={errors.fatherHusbandName} /></div>
@@ -812,7 +812,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
               
               {formData.existingMember === 'Yes' ? (
                 <div className="grid grid-cols-1 gap-4 animate-fade-in mt-4">
-                  <InputField label="Membership Number" name="memberNoExisting" value={formData.memberNoExisting} onChange={handleChange} required={true} error={errors.memberNoExisting} />
+                  <InputField label="Membership Number" name="memberNoExisting" value={formData.memberNoExisting} onChange={handleChange} onBlur={() => formData.memberNoExisting ? fetchCustomerDetails(formData.memberNoExisting) : null} required={true} error={errors.memberNoExisting} />
                   <InputField label="Share Capital Certificate Number" name="shareCapitalCert" value={formData.shareCapitalCert} onChange={handleChange} required={true} error={errors.shareCapitalCert} />
                 </div>
               ) : (

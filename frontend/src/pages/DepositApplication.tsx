@@ -43,7 +43,7 @@ interface DepositApplicationProps {
   setCurrentTab: (tab: string) => void;
 }
 
-const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full" }: any) => {
+const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", onBlur }: any) => {
   let displayValue = value || '';
   if (type === 'date' && typeof displayValue === 'string' && displayValue.includes('-')) {
     const parts = displayValue.split('-');
@@ -76,6 +76,7 @@ const InputField = ({ label, name, type = "text", value, onChange, placeholder =
         name={name}
         value={displayValue}
         onChange={internalOnChange}
+        onBlur={onBlur}
         placeholder={placeholder}
         className={`w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0F4C81] outline-none transition-all text-sm font-medium text-[#0F4C81] ${type === 'date' ? 'lowercase' : 'capitalize'} bg-white print:border-b print:border-t-0 print:border-l-0 print:border-r-0 print:rounded-none print:px-0 print:py-1 print:bg-transparent`}
       />
@@ -540,7 +541,7 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
             <div className="border border-slate-200 rounded-xl p-4 print:border-slate-400">
               <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase">1st Applicant Details</h3>
               <div className="space-y-1">
-                <InputField label="Member Number" name="app1MemberNo" value={formData.app1MemberNo} onChange={handleChange} />
+                <InputField label="Member Number" name="app1MemberNo" value={formData.app1MemberNo} onChange={handleChange} onBlur={() => formData.app1MemberNo ? fetchCustomerDetails(formData.app1MemberNo) : null} />
                 <InputField label="Full Name" name="app1Name" value={formData.app1Name} onChange={handleChange} />
                 <InputField label="Address" name="app1Address" value={formData.app1Address} onChange={handleChange} />
                 <InputField label="Pincode" name="app1Pincode" value={formData.app1Pincode} onChange={handleChange} />

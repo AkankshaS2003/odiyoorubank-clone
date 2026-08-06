@@ -294,12 +294,18 @@ const getCustomerByCustomerId = async (req, res, next) => {
     const User = require('../models/User');
     
     const cleanId = customerId.trim();
-    const customer = await User.findOne({ customerId: new RegExp(`^${cleanId}$`, 'i') }).select('fullName email phone address dob aadharNumber panNumber');
-      let savingsAccount = null;
-            if (customer) {
-        const SavingsAccount = require('../models/SavingsAccount');
-        savingsAccount = await SavingsAccount.findOne({ userId: customer._id });
-      }
+    const customer = await User.findOne({
+      $or: [
+        { customerId: new RegExp(`^${cleanId}$`, 'i') },
+        { memberId: new RegExp(`^${cleanId}$`, 'i') }
+      ]
+    }).select('fullName email phone address dob aadharNumber panNumber memberId customerId');
+    
+    let savingsAccount = null;
+    if (customer) {
+      const SavingsAccount = require('../models/SavingsAccount');
+      savingsAccount = await SavingsAccount.findOne({ userId: customer._id });
+    }
     
     if (!customer) {
       return res.status(404).json({ success: false, error: 'Customer not found' });
@@ -307,7 +313,16 @@ const getCustomerByCustomerId = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: { ...customer.toObject(), savingsAccountNumber: savingsAccount ? savingsAccount.accountNumber : null }
+      data: { 
+        ...customer.toObject(), 
+        aadhaar: customer.aadharNumber,
+        pan: customer.panNumber,
+        accountNumber: savingsAccount ? savingsAccount.accountNumber : null,
+        savingsAccountNumber: savingsAccount ? savingsAccount.accountNumber : null,
+        branch: 'Main Branch',
+        ifsc: 'ODIY0001234',
+        ifscCode: 'ODIY0001234'
+      }
     });
   } catch (error) {
     next(error);

@@ -456,14 +456,209 @@ export const EducationalLoanApplication: React.FC<EducationalLoanApplicationProp
                 </tbody>
               </table>
             </div>
+    alert('Application saved as draft successfully!');
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!photoFile || !identityProofFile || !admissionLetterFile) {
+      alert("Please upload all the required images (Photo, Identity Proof, Admission Letter).");
+      return;
+    }
+    
+    if (!/^\d{12}$/.test(formData.aadhaar)) {
+      alert("Student Aadhaar Number must be exactly 12 digits.");
+      return;
+    }
+    if (formData.pan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.pan.toUpperCase())) {
+      alert("Student PAN Number format is invalid (e.g. ABCDE1234F).");
+      return;
+    }
+    if (!/^\d{12}$/.test(formData.coAadhaar)) {
+      alert("Co-Applicant Aadhaar Number must be exactly 12 digits.");
+      return;
+    }
+    if (formData.coPan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.coPan.toUpperCase())) {
+      alert("Co-Applicant PAN Number format is invalid (e.g. ABCDE1234F).");
+      return;
+    }
+    if (!/^\d{10}$/.test(formData.mobile)) {
+      alert("Student Mobile Number must be exactly 10 digits.");
+      return;
+    }
+    if (!/^\d{10}$/.test(formData.coMobile)) {
+      alert("Co-Applicant Mobile Number must be exactly 10 digits.");
+      return;
+    }
+    if (!/^\d{6}$/.test(formData.permPin)) {
+      alert("Student Permanent Pincode must be exactly 6 digits.");
+      return;
+    }
+    if (!/^\d{6}$/.test(formData.coPin)) {
+      alert("Co-Applicant Pincode must be exactly 6 digits.");
+      return;
+    }
+    if (formData.nomMobile && !/^\d{10}$/.test(formData.nomMobile)) {
+      alert("Nominee Mobile Number must be exactly 10 digits.");
+      return;
+    }
+
+    if (totalCourseCost === 0) {
+      alert("At least one course expense field must be filled (e.g. Tuition Fee).");
+      return;
+    }
+
+    if (loanAmountRequired > totalCourseCost) {
+      alert("Loan Amount Required cannot exceed Total Course Cost.");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    const images: any = {};
+    try {
+      if (photoFile) images.studentPhoto = await fileToBase64(photoFile);
+      if (admissionLetterFile) images.admissionLetter = await fileToBase64(admissionLetterFile);
+      if (seatAllotmentFile) images.seatAllotment = await fileToBase64(seatAllotmentFile);
+      if (feeStructureFile) images.feeStructure = await fileToBase64(feeStructureFile);
+      if (marksCardsFile) images.marksCards = await fileToBase64(marksCardsFile);
+      if (identityProofFile) images.identityProof = await fileToBase64(identityProofFile);
+
+    } catch (err) {
+      console.error('Failed to convert images to base64', err);
+    }
+
+    const payload = {
+      ...formData,
+      totalCourseCost,
+      loanAmountRequired
+    };
+
+    const res = await submitServiceApplication('Educational Loan', payload, images);
+    
+    setIsSubmitting(false);
+    if (res) {
+      localStorage.removeItem('draft_EducationalLoanApplication');
+      setSuccess(true);
+    } else {
+      alert("Failed to submit application. Please try again.");
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="bg-slate-50 min-h-[80vh] flex items-center justify-center p-4">
+        <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-300 max-w-lg w-full text-center animate-scale-up">
+          <div className="mx-auto h-20 w-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
+            <FileCheck className="h-10 w-10" />
+          </div>
+          <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Application Submitted!</h2>
+          <p className="text-slate-500 mb-8 leading-relaxed">
+            Your education loan application (No: <strong>{formData.applicationNo}</strong>) for <strong>{formData.fullName}</strong> has been submitted successfully on {formData.date}.<br /><br />
+            Our officer will contact you or your co-applicant within 2 working days on the registered mobile number.
+          </p>
+          
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-left mb-8 space-y-3">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-2 mb-3">Application Progress</h3>
+            <div className="flex items-center gap-3 text-sm font-semibold text-emerald-600">
+              <CheckCircle className="w-5 h-5" />
+              <span>Application Received</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm font-medium text-slate-400 opacity-60">
+              <div className="w-5 h-5 rounded-full border-2 border-slate-300"></div>
+              <span>Institution Verification</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm font-medium text-slate-400 opacity-60">
+              <div className="w-5 h-5 rounded-full border-2 border-slate-300"></div>
+              <span>Loan Disbursement</span>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setCurrentTab && setCurrentTab('dashboard')}
+            className="w-full py-4 bg-[#0F4C81] text-white rounded-xl font-bold shadow-lg shadow-[#0F4C81]/20 hover:bg-[#0F4C81]/90 transition-all"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-slate-50 min-h-screen py-8 print:py-0 print:bg-white text-slate-800">
+      <div className="max-w-[850px] mx-auto px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none">
+        
+        {/* Controls */}
+        <div className="flex justify-end items-center mb-6 print:hidden">
+          <button onClick={handlePrint} className="flex items-center gap-2 px-5 py-2.5 bg-[#0F4C81] text-white rounded-xl text-sm font-bold hover:bg-blue-900 transition-colors shadow-lg shadow-[#0F4C81]/20">
+            <Printer className="w-4 h-4" /> Print Form
+          </button>
+        </div>
+
+        {/* Paper Document Container */}
+        <div className="bg-white p-8 md:p-12 shadow-2xl shadow-slate-200 border border-slate-300 print:shadow-none print:border-none print:p-2">
+          
+                                                            {/* HEADER SECTION */}
+          <div className="bg-[#ED7F1E] rounded-t-2xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 -mt-8 md:-mt-12 -mx-8 md:-mx-12 print:m-0 print:p-4 print:rounded-none gap-4 md:gap-0">
+            <div className="flex-grow flex items-center justify-center md:justify-start space-x-4 md:space-x-6 mx-auto md:mx-0 w-full md:w-auto">
+              <img src="/logo-bg.png" alt="Odiyooru Souharda Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain shrink-0" />
+              <div className="text-white leading-tight text-left">
+                <span className="text-xl md:text-3xl font-black tracking-tight uppercase block leading-none font-heading">
+                  Odiyooru Souharda
+                </span>
+                <span className="text-sm md:text-lg font-bold uppercase tracking-widest leading-none block mt-1 md:mt-2">
+                  Cooperative Society Ltd
+                </span>
+                <span className="text-[10px] md:text-xs font-bold block mt-1 md:mt-2 font-mono leading-none text-white/90">
+                  DRP:S.9:88:RGN:520:2010-11
+                </span>
+              </div>
+            </div>
+            
+            <div className="text-white text-[10px] md:text-xs font-bold w-full md:w-auto shrink-0 mt-4 md:mt-0">
+              <table className="ml-auto">
+                <tbody>
+                  <tr>
+                    <td className="text-right pr-3 opacity-90 pb-2">Branch:</td>
+                    <td className="text-left pb-2">
+                      <input type="text" value="Main Branch" readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors opacity-90" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="text-right pr-3 opacity-90 pb-2">Customer ID:</td>
+                    <td className="text-left pb-2">
+                      <input 
+                        type="text" 
+                        value={formData?.headerCustomerId !== undefined ? formData.headerCustomerId : (typeof user !== 'undefined' ? (user?.customerId || '') : '')} 
+                        onChange={(e) => setFormData(prev => ({ ...prev, headerCustomerId: e.target.value.toUpperCase() }))}
+                        onBlur={() => typeof fetchCustomerDetails === 'function' && formData?.headerCustomerId ? fetchCustomerDetails(formData.headerCustomerId) : null}
+                        className="w-32 bg-white/20 rounded px-2 py-1 outline-none text-center text-white border border-white/10 placeholder-white/60 font-bold tracking-wide transition-colors focus:bg-white/30" 
+                        placeholder="Enter ID"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="text-right pr-3 opacity-90">Application No:</td>
+                    <td className="text-left">
+                      <input type="text" value={formData?.applicationNo || '— — — —'} readOnly className="w-32 border-b border-white/40 outline-none bg-transparent text-center text-white placeholder-white/60 focus:border-white transition-colors tracking-widest font-bold" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* STUDENT DETAILS */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
             <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Student Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={formData.customerId || ''} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
-              <div className="lg:col-span-2"><InputField label="Membership Number" name="memberNo" value={formData.memberNo} onChange={handleChange} placeholder="Enter to Auto-fill" /></div>
+              <div className="lg:col-span-2"><InputField label="Customer ID" name="customerId" value={formData.customerId || ''} onChange={handleChange} onBlur={() => formData.customerId ? fetchCustomerDetails(formData.customerId) : null} placeholder="Enter to Auto-fill" /></div>
+              <div className="lg:col-span-2"><InputField label="Membership Number" name="memberNo" value={formData.memberNo} onChange={handleChange} onBlur={() => formData.memberNo ? fetchCustomerDetails(formData.memberNo) : null} placeholder="Enter to Auto-fill" /></div>
               <div className="lg:col-span-4"><InputField label="Student Full Name" name="fullName" value={formData.fullName} onChange={handleChange} required={true} /></div>
               <div className="lg:col-span-2 flex flex-col mb-3">
                 <InputField label="Date of Birth" name="dob" type="date" value={formData.dob} onChange={handleChange} required={true} />

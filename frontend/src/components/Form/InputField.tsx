@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false, required = false, error, note, step }: any) => {
+export const InputField = ({ label, name, type = "text", value, onChange, placeholder = "", width = "w-full", readOnly = false, required = false, error, note, step, onBlur }: any) => {
   return (
     <div className={`relative ${width}`}>
       <label className="block text-[10px] font-bold text-[#0F4C81] mb-1 uppercase tracking-wider">
@@ -11,6 +11,7 @@ export const InputField = ({ label, name, type = "text", value, onChange, placeh
         name={name}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         placeholder={placeholder}
         readOnly={readOnly}
         step={step}
