@@ -3350,14 +3350,151 @@ export const AdminPanel: React.FC<{ setCurrentTab: (tab: string) => void }> = ({
                       if (value === '' || value === null || value === undefined || value === '-') return false;
                       return true;
                     })
-                    .map(([key, value]: any) => (
-                    <div key={key} className="flex flex-col">
-                      <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                      <span className="text-sm font-semibold text-slate-800 break-words">
-                        {typeof value === 'object' ? JSON.stringify(value) : (value?.toString() || '-')}
-                      </span>
-                    </div>
-                  ))}
+                    .map(([key, value]: any) => {
+                      let parsedValue = value;
+                      if (typeof value === 'string' && (value.trim().startsWith('[') || value.trim().startsWith('{'))) {
+                        try { parsedValue = JSON.parse(value); } catch (e) {}
+                      }
+
+                      const labelMap: Record<string, string> = {
+                        nomName: 'Nominee Name',
+                        nomRel: 'Nominee Relationship',
+                        nomMobile: 'Nominee Mobile',
+                        nomAddress: 'Nominee Address',
+                        nomDob: 'Nominee Date of Birth',
+                        appPlace: 'Application Place',
+                        appDate: 'Application Date',
+                        loanType: 'Loan Type',
+                        loanAmount: 'Loan Amount (₹)',
+                        loanPurpose: 'Loan Purpose',
+                        loanTenure: 'Loan Tenure (Months)',
+                        landDetails: 'Land Details',
+                        cropDetails: 'Crop Details',
+                        permHouse: 'Permanent House / Address',
+                        permVillage: 'Village',
+                        permTaluk: 'Taluk',
+                        permDistrict: 'District',
+                        permState: 'State',
+                        permPin: 'Pincode',
+                        commHouse: 'Communication Address',
+                        commVillage: 'Communication Village',
+                        commTaluk: 'Communication Taluk',
+                        commDistrict: 'Communication District',
+                        commState: 'Communication State',
+                        commPin: 'Communication Pincode',
+                        fatherHusbandName: 'Father / Husband Name',
+                        coName: 'Co-Applicant Name',
+                        coRelation: 'Co-Applicant Relationship',
+                        coMobile: 'Co-Applicant Mobile',
+                        coAadhaar: 'Co-Applicant Aadhaar',
+                        coPan: 'Co-Applicant PAN',
+                        existingMember: 'Existing Member Status',
+                        memberNoExisting: 'Member ID',
+                        shareCapitalCert: 'Share Certificate No',
+                        accNumber: 'Savings Account No',
+                        accBranch: 'Account Branch',
+                        accIfsc: 'IFSC Code'
+                      };
+
+                      const displayLabel = labelMap[key] || key.replace(/([A-Z])/g, ' $1').trim().toUpperCase();
+                      const isFullWidth = key === 'landDetails' || key === 'cropDetails' || Array.isArray(parsedValue);
+
+                      const renderValueContent = () => {
+                        if (key === 'landDetails' && Array.isArray(parsedValue)) {
+                          return (
+                            <div className="w-full mt-2 overflow-x-auto">
+                              <table className="w-full text-xs text-left border border-blue-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                <thead className="bg-[#0F4C81] text-white font-bold uppercase text-[10px] tracking-wider">
+                                  <tr>
+                                    <th className="px-3 py-2">#</th>
+                                    <th className="px-3 py-2">Survey No</th>
+                                    <th className="px-3 py-2">Hissa No</th>
+                                    <th className="px-3 py-2">Village</th>
+                                    <th className="px-3 py-2">Land Type</th>
+                                    <th className="px-3 py-2">Acreage</th>
+                                    <th className="px-3 py-2">Irrigation</th>
+                                    <th className="px-3 py-2">Ownership</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-blue-100">
+                                  {parsedValue.map((row: any, idx: number) => (
+                                    <tr key={idx} className="hover:bg-blue-50/50 text-slate-800 font-medium">
+                                      <td className="px-3 py-2 font-bold text-blue-800">{idx + 1}</td>
+                                      <td className="px-3 py-2 font-semibold">{row.surveyNo || '-'}</td>
+                                      <td className="px-3 py-2">{row.hissaNo || '-'}</td>
+                                      <td className="px-3 py-2">{row.village || '-'}</td>
+                                      <td className="px-3 py-2">{row.landType || '-'}</td>
+                                      <td className="px-3 py-2 font-bold text-emerald-700">{row.acreage ? `${row.acreage} Acres` : '-'}</td>
+                                      <td className="px-3 py-2">{row.irrigation || '-'}</td>
+                                      <td className="px-3 py-2">{row.ownership || '-'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          );
+                        }
+
+                        if (key === 'cropDetails' && Array.isArray(parsedValue)) {
+                          return (
+                            <div className="w-full mt-2 overflow-x-auto">
+                              <table className="w-full text-xs text-left border border-blue-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                <thead className="bg-[#0F4C81] text-white font-bold uppercase text-[10px] tracking-wider">
+                                  <tr>
+                                    <th className="px-3 py-2">#</th>
+                                    <th className="px-3 py-2">Crop Name</th>
+                                    <th className="px-3 py-2">Cultivated Area</th>
+                                    <th className="px-3 py-2">Season</th>
+                                    <th className="px-3 py-2">Expected Annual Income</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-blue-100">
+                                  {parsedValue.map((row: any, idx: number) => (
+                                    <tr key={idx} className="hover:bg-blue-50/50 text-slate-800 font-medium">
+                                      <td className="px-3 py-2 font-bold text-blue-800">{idx + 1}</td>
+                                      <td className="px-3 py-2 font-bold text-slate-900">{row.cropName || '-'}</td>
+                                      <td className="px-3 py-2 font-semibold text-blue-700">{row.area ? `${row.area} Acres` : '-'}</td>
+                                      <td className="px-3 py-2">{row.season || '-'}</td>
+                                      <td className="px-3 py-2 font-bold text-emerald-700">
+                                        {row.expectedIncome ? `₹${Number(row.expectedIncome).toLocaleString('en-IN')}` : '-'}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          );
+                        }
+
+                        if (typeof parsedValue === 'object' && parsedValue !== null) {
+                          return (
+                            <div className="bg-white p-3 rounded-lg border border-blue-200 text-xs space-y-1 mt-1">
+                              {Object.entries(parsedValue).map(([k, v]: any) => (
+                                <div key={k} className="flex justify-between gap-2 border-b border-slate-100 last:border-0 pb-1">
+                                  <span className="font-bold text-slate-500 capitalize">{k.replace(/([A-Z])/g, ' $1')}:</span>
+                                  <span className="font-semibold text-slate-800">{v?.toString() || '-'}</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }
+
+                        if (typeof parsedValue === 'boolean') {
+                          return parsedValue ? 'Yes' : 'No';
+                        }
+
+                        return parsedValue?.toString() || '-';
+                      };
+
+                      return (
+                        <div key={key} className={`flex flex-col ${isFullWidth ? 'col-span-1 md:col-span-2 my-2' : ''}`}>
+                          <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider mb-1">{displayLabel}</span>
+                          <div className="text-sm font-semibold text-slate-800 break-words">
+                            {renderValueContent()}
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
 

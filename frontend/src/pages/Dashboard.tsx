@@ -20,6 +20,7 @@ import { SavingsSummaryCard } from '../components/SavingsSummaryCard';
 import { SavingsHistory } from './SavingsHistory';
 import { PaymentModal } from '../components/PaymentModal';
 import { DepositApplicationModal } from '../components/DepositApplicationModal';
+import { LoanApplicationModal } from '../components/LoanApplicationModal';
 import { RDInstallmentPayment } from './RD/RDInstallmentPayment';
 import { FundTransfers } from './FundTransfers';
 import { TpinSetupModal } from '../components/TpinSetupModal';
@@ -40,6 +41,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
   const [savedReport, setSavedReport] = useState<any>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedDepositApp, setSelectedDepositApp] = useState<any>(null);
+  const [selectedLoanApp, setSelectedLoanApp] = useState<any>(null);
   const [showTpinSetup, setShowTpinSetup] = useState(false);
   const [isTpinChangeMode, setIsTpinChangeMode] = useState(false);
 
@@ -436,14 +438,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                             </span>
                           </td>
                           <td className="py-4 px-6 text-right">
-                            {app.status === 'Approved' && (
-                              <button
-                                onClick={() => setCurrentTab(`view-loan-details|${app._id}`)}
-                                className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
-                              >
-                                View Details
-                              </button>
-                            )}
+                            <button
+                              onClick={() => setSelectedLoanApp(app)}
+                              className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm"
+                            >
+                              {app.status === 'Approved' ? 'View Details' : 'View Application'}
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -516,21 +516,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
                             </span>
                           </td>
                           <td className="py-4 px-6 text-right">
-                            {app.status === 'Approved' ? (
-                              <button
-                                onClick={() => setCurrentTab(app.applicationType === 'Fixed Deposit' ? `view-fd-details|${app._id}` : `view-rd-details|${app._id}`)}
-                                className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
-                              >
-                                View Details
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => setSelectedDepositApp(app)}
-                                className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
-                              >
-                                View Application
-                              </button>
-                            )}
+                            <button
+                              onClick={() => setSelectedDepositApp(app)}
+                              className="px-4 py-2 bg-[#0F4C81] text-white hover:bg-blue-900 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm"
+                            >
+                              {app.status === 'Approved' ? 'View Certificate & Details' : 'View Application'}
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -620,6 +611,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ setCurrentTab, setFdReceip
         <DepositApplicationModal 
           application={selectedDepositApp} 
           onClose={() => setSelectedDepositApp(null)} 
+          onNavigateDetails={(tab) => setCurrentTab(tab)}
+        />
+      )}
+
+      {selectedLoanApp && (
+        <LoanApplicationModal 
+          application={selectedLoanApp} 
+          onClose={() => setSelectedLoanApp(null)} 
+          onNavigateDetails={(tab) => setCurrentTab(tab)}
         />
       )}
     </div>

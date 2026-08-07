@@ -103,6 +103,43 @@ exports.applyLoan = async (req, res, next) => {
 
     await createAudit('Loan Application Submitted', req.user._id, `Applied for ${loanType} of ₹${amount}`);
     
+    // Send email notification to user
+    const emailMessage = `Dear ${req.user.fullName},
+
+Thank you for choosing Odiyooru Bank.
+
+We have successfully received your ${loanType} Application.
+
+Application Number:
+${loan.loanApplicationId || loan._id}
+
+Requested Loan Amount:
+₹${cleanAmount.toLocaleString('en-IN')}
+
+Requested Loan Tenure:
+${cleanTenure} Months
+
+Your application is currently under review by our team. You can check the status of your loan application anytime by logging into your Odiyooru Bank online portal.
+
+If physical documents or branch verification is required, our bank representative will get in touch with you.
+
+If you have any questions, please contact your branch or our customer support team.
+
+Kind Regards,
+
+Loans Department
+Odiyooru Bank`;
+
+    try {
+      await sendEmail({
+        email: req.user.email,
+        subject: `Loan Application Submitted – ${loanType}`,
+        message: emailMessage
+      });
+    } catch (mailErr) {
+      console.error('Failed to send loan submission email', mailErr);
+    }
+
     res.status(201).json({ success: true, data: loan });
   } catch (error) {
     next(error);

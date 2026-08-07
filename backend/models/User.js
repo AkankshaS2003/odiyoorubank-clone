@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
       function() { return this.provider !== 'google'; },
       'Please add a password'
     ],
-    minlength: 6,
+    minlength: 8,
     select: false
   },
   role: {

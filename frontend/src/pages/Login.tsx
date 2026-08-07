@@ -97,14 +97,39 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
         }
       } 
       else if (view === 'register') {
-        if (!name || !email || !phone || !password) {
+        if (!name || !email || !phone || !password || !confirmPassword) {
           throw new Error('Please fill all fields');
         }
-        if (phone.length !== 10) {
-          throw new Error('Phone number must be exactly 10 digits');
+        if (name.trim().length < 3) {
+          throw new Error('Full Name must be at least 3 characters');
         }
-        if (password.length < 6) {
-          throw new Error('Password must be at least 6 characters');
+        if (!/^[a-zA-Z\s]+$/.test(name)) {
+          throw new Error('Full Name must only contain letters and spaces');
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          throw new Error('Please enter a valid email address');
+        }
+        if (phone.length !== 10 || !/^[6-9]/.test(phone)) {
+          throw new Error('Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9');
+        }
+        if (password.length < 8) {
+          throw new Error('Password must be at least 8 characters');
+        }
+        if (!/[A-Z]/.test(password)) {
+          throw new Error('Password must contain at least one uppercase letter');
+        }
+        if (!/[a-z]/.test(password)) {
+          throw new Error('Password must contain at least one lowercase letter');
+        }
+        if (!/[0-9]/.test(password)) {
+          throw new Error('Password must contain at least one digit');
+        }
+        if (!/[^A-Za-z0-9]/.test(password)) {
+          throw new Error('Password must contain at least one special character');
+        }
+        if (password !== confirmPassword) {
+          throw new Error('Passwords do not match');
         }
 
         const res = await api.post('/auth/register/send-otp', { email });
@@ -230,8 +255,9 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
 
         {/* Close Button */}
         <button 
+          type="button"
           onClick={handleClose}
-          className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full p-2"
+          className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full p-2 z-50"
         >
           <X className="w-5 h-5" />
         </button>
@@ -310,7 +336,10 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                   placeholder={"Full Name"}
                   className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setErrorMsg(null);
+                  }}
                 />
               </div>
               <div>
@@ -324,6 +353,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                   onChange={(e) => {
                     const val = e.target.value.replace(/\D/g, '');
                     setPhone(val);
+                    setErrorMsg(null);
                   }}
                   onBlur={() => {
                     if (phone.length > 0 && !/^[6-9]/.test(phone[0])) {
@@ -414,7 +444,10 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 placeholder={"Email Address"}
                 className="w-full px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrorMsg(null);
+                }}
               />
             </div>
           )}
@@ -427,7 +460,10 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 placeholder={view === 'reset' ? "New Password" : "Password"}
                 className="w-full pl-4 pr-12 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrorMsg(null);
+                }}
               />
               <button
                 type="button"
@@ -439,7 +475,7 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
             </div>
           )}
 
-          {view === 'reset' && (
+          {(view === 'reset' || view === 'register') && (
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -447,7 +483,10 @@ export const Login: React.FC<LoginProps> = ({ setCurrentTab, goBack }) => {
                 placeholder={"Confirm Password"}
                 className="w-full pl-4 pr-12 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#ED7F1E] focus:border-[#ED7F1E] focus:bg-white/10 outline-none placeholder-white/40 text-white transition-all shadow-sm backdrop-blur-md"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setErrorMsg(null);
+                }}
               />
             </div>
           )}

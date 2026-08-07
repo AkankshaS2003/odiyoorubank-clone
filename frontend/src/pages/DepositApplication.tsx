@@ -553,7 +553,7 @@ export const DepositApplication: React.FC<DepositApplicationProps> = ({ setCurre
             <div className="border border-slate-200 rounded-xl p-4 print:border-slate-400">
               <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase">1st Applicant Details</h3>
               <div className="space-y-1">
-                <InputField label="Member Number" name="app1MemberNo" value={formData.app1MemberNo} onChange={handleChange} onBlur={() => formData.app1MemberNo ? fetchCustomerDetails(formData.app1MemberNo) : null} />
+                <InputField label="Customer Id" name="app1MemberNo" value={formData.app1MemberNo} onChange={handleChange} onBlur={() => formData.app1MemberNo ? fetchCustomerDetails(formData.app1MemberNo) : null} />
                 <InputField label="Full Name" name="app1Name" value={formData.app1Name} onChange={handleChange} />
                 <InputField label="Address" name="app1Address" value={formData.app1Address} onChange={handleChange} />
                 <InputField label="Pincode" name="app1Pincode" value={formData.app1Pincode} onChange={handleChange} />

@@ -28,7 +28,7 @@ exports.ownAccountTransfer = async (req, res) => {
     const destAcc = await SavingsAccount.findOne({ accountNumber: toAccount, userId: req.user.id });
 
     if (!sourceAcc || !destAcc) {
-      return res.status(404).json({ success: false, message: 'One or more accounts not found or do not belong to you' });
+      return res.status(404).json({ success: false, message: 'Destination account not found or does not belong to you. Please use "Internal Transfer" to send money to other customers.' });
     }
 
     const result = await TransferService.executeTransfer({

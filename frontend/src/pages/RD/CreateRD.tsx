@@ -11,7 +11,7 @@ import {
   FileText,
   Lock
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => void }) => {
@@ -46,6 +46,7 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
   const [otpTimer, setOtpTimer] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Calculate Interest
   const isSenior = user?.dob && (new Date().getFullYear() - new Date(user.dob).getFullYear()) >= 60;
@@ -212,18 +213,22 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
   const handleDownloadReceipt = async () => {
     const element = document.getElementById('rd-receipt-card');
     if (!element) return;
+    setIsDownloading(true);
     try {
-      const canvas = await html2canvas(element, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = await toPng(element, { pixelRatio: 2 });
       const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
       pdf.text("Recurring Deposit Receipt", 14, 15);
       pdf.addImage(imgData, 'PNG', 14, 25, pdfWidth - 28, pdfHeight);
       pdf.save(`RD_Receipt_${successData?.rdNumber || 'Pending'}.pdf`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to generate PDF', err);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -563,8 +568,8 @@ export const CreateRD = ({ setCurrentTab }: { setCurrentTab: (tab: string) => vo
             </div>
 
             <div className="flex justify-center gap-4">
-              <button onClick={handleDownloadReceipt} className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors">
-                ⬇️ Download E-Receipt
+              <button onClick={handleDownloadReceipt} disabled={isDownloading} className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors disabled:opacity-50">
+                {isDownloading ? 'Generating PDF...' : '⬇️ Download E-Receipt'}
               </button>
               <button onClick={() => setCurrentTab('deposits')} className="px-6 py-3 bg-[#0F4C81] text-white rounded-xl font-bold hover:bg-blue-900 transition-colors">
                 Go to Dashboard

@@ -21,6 +21,18 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Enable CORS
 app.use(cors());
 
+// Global OTP Request Logger
+app.use((req, res, next) => {
+  if (req.url.includes('otp') || req.url.includes('tpin') || req.url.includes('register')) {
+    const logStr = `\n========================================\n🔔 [API REQUEST RECV] ${req.method} ${req.url}\n${req.body && Object.keys(req.body).length > 0 ? `📦 Payload: ${JSON.stringify(req.body)}\n` : ''}========================================\n`;
+    console.log(logStr);
+    console.error(logStr);
+    process.stdout.write(logStr);
+    process.stderr.write(logStr);
+  }
+  next();
+});
+
 // Mount routers
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/account', require('./routes/accountRoutes'));
@@ -51,4 +63,4 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));

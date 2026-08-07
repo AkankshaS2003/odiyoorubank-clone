@@ -49,6 +49,7 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
   const [propertyPhotosFile, setPropertyPhotosFile] = useState<File | null>(null);
 
 
+
   const generateAppNo = () => `HL-${Math.floor(100000 + Math.random() * 900000)}`;
 
   const [formData, setFormData] = useState<any>({
@@ -146,8 +147,6 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
     }
   };
 
-  
-
   useEffect(() => {
     const draft = localStorage.getItem('draft_HousingLoanApplication');
     if (draft) {
@@ -160,6 +159,11 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
   useEffect(() => {
     localStorage.setItem('draft_HousingLoanApplication', JSON.stringify(formData));
   }, [formData]);
+
+  const handleSaveDraft = () => {
+    localStorage.setItem('draft_HousingLoanApplication', JSON.stringify(formData));
+    alert('Application saved as draft successfully!');
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -666,7 +670,15 @@ export const HousingLoanApplication: React.FC<HousingLoanApplicationProps> = ({ 
           </div>
 
           {/* SUBMIT BUTTON */}
-          <div className="flex justify-end mt-12 pt-8 border-t border-slate-200 print:hidden">
+          <div className="flex justify-end items-center mt-12 pt-8 border-t border-slate-200 print:hidden gap-4">
+            <button 
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSubmitting}
+              className="px-6 py-4 bg-white text-[#0F4C81] border-2 border-[#0F4C81] rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-all"
+            >
+              Save as Draft
+            </button>
             <button 
               onClick={handleSubmit}
               disabled={isSubmitting}

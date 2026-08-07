@@ -396,12 +396,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const loanTypes = ['Personal Loan', 'Home Loan', 'Educational Loan', 'Education Loan', 'Gold Loan', 'Vehicle Loan', 'Agricultural Loan', 'Business Loan'];
       
       if (loanTypes.includes(applicationType)) {
+        const targetLoanType = applicationType === 'Educational Loan' ? 'Education Loan' : applicationType;
+        const modifiedFormData = { ...formData };
+        if (modifiedFormData.loanType && modifiedFormData.loanType !== targetLoanType) {
+          if (applicationType === 'Agricultural Loan') {
+            modifiedFormData.agriculturalLoanType = modifiedFormData.loanType;
+          } else {
+            modifiedFormData.subLoanType = modifiedFormData.loanType;
+          }
+          delete modifiedFormData.loanType;
+        }
+
         const payload = {
-           loanType: applicationType === 'Educational Loan' ? 'Education Loan' : applicationType,
+           loanType: targetLoanType,
            amount: formData.requestedAmount || formData.reqAmount || formData.loanAmount || 0,
            tenure: formData.tenure || formData.repayMonths || formData.months || 12,
            income: formData.income || formData.monthlyIncome || formData.annualIncome || 0,
-           ...formData,
+           ...modifiedFormData,
            tpin,
            uploadedDocuments: Object.keys(images).map(key => ({ documentName: key, documentUrl: images[key] }))
         };

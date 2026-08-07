@@ -73,10 +73,6 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
   const [rtcFile, setRtcFile] = useState<File | null>(null);
   const [mutationFile, setMutationFile] = useState<File | null>(null);
   const [noDueFile, setNoDueFile] = useState<File | null>(null);
-  const [khataFile, setKhataFile] = useState<File | null>(null);
-  const [shareCertFile, setShareCertFile] = useState<File | null>(null);
-  const [passbookFile, setPassbookFile] = useState<File | null>(null);
-  const [taxReceiptFile, setTaxReceiptFile] = useState<File | null>(null);
 
 
   const generateAppNo = () => `AL-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -140,13 +136,6 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
     accBranch: '',
     accIfsc: '',
     aadhaarLinked: false,
-
-    coName: '',
-    coRel: '',
-    coMobile: '',
-    coAadhaar: '',
-    coOccupation: '',
-    coMonthlyIncome: '',
 
     nomName: '',
     nomRel: '',
@@ -225,6 +214,11 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
   useEffect(() => {
     localStorage.setItem('draft_AgriculturalLoanApplication', JSON.stringify({ formData, landDetails, cropDetails }));
   }, [formData, landDetails, cropDetails]);
+
+  const handleSaveDraft = () => {
+    localStorage.setItem('draft_AgriculturalLoanApplication', JSON.stringify({ formData, landDetails, cropDetails }));
+    alert('Application saved as draft successfully!');
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -306,17 +300,10 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
       if (!formData.shareCapitalCert) newErrors.shareCapitalCert = "Share Capital Cert number required";
     }
 
-    if (formData.coName) {
-      if (!formData.coRel) newErrors.coRel = "Co-Applicant relationship required";
-      if (!formData.coMobile) newErrors.coMobile = "Co-Applicant mobile required";
-    }
-
     if (formData.mobile && !/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Must be a 10-digit number";
-    if (formData.coMobile && !/^\d{10}$/.test(formData.coMobile)) newErrors.coMobile = "Must be a 10-digit number";
     if (formData.nomMobile && formData.nomMobile.trim() !== '' && !/^\d{10}$/.test(formData.nomMobile)) newErrors.nomMobile = "Must be a 10-digit number";
 
     if (formData.aadhaar && !/^\d{12}$/.test(formData.aadhaar)) newErrors.aadhaar = "Must be a 12-digit number";
-    if (formData.coAadhaar && formData.coAadhaar.trim() !== '' && !/^\d{12}$/.test(formData.coAadhaar)) newErrors.coAadhaar = "Must be a 12-digit number";
 
     if (formData.pan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formData.pan)) newErrors.pan = "Invalid PAN format";
 
@@ -387,10 +374,6 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
       if (rtcFile) images.rtc = await fileToBase64(rtcFile);
       if (mutationFile) images.mutationExtract = await fileToBase64(mutationFile);
       if (noDueFile) images.noDueCert = await fileToBase64(noDueFile);
-      if (khataFile) images.khataCert = await fileToBase64(khataFile);
-      if (shareCertFile) images.shareCert = await fileToBase64(shareCertFile);
-      if (passbookFile) images.passbook = await fileToBase64(passbookFile);
-      if (taxReceiptFile) images.taxReceipt = await fileToBase64(taxReceiptFile);
 
     } catch (err) {
       console.error('Failed to convert images to base64', err);
@@ -412,6 +395,25 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
       alert("Failed to submit application. Please try again.");
     }
   };
+
+  const applicantAge = useMemo(() => {
+    if (formData.dob) {
+      const age = Math.floor((new Date().getTime() - new Date(formData.dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+      return age > 0 ? `${age} years` : '';
+    }
+    return '';
+  }, [formData.dob]);
+
+  let showGuardian = false;
+  if (formData.nomDob) {
+    const age = (new Date().getTime() - new Date(formData.nomDob).getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+    showGuardian = age < 18;
+  }
+  
+  const landTypeOptions = ['Dry Land (Jirayat)', 'Wet Land (Bagayat)', 'Garden Land', 'Converted Land', 'Government Leased Land', 'Other'];
+  const irrigationOptions = ['Rain Fed', 'Canal Irrigated', 'Borewell', 'Open Well', 'Drip Irrigation', 'Not Irrigated'];
+  const seasonOptions = ['Kharif (June–October)', 'Rabi (November–March)', 'Zaid / Summer (April–June)', 'Perennial (Year Round)'];
+  const ownershipOptions = ['Owned', 'Joint Owned', 'Leased', 'Mortgaged'];
 
   if (success) {
     return (
@@ -448,25 +450,6 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
       </div>
     );
   }
-
-  const applicantAge = useMemo(() => {
-    if (formData.dob) {
-      const age = Math.floor((new Date().getTime() - new Date(formData.dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-      return age > 0 ? `${age} years` : '';
-    }
-    return '';
-  }, [formData.dob]);
-
-  let showGuardian = false;
-  if (formData.nomDob) {
-    const age = (new Date().getTime() - new Date(formData.nomDob).getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-    showGuardian = age < 18;
-  }
-  
-  const landTypeOptions = ['Dry Land (Jirayat)', 'Wet Land (Bagayat)', 'Garden Land', 'Converted Land', 'Government Leased Land', 'Other'];
-  const irrigationOptions = ['Rain Fed', 'Canal Irrigated', 'Borewell', 'Open Well', 'Drip Irrigation', 'Not Irrigated'];
-  const seasonOptions = ['Kharif (June–October)', 'Rabi (November–March)', 'Zaid / Summer (April–June)', 'Perennial (Year Round)'];
-  const ownershipOptions = ['Owned', 'Joint Owned', 'Leased', 'Mortgaged'];
 
   return (
     <div className="bg-slate-50 min-h-screen py-8 print:py-0 print:bg-white text-slate-800">
@@ -789,20 +772,7 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
             </div>
           </div>
 
-          {/* CO-APPLICANT DETAILS */}
-          <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
-            <h3 className="text-xs font-black text-white bg-slate-600 px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-slate-800 print:border print:border-slate-800 print:px-2 uppercase tracking-wider">Co-Applicant Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <div className="lg:col-span-2"><InputField label="Co-Applicant Name" name="coName" value={formData.coName} onChange={handleChange} /></div>
-              <InputField label="Relationship" name="coRel" value={formData.coRel} onChange={handleChange} error={errors.coRel} />
-              <InputField label="Mobile Number" name="coMobile" value={formData.coMobile} onChange={handleChange} error={errors.coMobile} />
-              
-              <InputField label="Aadhaar Number" name="coAadhaar" value={formData.coAadhaar} onChange={handleChange} error={errors.coAadhaar} />
-              <InputField label="Occupation" name="coOccupation" value={formData.coOccupation} onChange={handleChange} />
-              <div className="lg:col-span-2"><InputField label="Monthly Income (₹)" name="coMonthlyIncome" type="number" value={formData.coMonthlyIncome} onChange={handleChange} /></div>
-            </div>
-            <p className="text-[10px] text-slate-500 font-bold italic">Note: Relationship and Mobile Number become required if Co-Applicant Name is provided.</p>
-          </div>
+          {/* Note: Co-Applicant section removed as nominee/co-applicant details are consolidated */}
 
           {/* BANK MEMBERSHIP & ACCOUNT DETAILS */}
           <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -856,7 +826,8 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
 
           {/* DOCUMENT UPLOADS */}
           <div className="mb-8 border border-slate-200 rounded-xl p-5 print:border-slate-400">
-            <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-4 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Document Uploads</h3>
+            <h3 className="text-xs font-black text-white bg-[#0F4C81] px-3 py-1 inline-block rounded mb-1 print:bg-transparent print:text-[#0F4C81] print:border print:border-[#0F4C81] print:px-2 uppercase tracking-wider">Document Uploads</h3>
+            <p className="text-[10px] text-slate-500 font-bold mb-4 italic">Note: Only the 3 main documents are required here. All other documents must be submitted manually to the bank branch once the application is submitted.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 print:hidden">
               <div>
                 <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">RTC / Pahani <span className="text-red-500">*</span></label>
@@ -872,22 +843,6 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
                 <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">No Due Certificate <span className="text-red-500">*</span></label>
                 <input type="file" accept=".pdf,image/*" onChange={e => { setNoDueFile(e.target.files?.[0] || null); setErrors(prev => ({...prev, noDueFile: undefined})) }} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
                 {errors.noDueFile && <p className="text-red-500 text-xs mt-1">{errors.noDueFile}</p>}
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Khata Certificate</label>
-                <input type="file" accept=".pdf,image/*" onChange={e => setKhataFile(e.target.files?.[0] || null)} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Share Certificate Copy</label>
-                <input type="file" accept=".pdf,image/*" onChange={e => setShareCertFile(e.target.files?.[0] || null)} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Bank Passbook Copy</label>
-                <input type="file" accept=".pdf,image/*" onChange={e => setPassbookFile(e.target.files?.[0] || null)} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold text-[#0F4C81] mb-1 uppercase block">Land Tax Receipt</label>
-                <input type="file" accept=".pdf,image/*" onChange={e => setTaxReceiptFile(e.target.files?.[0] || null)} className="text-xs text-slate-500 w-full file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#EAF6FF] file:text-[#0F4C81]" />
               </div>
             </div>
           </div>
@@ -918,7 +873,15 @@ export const AgriculturalLoanApplication: React.FC<AgriculturalLoanApplicationPr
           </div>
 
           {/* SUBMIT BUTTON */}
-          <div className="flex justify-end mt-12 pt-8 border-t border-slate-200 print:hidden">
+          <div className="flex justify-end items-center mt-12 pt-8 border-t border-slate-200 print:hidden gap-4">
+            <button 
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSubmitting}
+              className="px-6 py-4 bg-white text-[#0F4C81] border-2 border-[#0F4C81] rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 transition-all"
+            >
+              Save as Draft
+            </button>
             <button 
               onClick={handleSubmit}
               disabled={isSubmitting || formData.existingMember === 'No'}
