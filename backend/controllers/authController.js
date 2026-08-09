@@ -416,7 +416,8 @@ const sendTransactionOtp = async (req, res, next) => {
         message
       });
     } catch (err) {
-      console.warn('Email send failed, but OTP logged to terminal:', err.message);
+      console.error('Email send failed:', err.message);
+      return res.status(500).json({ success: false, error: 'Failed to send OTP email. Please try again later.' });
     }
 
     res.status(200).json({ success: true, message: 'OTP sent to email' });
@@ -485,7 +486,8 @@ const sendRegistrationOtp = async (req, res, next) => {
         message
       });
     } catch (err) {
-      console.warn('Email send failed, but OTP logged to terminal:', err.message);
+      console.error('Email send failed:', err.message);
+      return res.status(500).json({ success: false, error: 'Failed to send OTP email. Please try again later.' });
     }
     
     res.status(200).json({ success: true, message: 'OTP sent successfully!' });

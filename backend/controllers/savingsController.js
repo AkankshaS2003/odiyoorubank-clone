@@ -71,6 +71,10 @@ exports.createDepositOrder = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid deposit data' });
     }
 
+    if (amount > 50000) {
+      return res.status(400).json({ success: false, error: 'Savings Deposit amount cannot exceed ₹50,000' });
+    }
+
     const account = await getSavingsAccount(req.user.id);
     if (!account) {
       return res.status(400).json({ success: false, error: 'Savings account not found or not active' });

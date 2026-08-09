@@ -98,6 +98,11 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
       setError('Minimum deposit amount is ₹100');
       return;
     }
+
+    if (amount > 50000) {
+      setError('Savings Deposit amount cannot exceed ₹50,000');
+      return;
+    }
     
     setError('');
     setIsSubmitting(true);
@@ -300,10 +305,11 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
                 <input 
                   type="number" 
                   min="100" 
+                  max="50000"
                   value={amount} 
                   onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : '')} 
                   className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-lg font-black text-[#0A315C] focus:ring-2 focus:ring-[#ED7F1E] outline-none transition-all" 
-                  placeholder="Min ₹100"
+                  placeholder="Min ₹100, Max ₹50,000"
                 />
               </div>
 
@@ -333,7 +339,7 @@ export const SavingsDepositApplication: React.FC<{ setCurrentTab: (tab: string) 
             
             <button 
               onClick={handlePayNow}
-              disabled={isSubmitting || !amount || amount < 100 || !customerIdInput}
+              disabled={isSubmitting || !amount || amount < 100 || amount > 50000 || !customerIdInput}
               className="w-full md:w-auto px-12 py-5 bg-[#ED7F1E] hover:bg-[#d66b12] disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
