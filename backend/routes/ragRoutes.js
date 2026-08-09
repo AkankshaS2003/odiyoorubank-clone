@@ -1,6 +1,6 @@
 const express = require('express');
-const { handleChat, getChatHistory } = require('../controllers/ragController');
-const { protect } = require('../middleware/authMiddleware');
+const { handleChat, getChatHistory, debugChat } = require('../controllers/ragController');
+const { protect, resolveUser } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -30,10 +30,13 @@ const chatRateLimiter = (maxRequests = 30, windowMs = 60 * 1000) => {
   };
 };
 
-// Chat endpoint (rate limited)
-router.post('/', chatRateLimiter(20, 60 * 1000), handleChat);
+// Chat endpoint (rate limited, user resolved if authenticated)
+router.post('/', resolveUser, chatRateLimiter(20, 60 * 1000), handleChat);
 
 // Chat history retrieval
 router.get('/history', protect, getChatHistory);
+
+// Admin diagnostic tool
+router.get('/debug', resolveUser, debugChat);
 
 module.exports = router;

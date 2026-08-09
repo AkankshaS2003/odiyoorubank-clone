@@ -209,7 +209,7 @@ const uploadDocument = async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Please upload a file' });
     }
 
-    const { title, category } = req.body;
+    const { title, category, documentId, product, pageNumber, section, effectiveDate, version } = req.body;
     const documentTitle = title || req.file.originalname;
     const documentCategory = category || 'General';
     const filename = req.file.originalname;
@@ -266,6 +266,14 @@ const uploadDocument = async (req, res, next) => {
           category: documentCategory,
           content: chunkTextContent,
           source: filename,
+          documentId: documentId || `doc_${Date.now()}`,
+          documentName: documentTitle,
+          product: product || null,
+          pageNumber: pageNumber || null,
+          section: section || null,
+          effectiveDate: effectiveDate || null,
+          version: version || '1.0',
+          uploadDate: new Date(),
           embedding
         });
       }));

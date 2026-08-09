@@ -100,46 +100,26 @@ export const AIChatAssistant: React.FC = () => {
     setErrorMsg(null);
 
     try {
-      const res = await api.post('/chat', { question: currentText });
+      const res = await api.post('/chat', { 
+        question: currentText, 
+        history: messages.map(msg => ({ sender: msg.sender, text: msg.text }))
+      });
       
       if (res.data.success) {
-        const { answer, sources } = res.data.data;
+        const { answer, sources, meta } = res.data.data;
         const assistantMsg: ChatMessage = {
           sender: 'assistant',
           text: answer,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          sources: sources
+          sources: sources,
+          meta: meta
         };
         setMessages(prev => [...prev, assistantMsg]);
       }
     } catch (err: any) {
       console.error('Chat assistance error:', err);
-      setErrorMsg('Failed to fetch banking logs. Running in offline/development fallback.');
-      
-      // Fallback local keyword answer generation in case backend server is down or error triggers
-      setTimeout(() => {
-        let reply = 'Sorry, I could not find that information in the bank records.';
-        const prompt = currentText.toLowerCase();
-
-        if (prompt.includes('fd') || prompt.includes('fixed') || prompt.includes('deposit') || prompt.includes('rate')) {
-          reply = 'Fixed deposit rates start from 4.5% up to 9.00% for society shareholders.';
-        } else if (prompt.includes('gold') || prompt.includes('loan') || prompt.includes('home') || prompt.includes('interest')) {
-          reply = 'Cooperative loans include Home Loans starting at 8.5% p.a. and Vehicle Loans at 9.5% p.a.';
-        } else if (prompt.includes('time') || prompt.includes('hour') || prompt.includes('open') || prompt.includes('saturday')) {
-          reply = 'Bank Timings: Monday-Friday 9:30 AM to 4:30 PM, Saturday 9:30 AM to 1:30 PM.';
-        } else if (prompt.includes('hello') || prompt.includes('hi') || prompt.includes('hey')) {
-          reply = 'Hello! How can I assist you with bank details today?';
-        }
-
-        const assistantMsg: ChatMessage = {
-          sender: 'assistant',
-          text: reply,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          sources: [{ title: 'Offline Fallback Registry', category: 'General', source: 'offline_local_mode' }]
-        };
-        setMessages(prev => [...prev, assistantMsg]);
-        setIsTyping(false);
-      }, 700);
+      setErrorMsg('Network error: Could not reach the banking assistant backend.');
+      setIsTyping(false);
       return;
     } finally {
       setIsTyping(false);
@@ -221,30 +201,6 @@ export const AIChatAssistant: React.FC = () => {
                       <div className="whitespace-pre-wrap font-medium" dangerouslySetInnerHTML={{ __html: formatMarkdown(msg.text) }} />
                     )}
                     
-                    {/* Citations Footer */}
-                    {msg.sources && msg.sources.length > 0 && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1">
-                        <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider flex items-center space-x-1">
-                          <BookOpen className="h-3 w-3 text-slate-400 mr-0.5" />
-                          <span>Bank References:</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1 pt-0.5">
-                          {Array.from(new Set(msg.sources.map(s => s.title))).map((title, sIdx) => {
-                            const matchingSource = msg.sources!.find(s => s.title === title);
-                            return (
-                              <span 
-                                key={sIdx} 
-                                className="inline-flex items-center px-2 py-0.5 rounded bg-[#0A315C]/5 text-[#0A315C] border border-[#0A315C]/10 text-[8.5px] font-bold truncate max-w-[170px]" 
-                                title={`Source: ${matchingSource?.source || 'policy'}`}
-                              >
-                                {title}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
                   </div>
                   <span className="text-[9px] text-slate-400 font-medium block text-right px-1">{msg.time}</span>
                 </div>
